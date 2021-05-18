@@ -1,0 +1,14 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - publication_ordering
+id: publication
+label: Publication
+description: 'A basic publication product type.'
+variationType: publication
+multipleVariations: false
+injectVariationFields: true
+traits: {  }
+locked: false

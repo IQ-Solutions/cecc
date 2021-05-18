@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.publication
+    - field.storage.commerce_product.field_spanish_version
+  enforced:
+    module:
+      - publication_ordering
+  module:
+    - link
+id: commerce_product.publication.field_spanish_version
+field_name: field_spanish_version
+entity_type: commerce_product
+bundle: publication
+label: 'Spanish Version'
+description: 'The Spanish version of the publication.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 16
+  title: 0
+field_type: link

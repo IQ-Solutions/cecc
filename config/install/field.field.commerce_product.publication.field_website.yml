@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.publication
+    - field.storage.commerce_product.field_website
+  enforced:
+    module:
+      - publication_ordering
+  module:
+    - link
+id: commerce_product.publication.field_website
+field_name: field_website
+entity_type: commerce_product
+bundle: publication
+label: Website
+description: 'The publication website.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 17
+  title: 0
+field_type: link

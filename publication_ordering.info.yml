@@ -1,0 +1,15 @@
+type: module
+name: Publication Ordering
+description: 'Adds custom configuration to Drupal Commerce'
+package: Commerce
+core: 8.x
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:media
+  - drupal:views
+  - drupal:commerce
+  - drupal:commerce_store
+  - drupal:commerce_product
+  - drupal:commerce_order
+  - drupal:commerce_cart
+  - drupal:commerce_checkout

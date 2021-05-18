@@ -1,0 +1,47 @@
+operations:
+  GetAllInventory:
+    httpMethod: "GET"
+    uri: "api/inventory/{agency}"
+    summary: "Gets all inventory"
+    parameters:
+      agency:
+        location: "uri"
+        description: "The agency id"
+        type: "string"
+        required: true
+      code:
+        location: "query"
+        description: "An authentication key"
+        type: "string"
+        required: true
+    responseModel: "results"
+models:
+  results:
+    type: "object"
+    location: "json"
+    properties:
+      code:
+        type: "string"
+        location: "json"
+      message:
+        type: "string"
+        location: "json"
+      inventory:
+        type: "array"
+        location: "json"
+        items:
+          "$ref": "Item"
+
+  Item:
+    type: "object"
+    location: "json"
+    properties:
+      sku:
+        location: "json"
+        type: "string"
+      zoho_item_id:
+        location: "json"
+        type: "integer"
+      actual_available_stock:
+        location: "json"
+        type: "integer"

@@ -1,0 +1,8 @@
+type: module
+name: Publication Ordering Cart
+description: 'Adds custom cart configuration to Drupal Commerce'
+package: Commerce
+core: 8.x
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:publication_ordering

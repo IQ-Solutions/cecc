@@ -1,0 +1,4 @@
+po_api.settings:
+  route_name: po_api.settings
+  base_route: publication_ordering.settings
+  title: 'API'

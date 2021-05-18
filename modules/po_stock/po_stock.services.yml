@@ -1,0 +1,24 @@
+services:
+  po_stock.order_event_subscriber:
+    class: Drupal\po_stock\EventSubscriber\Order
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.factory'
+      - '@po_stock.stock_validation'
+    tags:
+      - { name: 'event_subscriber' }
+
+  po_stock.stock_validation:
+    class: Drupal\po_stock\Service\StockValidation
+    arguments:
+      - '@commerce_cart.cart_provider'
+      - '@entity_type.manager'
+      - '@config.factory'
+
+  po_stock.stock_helper:
+    class: Drupal\po_stock\Service\StockHelper
+    arguments:
+      - '@po_stock.stock_validation'
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@request_stack'

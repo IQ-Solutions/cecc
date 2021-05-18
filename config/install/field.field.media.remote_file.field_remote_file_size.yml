@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - publication_ordering
+  config:
+    - field.storage.media.field_remote_file_size
+    - media.type.remote_file
+id: media.remote_file.field_remote_file_size
+field_name: field_remote_file_size
+entity_type: media
+bundle: remote_file
+label: 'Remote file size'
+description: 'The file size of the remote file. This should only be used if the media entity does not populate the file size.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

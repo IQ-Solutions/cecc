@@ -1,0 +1,15 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - publication_ordering
+id: remote_file
+label: 'Remote File'
+description: 'Allows remote files to be treated as local media.'
+source: remote_file
+queue_thumbnail_downloads: false
+new_revision: false
+source_configuration:
+  source_field: field_media_remote_file
+field_map: {  }

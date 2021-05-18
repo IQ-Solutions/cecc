@@ -1,0 +1,31 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - publication_ordering
+  config:
+    - commerce_product.commerce_product_type.publication
+    - field.storage.commerce_product.field_product_category
+    - taxonomy.vocabulary.product_category
+id: commerce_product.publication.field_product_category
+field_name: field_product_category
+entity_type: commerce_product
+bundle: publication
+label: 'Product Category'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      product_category: product_category
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

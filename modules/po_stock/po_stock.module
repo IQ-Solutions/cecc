@@ -1,0 +1,46 @@
+<?php
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+function po_stock_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $stockHelper = \Drupal::service('po_stock.stock_helper');
+  $stockHelper->alterCatalogForms($form, $form_state, $form_id);
+}
+
+/**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function po_stock_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
+  if ($entity_type->id() === 'commerce_order_item') {
+    if (!empty($fields['quantity'])) {
+      $fields['quantity']->addConstraint('QuantityLimit');
+      $fields['quantity']->addConstraint('StockLevel');
+    }
+  }
+}
+
+function po_stock_preprocess_commerce_product__publication(&$variables) {
+  $config = \Drupal::config('po_stock.settings');
+
+  if (!empty($config->get('limit_order_at_max_quantity')) &&
+    $config->get('limit_order_at_max_quantity')
+  ) {
+    /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
+    $product = $variables['product_entity'];
+    /** @var \Drupal\po_stock\Service\StockValidation $stockValidation */
+    $stockValidation = Drupal::service('po_stock.stock_validation');
+    /** @var \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation */
+    $productVariation = $product->getDefaultVariation();
+
+    $productVariationId = $productVariation->id();
+    $limitText = t($config->get('order_over_limit_text'), [
+      '%label' => $product->getTitle(),
+      '%limit' => $productVariation->get('field_maximum_order_amount')->value,
+    ]);
+
+    $variables['atQuantityLimit'] = $stockValidation->isCartAtQuantityLimit($productVariationId);
+    $variables['limitText'] = $limitText;
+  }
+}
+

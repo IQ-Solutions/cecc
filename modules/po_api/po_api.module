@@ -1,0 +1,19 @@
+<?php
+
+use Drupal\po_api\Form\ConfirmProductRestockForm;
+
+/**
+ * Implements hook_cron().
+ */
+function po_api_cron() { }
+
+function po_api_inventory_update() {
+  /** @var \Drupal\po_api\Service\StockApi $stockApi */
+  $stockApi = \Drupal::service('po_api.stock');
+
+  $stockApi->updateAllInventory();
+}
+
+function po_api_entity_type_build(array &$entity_types) {
+  $entity_types['commerce_product']->setFormClass('refresh_product_stock', ConfirmProductRestockForm::class);
+}

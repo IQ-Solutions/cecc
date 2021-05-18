@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - publication_ordering
+name: 'Product Category'
+vid: product_category
+description: ''
+weight: 0

@@ -1,0 +1,245 @@
+<?php
+
+use Drupal\commerce\Context;
+use Drupal\commerce_price\Price;
+use Drupal\commerce\PurchasableEntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Site\Settings;
+use Drupal\publication_ordering\Form\RemoteFileForm;
+use Drupal\publication_ordering\Plugin\Commerce\CheckoutPane\PoShippingInformation;
+
+/**
+ * Implements hook_theme().
+ */
+function publication_ordering_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['po_download_link'] = [
+    'variables' => [
+      'link_url' => NULL,
+      'link_alt' => NULL,
+      'file_size' => NULL,
+    ],
+  ];
+
+  $themeArray['po_featured_promotion'] = [
+    'variables' => [
+      'promotion' => NULL,
+      'promotion_title' => NULL,
+      'promotion_image' => NULL,
+      'promotion_link' => NULL,
+      'promotion_text' => NULL,
+    ],
+  ];
+
+  $themeArray['catalog_admin_general'] = [
+    'variables' => [],
+  ];
+
+  return $themeArray;
+}
+
+/**
+ * Implements hook_media_source_info_alter().
+ */
+function publication_ordering_media_source_info_alter(array &$sources) {
+  if (empty($sources['remote_file']['forms']['media_library_add'])) {
+    $sources['remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function publication_ordering_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'commerce_product_variation') {
+    // Provide a default value callback for the price field.
+    $fields['price']->setDefaultValueCallback('publication_ordering_price_default_value');
+  }
+  if ($entity_type->id() === 'commerce_order_item') {
+    if (!empty($fields['quantity'])) {
+      $fields['quantity']->addConstraint('GreaterThanZero');
+    }
+  }
+}
+
+/**
+ * Default value callback for the variation price field.
+ *
+ * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+ *   The entity being created.
+ * @param \Drupal\Core\Field\FieldDefinitionInterface $definition
+ *   The field definition.
+ * @return array
+ */
+function publication_ordering_price_default_value(
+  FieldableEntityInterface $entity,
+  FieldDefinitionInterface $definition) {
+  $bundle = $entity->bundle();
+
+  if ($bundle == 'publication') {
+    return [new Price('0', 'USD')];
+  }
+}
+
+/**
+ * Get the context for the provided Purchasable Entity.
+ *
+ * @param \Drupal\commerce\PurchasableEntityInterface $entity
+ *   The purchasable entity.
+ *
+ * @return \Drupal\commerce\Context
+ *   The context.
+ *
+ * @see \Drupal\commerce_stock\ContextCreatorTrait::getContextDetails()
+ * @see \Drupal\commerce_cart\Form\AddToCartForm::selectStore()
+ */
+function publication_ordering_get_context(
+  PurchasableEntityInterface $entity
+) {
+
+  // @todo - think about using selectStore() in commerce_cart.module.
+  $store_to_use = \Drupal::service('commerce_store.current_store')->getStore();
+  $current_user = \Drupal::currentUser();
+  // Make sure the current store is in the entity stores.
+  $stores = $entity->getStores();
+  $found = FALSE;
+  // If we have a current store.
+  if ($store_to_use) {
+    // Make sure it is associated with the curent product.
+    foreach ($stores as $store) {
+      if ($store->id() == $store_to_use->id()) {
+        $found = TRUE;
+        break;
+      }
+    }
+  }
+  // If not found and we have stores associated with the product.
+  if (!$found) {
+    if (!empty($stores)) {
+      // Get the first store the product is assigned to.
+      $store_to_use = array_shift($stores);
+    }
+  }
+  return new Context($current_user, $store_to_use);
+}
+
+/**
+ * Implements hook_commerce_checkout_pane_info_alter().
+ */
+function publication_ordering_commerce_checkout_pane_info_alter(&$definitions) {
+  if (isset($definitions['billing_information'])) {
+    $definitions['billing_information']['class'] = PoShippingInformation::class;
+    $definitions['billing_information']['provider'] = 'publication_ordering';
+  }
+}
+
+function publication_ordering_commerce_inline_form_alter(
+  array &$inline_form,
+  FormStateInterface $form_state,
+  array &$complete_form
+) {
+  /** @var \Drupal\commerce\Plugin\Commerce\InlineForm\InlineFormInterface $plugin */
+  $plugin = $inline_form['#inline_form'];
+
+  if ($plugin->getPluginId() == 'customer_profile') {
+    if ($inline_form['#profile_scope'] == 'billing' && !isset($inline_form['rendered'])) {
+      $inline_form['address']['widget'][0]['address']['#process'][] = ['Drupal\address\Element\Address', 'processAddress'];
+      $inline_form['address']['widget'][0]['address']['#process'][] = 'publication_ordering_address_fields';
+    }
+  }
+}
+
+function publication_ordering_address_fields($element, $form_state) {
+  $element['address_line1']['#type'] = 'textarea';
+  $element['address_line1']['#maxlength'] = 255;
+  $element['address_line1']['#attributes']['placeholder'] = t("Please enter your street address. Ex.\nOffice name (optional)\nBuilding name (optional)\nStreet address");
+
+  $element['organization']['#attributes']['placeholder'] = t('Please enter your company or organization name.');
+  $element['organization']['#description'] = t('Please enter your company or organization name.');
+
+  $element['address_line2']['#description'] = t('Room or Suite Number. Ex. Room 104');
+  $element['address_line2']['#attributes']['placeholder'] = t('Room or Suite Number. Ex. Room 104');
+
+  return $element;
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function publication_ordering_mail_alter(array &$message) {
+  // Order receipt.
+  if ($message['id'] === 'commerce_order_receipt') {
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    $order = $message['params']['order'];
+    $config = \Drupal::config('publication_ordering.settings');
+    $siteConfig = \Drupal::config('system.site');
+
+    $fromName = empty($config->get('email_from_name')) ? $siteConfig->get('name') :
+    $config->get('email_from_name');
+
+    $email = empty($config->get('email_from')) ? $siteConfig->get('mail') :
+    $config->get('email_from');
+
+    $message['from'] = $email;
+    $message['headers']['Sender'] = $message['headers']['Return-Path'] = $message['from'];
+    $message['headers']['From'] = t("@subject <@email>", [
+      '@subject' => $fromName,
+      '@email' => $email,
+    ])->__toString();
+
+    if (!empty($config->get('email_subject'))) {
+      // Change the email subject.
+      // @todo Remove this if/when it becomes configurable.
+      //   https://www.drupal.org/project/commerce/issues/2924159
+      $message['subject'] = t($config->get('email_subject'), [
+        '@number' => $order->getOrderNumber(),
+      ])->__toString();
+    }
+  }
+}
+
+function publication_ordering_token_info() {
+  $info = [];
+  $info['tokens']['pattern']['environment'] = [
+    'name' => t('Environment'),
+    'description' => t('The current site environment'),
+  ];
+
+  return $info;
+}
+
+function publication_ordering_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleableMetadata) {
+  $replacements = [];
+
+  if ($type == 'pattern') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'environment':
+          $replacements[$original] = publication_ordering_get_current_environment();
+          break;
+      }
+    }
+  }
+
+  return $replacements;
+}
+
+function publication_ordering_get_current_environment() {
+  $environments = Settings::get('po_commerce_environments');
+  /** @var \Symfony\Component\HttpFoundation\RequestStack $requestStack */
+  $requestStack = \Drupal::service('request_stack');
+  $request = $requestStack->getCurrentRequest();
+
+  $host = $request->getSchemeAndHttpHost();
+
+  if (empty($environments)) {
+    return '';
+  }
+
+  return isset($environments[$host]) ? $environments[$host] . '-' : '';
+}
