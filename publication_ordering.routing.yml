@@ -1,8 +1,0 @@
-publication_ordering.settings:
-  path: '/admin/config/publication_ordering'
-  defaults:
-   _form: '\Drupal\publication_ordering\Form\PublicationOrderingConfig'
-   _title: 'Publication Ordering Config'
-  requirements:
-    _permission:
-      'administer site configuration'

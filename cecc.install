@@ -1,0 +1,16 @@
+<?php
+
+use Drupal\Core\Config\FileStorage;
+
+/**
+ * Helper function to import single config file.
+ *
+ * @param string $config_name
+ *   The name of the config item to import from the config sync folder.
+ */
+function cecc_import_single_config($config_name) {
+  $config_path = drupal_get_path('module', 'cecc') . '/config/install';
+  $source = new FileStorage($config_path);
+  $config_storage = \Drupal::service('config.storage');
+  $config_storage->write($config_name, $source->read($config_name));
+}

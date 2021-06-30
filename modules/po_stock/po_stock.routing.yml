@@ -1,8 +1,0 @@
-po_stock.settings:
-  path: '/admin/config/publication_ordering/stock'
-  defaults:
-   _form: '\Drupal\po_stock\Form\PoStockConfig'
-   _title: 'Publication Ordering Stock Config'
-  requirements:
-    _permission:
-      'administer site configuration'

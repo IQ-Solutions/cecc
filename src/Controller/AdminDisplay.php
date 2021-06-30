@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Controller;
+namespace Drupal\cecc\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 

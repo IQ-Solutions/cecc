@@ -1,5 +1,0 @@
-po_api.contents:
-  title: "Catalog Inventory APIs"
-  api_path: "src/api/catalog_services.yml"
-  config:
-    base_uri: "https://order-apis.azurewebsites.net"

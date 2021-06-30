@@ -1,6 +1,0 @@
-name: "Catalog Services API"
-apiVersion: "1.0"
-description: "Client wrapper for the Catalog Services API."
-imports:
-  - 'resources/all_inventory.yml'
-  - 'resources/single_inventory.yml'

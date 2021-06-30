@@ -1,0 +1,5 @@
+cecc.config:
+  title: 'Customer Engagement Center Catalog'
+  parent: system.admin_config
+  description: 'Custom Config for the publication catalog'
+  route_name: cecc.settings

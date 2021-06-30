@@ -1,8 +1,0 @@
-type: module
-name: Publication Ordering Stock Management
-description: 'Adds custom configuration to Drupal Commerce Stock'
-package: Commerce
-core: 8.x
-core_version_requirement: ^8 || ^9
-dependencies:
-  - publication_ordering

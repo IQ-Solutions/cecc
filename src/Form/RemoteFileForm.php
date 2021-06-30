@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Form;
+namespace Drupal\cecc\Form;
 
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\media_library\Form\AddFormBase;

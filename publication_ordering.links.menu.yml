@@ -1,5 +1,0 @@
-publication_ordering.config:
-  title: 'Publication Catalog'
-  parent: system.admin_config
-  description: 'Custom Config for the publication catalog'
-  route_name: publication_ordering.settings

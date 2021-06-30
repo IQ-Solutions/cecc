@@ -1,0 +1,4 @@
+cecc.settings:
+  route_name: cecc.settings
+  base_route: cecc.settings
+  title: 'General'

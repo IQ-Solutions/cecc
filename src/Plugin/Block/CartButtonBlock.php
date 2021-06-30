@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Block;
+namespace Drupal\cecc\Plugin\Block;
 
 use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\Core\Block\BlockBase;
@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides a cart button block.
  *
  * @Block(
- *   id = "po_commerce_cart_button",
+ *   id = "cecc_commerce_cart_button",
  *   admin_label = @Translation("Cart Button"),
  *   category = @Translation("Commerce")
  * )

@@ -1,4 +1,0 @@
-po_stock.settings:
-  route_name: po_stock.settings
-  base_route: publication_ordering.settings
-  title: 'Stock'

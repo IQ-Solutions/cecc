@@ -1,5 +1,0 @@
-po_add_to_cart_ajax:
-  js:
-    js/addToCart.js: {}
-  dependencies:
-   - core/drupal.ajax

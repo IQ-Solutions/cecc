@@ -1,0 +1,5 @@
+# Editor files
+*.code-workspace
+
+# development files
+node_modules

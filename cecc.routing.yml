@@ -1,0 +1,8 @@
+cecc.settings:
+  path: '/admin/config/cecc'
+  defaults:
+   _form: '\Drupal\cecc\Form\CeccConfigForm'
+   _title: 'Customer Engagement Center Catalog'
+  requirements:
+    _permission:
+      'administer site configuration'
