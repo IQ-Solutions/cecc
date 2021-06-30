@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * Class to modify Drupal DI.
  */
-class CecServiceProvider extends ServiceProviderBase {
+class CeccServiceProvider extends ServiceProviderBase {
 
   /**
    * {@inheritDoc}
