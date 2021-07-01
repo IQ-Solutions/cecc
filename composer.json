@@ -1,0 +1,20 @@
+{
+  "name": "iq/cecc",
+  "description": "Provides an interface between Drupal 8 and the Locator tool angular interface",
+  "type": "drupal-custom-module",
+  "keywords": [
+    "Drupal"
+  ],
+  "homepage": "https://github.com/IQ-Solutions/cecc",
+  "authors": [
+    {
+      "name": "Kevin L Rice",
+      "role": "Maintainer",
+      "email": "krice@iqsolutions.com"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/IQ-Solutions/cecc/issues",
+    "source": "https://github.com/IQ-Solutions/cecc"
+  }
+}
