@@ -4,10 +4,4 @@ description: 'Customer Engagement Center (CEC) Catalog Drupal module'
 package: 'Customer Engagement Center'
 core_version_requirement: ^8.8 || ^9
 dependencies:
-  - drupal:views
   - drupal:commerce
-  - drupal:commerce_store
-  - drupal:commerce_product
-  - drupal:commerce_order
-  - drupal:commerce_cart
-  - drupal:commerce_checkout
