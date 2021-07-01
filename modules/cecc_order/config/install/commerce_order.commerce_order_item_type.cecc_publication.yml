@@ -1,0 +1,13 @@
+angcode: en
+status: true
+dependencies:
+  enforced:
+    module: cecc_order
+  module:
+    - cecc_order
+label: Publication
+id: cecc_publication
+purchasableEntityType: commerce_product_variation
+orderType: cecc_publication
+traits: {  }
+locked: false
