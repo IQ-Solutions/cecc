@@ -57,7 +57,7 @@ class CeccCartManager extends CartManager {
     $purchased_entity = $order_item->getPurchasedEntity();
     $quantity = $order_item->getQuantity();
     $matching_order_item = NULL;
-    $commerceConfig = $this->configFactory->get('publication_ordering.settings');
+    $commerceConfig = $this->configFactory->get('cecc.settings');
     $addToCartType = $commerceConfig->get('quantity_update_type');
 
     if ($combine) {

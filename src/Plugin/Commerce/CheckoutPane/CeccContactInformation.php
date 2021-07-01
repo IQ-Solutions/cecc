@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Commerce\CheckoutPane;
+namespace Drupal\cecc\Plugin\Commerce\CheckoutPane;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowInterface;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\ContactInformation;
@@ -13,13 +13,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides the contact information pane with phone and extension.
  *
  * @CommerceCheckoutPane(
- *   id = "po_contact_information",
+ *   id = "cecc_contact_information",
  *   label = @Translation("Contact information"),
  *   default_step = "order_information",
  *   wrapper_element = "fieldset",
  * )
  */
-class PoContactInformation extends ContactInformation {
+class CeccContactInformation extends ContactInformation {
 
   /**
    * The shipping order manager service.

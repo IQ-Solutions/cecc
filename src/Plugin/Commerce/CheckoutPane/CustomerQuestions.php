@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Commerce\CheckoutPane;
+namespace Drupal\cecc\Plugin\Commerce\CheckoutPane;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneBase;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneInterface;
@@ -10,7 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
  * Adds customer questions to checkout summary.
  *
  * @CommerceCheckoutPane(
- *   id = "customer_questions",
+ *   id = "cecc_customer_questions",
  *   label = @Translation("Additional Information"),
  *   default_step = "order_information",
  *   wrapper_element = "fieldset",

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Validation\Constraint;
+namespace Drupal\cecc\Plugin\Validation\Constraint;
 
 use Drupal\Core\Field\FieldItemListInterface;
 use Symfony\Component\Validator\Constraint;

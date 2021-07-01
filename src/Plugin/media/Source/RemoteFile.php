@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\media\Source;
+namespace Drupal\cecc\Plugin\media\Source;
 
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;

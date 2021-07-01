@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Field\FieldFormatter;
+namespace Drupal\cecc\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FormatterBase;

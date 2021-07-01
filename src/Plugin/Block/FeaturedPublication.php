@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Block;
+namespace Drupal\cecc\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Block\BlockBase;
@@ -84,7 +84,7 @@ class FeaturedPublication extends BlockBase implements ContainerFactoryPluginInt
       }
 
       return [
-        '#theme' => 'po_featured_promotion',
+        '#theme' => 'cecc_featured_promotion',
         '#promotion' => $promotion,
         '#promotion_title' => $promotion->title->value,
         '#promotion_link' => $promotion->toUrl(),

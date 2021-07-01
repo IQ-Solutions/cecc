@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\publication_ordering\Plugin\Commerce\CheckoutPane;
+namespace Drupal\cecc\Plugin\Commerce\CheckoutPane;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\BillingInformation;
 use Drupal\Core\Form\FormStateInterface;
@@ -8,7 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 /**
  * Provides customizations to the billing info pane.
  */
-class PoShippingInformation extends BillingInformation {
+class CeccShippingInformation extends BillingInformation {
 
   /**
    * {@inheritDoc}
