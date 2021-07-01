@@ -6,7 +6,7 @@ use Drupal\cecc_remote_file\Form\RemoteFileForm;
 /**
  * Implements hook_theme().
  */
-function cecc_theme($existing, $type, $theme, $path) {
+function cecc_remote_file_theme($existing, $type, $theme, $path) {
   $themeArray = [];
 
   $themeArray['cecc_download_link'] = [
@@ -23,7 +23,7 @@ function cecc_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_media_source_info_alter().
  */
-function cecc_media_source_info_alter(array &$sources) {
+function cecc_remote_file_media_source_info_alter(array &$sources) {
   if (empty($sources['remote_file']['forms']['media_library_add'])) {
     $sources['remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
   }

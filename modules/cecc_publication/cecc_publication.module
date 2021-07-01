@@ -1,0 +1,37 @@
+<?php
+
+use Drupal\commerce_price\Price;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+
+/**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function cecc_publication_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type)
+{
+  if ($entity_type->id() == 'commerce_product_variation') {
+    // Provide a default value callback for the price field.
+    $fields['price']->setDefaultValueCallback('cecc_price_default_value');
+  }
+}
+
+/**
+ * Default value callback for the variation price field.
+ *
+ * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+ *   The entity being created.
+ * @param \Drupal\Core\Field\FieldDefinitionInterface $definition
+ *   The field definition.
+ * @return array
+ */
+function cecc_price_default_value(
+  FieldableEntityInterface $entity,
+  FieldDefinitionInterface $definition
+) {
+  $bundle = $entity->bundle();
+
+  if ($bundle == 'cecc_publication') {
+    return [new Price('0', 'USD')];
+  }
+}
