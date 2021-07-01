@@ -1,0 +1,30 @@
+<?php
+
+use Drupal\cecc_remote_file\Form\RemoteFileForm;
+
+
+/**
+ * Implements hook_theme().
+ */
+function cecc_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['cecc_download_link'] = [
+    'variables' => [
+      'link_url' => NULL,
+      'link_alt' => NULL,
+      'file_size' => NULL,
+    ],
+  ];
+
+  return $themeArray;
+}
+
+/**
+ * Implements hook_media_source_info_alter().
+ */
+function cecc_media_source_info_alter(array &$sources) {
+  if (empty($sources['remote_file']['forms']['media_library_add'])) {
+    $sources['remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
+  }
+}

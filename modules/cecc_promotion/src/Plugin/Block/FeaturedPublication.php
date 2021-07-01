@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Plugin\Block;
+namespace Drupal\cecc_promotion\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Block\BlockBase;
@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides a block for the featured publication content type.
  *
  * @Block(
- *   id = "featured_publication_block",
+ *   id = "cecc_featured_publication_block",
  *   admin_label = @Translation("Featured Publication"),
  * )
  */

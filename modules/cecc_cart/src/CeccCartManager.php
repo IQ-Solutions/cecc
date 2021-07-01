@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc;
+namespace Drupal\cecc_cart;
 
 use Drupal\commerce_cart\CartManager;
 use Drupal\commerce_cart\Event\CartOrderItemAddEvent;

@@ -1,15 +1,12 @@
 <?php
 
-use Drupal\commerce\Context;
 use Drupal\commerce_price\Price;
-use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Site\Settings;
-use Drupal\cecc\Form\RemoteFileForm;
 use Drupal\cecc\Plugin\Commerce\CheckoutPane\PoShippingInformation;
 use Drupal\cecc\Service\FormHelper;
 
@@ -18,24 +15,6 @@ use Drupal\cecc\Service\FormHelper;
  */
 function cecc_theme($existing, $type, $theme, $path) {
   $themeArray = [];
-
-  $themeArray['po_download_link'] = [
-    'variables' => [
-      'link_url' => NULL,
-      'link_alt' => NULL,
-      'file_size' => NULL,
-    ],
-  ];
-
-  $themeArray['po_featured_promotion'] = [
-    'variables' => [
-      'promotion' => NULL,
-      'promotion_title' => NULL,
-      'promotion_image' => NULL,
-      'promotion_link' => NULL,
-      'promotion_text' => NULL,
-    ],
-  ];
 
   $themeArray['catalog_admin_general'] = [
     'variables' => [],
@@ -66,26 +45,12 @@ function cecc_element_info_alter(array &$types) {
 }
 
 /**
- * Implements hook_media_source_info_alter().
- */
-function cecc_media_source_info_alter(array &$sources) {
-  if (empty($sources['remote_file']['forms']['media_library_add'])) {
-    $sources['remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
-  }
-}
-
-/**
  * Implements hook_entity_base_field_info_alter().
  */
 function cecc_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
   if ($entity_type->id() == 'commerce_product_variation') {
     // Provide a default value callback for the price field.
     $fields['price']->setDefaultValueCallback('cecc_price_default_value');
-  }
-  if ($entity_type->id() === 'commerce_order_item') {
-    if (!empty($fields['quantity'])) {
-      //$fields['quantity']->addConstraint('GreaterThanZero');
-    }
   }
 }
 
@@ -106,48 +71,6 @@ function cecc_price_default_value(
   if ($bundle == 'publication') {
     return [new Price('0', 'USD')];
   }
-}
-
-/**
- * Get the context for the provided Purchasable Entity.
- *
- * @param \Drupal\commerce\PurchasableEntityInterface $entity
- *   The purchasable entity.
- *
- * @return \Drupal\commerce\Context
- *   The context.
- *
- * @see \Drupal\commerce_stock\ContextCreatorTrait::getContextDetails()
- * @see \Drupal\commerce_cart\Form\AddToCartForm::selectStore()
- */
-function cecc_get_context(
-  PurchasableEntityInterface $entity
-) {
-
-  // @todo - think about using selectStore() in commerce_cart.module.
-  $store_to_use = \Drupal::service('commerce_store.current_store')->getStore();
-  $current_user = \Drupal::currentUser();
-  // Make sure the current store is in the entity stores.
-  $stores = $entity->getStores();
-  $found = FALSE;
-  // If we have a current store.
-  if ($store_to_use) {
-    // Make sure it is associated with the curent product.
-    foreach ($stores as $store) {
-      if ($store->id() == $store_to_use->id()) {
-        $found = TRUE;
-        break;
-      }
-    }
-  }
-  // If not found and we have stores associated with the product.
-  if (!$found) {
-    if (!empty($stores)) {
-      // Get the first store the product is assigned to.
-      $store_to_use = array_shift($stores);
-    }
-  }
-  return new Context($current_user, $store_to_use);
 }
 
 /**

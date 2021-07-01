@@ -1,0 +1,37 @@
+{% extends "block.html.twig" %}
+{#
+/**
+ * @file
+ * Theme override for a branding block.
+ *
+ * Each branding element variable (logo, name, slogan) is only available if
+ * enabled in the block configuration.
+ *
+ * Available variables:
+ * - promotion: The featured data.
+ */
+#}
+{% block content %}
+  {% if promotion %}
+    <div class="featured-content-container">
+      {% if promotion_image %}
+      <div class="promotion-image">
+        <img src="{{ promotion_image }}" alt="{{promotion_title}}">
+      </div>
+      {% endif %}
+      <div class="promotion">
+        <h4><a href="{{ promotion_link }}" title="{{ promotion_title }}" class="promotion-title">
+          {{ promotion_title }}
+        </a></h4>
+        {% if promotion.body.0.summary %}
+          <p class="promotion-text">{{ promotion.body.0.summary }}</p>
+        {% else %}
+          <p class="promotion-text">{{ promotion_text|truncate(240, true, '&mldr;')|raw }}</p>
+        {% endif %}
+        <div class="promotion-link"><a href="{{ promotion_link }}" title="{{ promotion_title }}">
+          See Featured Publications
+        </a></div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

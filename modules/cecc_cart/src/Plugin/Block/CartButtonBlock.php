@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Plugin\Block;
+namespace Drupal\cecc_cart\Plugin\Block;
 
 use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\Core\Block\BlockBase;

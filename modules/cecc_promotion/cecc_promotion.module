@@ -1,0 +1,21 @@
+<?php
+
+
+/**
+ * Implements hook_theme().
+ */
+function cecc_promotion_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['cecc_featured_promotion'] = [
+    'variables' => [
+      'promotion' => NULL,
+      'promotion_title' => NULL,
+      'promotion_image' => NULL,
+      'promotion_link' => NULL,
+      'promotion_text' => NULL,
+    ],
+  ];
+
+  return $themeArray;
+}

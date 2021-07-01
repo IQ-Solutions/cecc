@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Form;
+namespace Drupal\cecc_remote_file\Form;
 
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\media_library\Form\AddFormBase;

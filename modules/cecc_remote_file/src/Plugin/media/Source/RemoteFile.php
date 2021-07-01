@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Plugin\media\Source;
+namespace Drupal\cecc_remote_file\Plugin\media\Source;
 
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
@@ -12,7 +12,7 @@ use Drupal\media\MediaTypeInterface;
  * @see \Drupal\file\FileInterface
  *
  * @MediaSource(
- *   id = "remote_file",
+ *   id = "cecc_remote_file",
  *   label = @Translation("Remote File"),
  *   description = @Translation("Use remote files."),
  *   allowed_field_types = {"string_long"},

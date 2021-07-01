@@ -11,8 +11,8 @@ use Drupal\media\Entity\Media;
  * Plugin implementation of the download_link formatter.
  *
  * @FieldFormatter(
- *   id = "po_download_link",
- *   module = "publication_ordering",
+ *   id = "cecc_download_link",
+ *   module = "cecc_remote_file",
  *   label = @Translation("Download Link"),
  *   field_types = {
  *     "entity_reference"
@@ -73,7 +73,7 @@ class DownloadLink extends FormatterBase {
         : $media_item->get('field_remote_file_size')->value;
 
         $elements[$delta] = [
-          '#theme' => 'po_download_link',
+          '#theme' => 'cecc_download_link',
           '#link_url' => $path,
           '#link_alt' => $media_item->getName(),
           '#file_size' => format_size($fileSize),
