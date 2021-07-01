@@ -2,7 +2,6 @@ type: module
 name: 'CEC Catalog Promotions'
 description: 'Content type used to create promotions for products'
 package: 'Customer Engagement Center'
-core: 8.x
 core_version_requirement: ^8.8 || ^9
 dependencies:
   - cecc
