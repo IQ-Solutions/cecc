@@ -1,5 +1,5 @@
 services:
-  publication_ordering.form_helper:
+  cecc.form_helper:
     class: Drupal\cecc\Service\FormHelper
     arguments:
       - '@entity_type.manager'
