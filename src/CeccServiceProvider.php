@@ -17,7 +17,7 @@ class CeccServiceProvider extends ServiceProviderBase {
   public function alter(ContainerBuilder $container) {
     if ($container->hasDefinition('form_error_handler')) {
       $definition = $container->getDefinition('form_error_handler');
-      $definition->setClass(PoFormErrorHandler::class)
+      $definition->setClass(CeccFormErrorHandler::class)
         ->setArguments([
           new Reference('string_translation'),
           new Reference('renderer'),
