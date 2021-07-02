@@ -5,9 +5,9 @@ dependencies:
     - commerce_product.commerce_product_type.cecc_publication
     - field.field.commerce_product.cecc_publication.body
   enforced:
-    module: cecc_publication
+    module:
+      - cecc_publication
   module:
-    - cecc_publication
     - commerce
     - commerce_product
     - path

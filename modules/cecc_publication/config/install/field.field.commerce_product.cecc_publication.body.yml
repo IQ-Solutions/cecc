@@ -5,9 +5,9 @@ dependencies:
     - commerce_product.commerce_product_type.cecc_publication
     - field.storage.commerce_product.body
   enforced:
-    module: cecc_publication
+    module:
+      - cecc_publication
   module:
-    - cecc_publication
     - text
 id: commerce_product.cecc_publication.body
 field_name: body

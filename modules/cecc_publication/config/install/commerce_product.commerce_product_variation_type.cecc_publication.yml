@@ -2,8 +2,8 @@ langcode: en
 status: true
 dependencies:
   enforced:
-    module: cecc_publication
-  module: cecc_publication
+    module:
+      - cecc_publication
 id: cecc_publication
 label: Publication
 orderItemType: cecc_publication

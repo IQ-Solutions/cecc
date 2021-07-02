@@ -4,8 +4,8 @@ dependencies:
   config:
     - commerce_product.commerce_product_variation_type.cecc_publication
   enforced:
-    module: cecc_publication
-  module: cecc_publication
+    module:
+      - cecc_publication
 id: commerce_product_variation.cecc_publication.default
 targetEntityType: commerce_product_variation
 bundle: cecc_publication
