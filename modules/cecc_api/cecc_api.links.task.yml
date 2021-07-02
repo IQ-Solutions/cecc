@@ -1,0 +1,4 @@
+cecc_api.settings:
+  route_name: cecc_api.settings
+  base_route: publication_ordering.settings
+  title: 'API'

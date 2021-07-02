@@ -1,0 +1,10 @@
+type: module
+name: CEC Catalog Api
+description: 'API services for the catalog'
+package: 'Customer Engagement Center'
+configure: cecc_api.settings
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:cecc
+  - drupal:http_client_manager
+  - drupal:cecc_stock

@@ -1,0 +1,42 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
+use Drupal\cecc_api\Form\ConfirmProductRestockForm;
+use Drupal\cecc_api\Form\ConfirmSendOrderForm;
+
+/**
+ * Implements hook_cron().
+ */
+function cecc_api_cron() { }
+
+function cecc_api_inventory_update() {
+  /** @var \Drupal\cecc_api\Service\StockApi $stockApi */
+  $stockApi = \Drupal::service('cecc_api.stock');
+
+  $stockApi->updateAllInventory();
+}
+
+function cecc_api_entity_type_build(array &$entity_types) {
+  $entity_types['commerce_product']->setFormClass('refresh_product_stock', ConfirmProductRestockForm::class);
+  $entity_types['commerce_order']->setFormClass('send_order', ConfirmSendOrderForm::class);
+}
+
+function cecc_api_entity_operation(EntityInterface $entity) {
+  $operations = [];
+  $entityTypes = [
+    'commerce_order',
+  ];
+
+  if (in_array($entity->getEntityTypeId(), $entityTypes)) {
+    $operations['send_order'] = [
+      'title' => t('Send Order'),
+      'url' => Url::fromRoute('cecc_api.send_order', [
+        'commerce_order' => $entity->id(),
+      ]),
+      'weight' => 50,
+    ];
+  }
+
+  return $operations;
+}

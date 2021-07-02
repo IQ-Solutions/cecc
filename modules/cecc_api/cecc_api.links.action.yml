@@ -1,0 +1,17 @@
+cecc_api.refresh_stock:
+  route_name: 'cecc_api.refresh_stock'
+  title: 'Refresh Stock'
+  appears_on:
+    - entity.commerce_product.edit_form
+
+cecc_api.send_order:
+  route_name: 'cecc_api.send_order'
+  title: 'Send Order'
+  appears_on:
+    - entity.commerce_order.edit_form
+
+cecc_api.refresh_all_stock:
+  route_name: 'cecc_api.refresh_all_stock'
+  title: 'Refresh All Stock'
+  appears_on:
+    - cecc_api.settings

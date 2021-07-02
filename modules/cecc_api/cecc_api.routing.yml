@@ -1,0 +1,33 @@
+cecc_api.settings:
+  path: '/admin/config/cecc_api'
+  defaults:
+   _form: '\Drupal\cecc_api\Form\PoApiConfig'
+   _title: 'Publication Ordering API Config'
+  requirements:
+    _permission:
+      'administer site configuration'
+
+cecc_api.refresh_stock:
+  path: '/admin/commerce/products/{commerce_product}/refresh-stock'
+  defaults:
+    _entity_form: commerce_product.refresh_product_stock
+    _title: 'Refresh Stock'
+  requirements:
+    _permission: 'administer site configuration'
+
+cecc_api.send_order:
+  path: '/admin/commerce/orders/{commerce_order}/send-order'
+  defaults:
+    _entity_form: commerce_order.send_order
+    _title: 'Send Order'
+  requirements:
+    _permission: 'administer site configuration'
+
+cecc_api.refresh_all_stock:
+  path: '/admin/commerce/products/refresh-all-stock'
+  defaults:
+   _form: '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm'
+   _title: 'Refresh All Stock'
+  requirements:
+    _permission:
+      'administer site configuration'

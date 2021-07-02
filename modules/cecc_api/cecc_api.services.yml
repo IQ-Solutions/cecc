@@ -1,0 +1,35 @@
+services:
+  cecc_api.order_event_subscriber:
+    class: Drupal\cecc_api\EventSubscriber\Order
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.factory'
+      - '@po_stock.stock_validation'
+      - '@queue'
+    tags:
+      - { name: 'event_subscriber' }
+
+  cecc_api.http_client.contents:
+    parent: http_client_manager.client_base
+    arguments: ['cecc_api.contents']
+
+  cecc_api.stock:
+    class: Drupal\cecc_api\Service\Stock
+    arguments:
+      - '@date.formatter'
+      - '@datetime.time'
+      - '@cecc_api.http_client.contents'
+      - '@logger.factory'
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@queue'
+      - '@database'
+
+  cecc_api.order:
+    class: Drupal\cecc_api\Service\Order
+    arguments:
+      - '@http_client_factory'
+      - '@logger.factory'
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@telephone_formatter.formatter'
