@@ -5,9 +5,9 @@ dependencies:
     - commerce_order.commerce_order_item_type.cecc_publication
     - core.entity_form_mode.commerce_order_item.add_to_cart
   enforced:
-    module: cecc_order
+    module:
+      - cecc_order
   module:
-    - cecc_order
     - commerce_order
 id: commerce_order_item.cecc_publication.add_to_cart
 targetEntityType: commerce_order_item
