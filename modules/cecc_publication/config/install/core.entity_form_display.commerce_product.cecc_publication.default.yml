@@ -4,7 +4,7 @@ dependencies:
   config:
     - commerce_product.commerce_product_type.cecc_publication
     - field.field.commerce_product.cecc_publication.body
-    - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_descrip
+    - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_de
     - field.field.commerce_product.cecc_publication.field_cecc_audience
     - field.field.commerce_product.cecc_publication.field_cecc_campaign
     - field.field.commerce_product.cecc_publication.field_cecc_cover
@@ -46,7 +46,7 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_cecc_alternate_language_descrip:
+  field_cecc_alternate_language_de:
     weight: 5
     settings:
       rows: 5
