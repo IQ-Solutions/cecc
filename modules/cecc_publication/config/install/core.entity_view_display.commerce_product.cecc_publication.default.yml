@@ -4,11 +4,25 @@ dependencies:
   config:
     - commerce_product.commerce_product_type.cecc_publication
     - field.field.commerce_product.cecc_publication.body
+    - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_descrip
+    - field.field.commerce_product.cecc_publication.field_cecc_audience
+    - field.field.commerce_product.cecc_publication.field_cecc_campaign
+    - field.field.commerce_product.cecc_publication.field_cecc_cover
+    - field.field.commerce_product.cecc_publication.field_cecc_display_title
+    - field.field.commerce_product.cecc_publication.field_cecc_downloadable_media
+    - field.field.commerce_product.cecc_publication.field_cecc_format
+    - field.field.commerce_product.cecc_publication.field_cecc_language
+    - field.field.commerce_product.cecc_publication.field_cecc_number_of_pages
+    - field.field.commerce_product.cecc_publication.field_cecc_publication_date
+    - field.field.commerce_product.cecc_publication.field_cecc_related_publication
+    - field.field.commerce_product.cecc_publication.field_cecc_series
   enforced:
     module:
       - cecc_publication
   module:
     - commerce_product
+    - datetime
+    - options
     - text
 id: commerce_product.cecc_publication.default
 targetEntityType: commerce_product
@@ -21,6 +35,104 @@ content:
     weight: 11
     settings: {  }
     third_party_settings: {  }
+    region: content
+  field_cecc_alternate_language_descrip:
+    weight: 16
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_cecc_audience:
+    weight: 18
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_cecc_campaign:
+    weight: 19
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_cecc_display_title:
+    weight: 15
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_cecc_downloadable_media:
+    type: entity_reference_entity_view
+    weight: 23
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    region: content
+  field_cecc_cover:
+    type: entity_reference_entity_view
+    weight: 21
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    region: content
+  field_cecc_related_publication:
+    weight: 22
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_cecc_format:
+    weight: 17
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_cecc_language:
+    weight: 14
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: list_default
+    region: content
+  field_cecc_number_of_pages:
+    weight: 12
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_integer
+    region: content
+  field_cecc_publication_date:
+    weight: 13
+    label: above
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_cecc_series:
+    weight: 20
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
     region: content
   title:
     label: hidden

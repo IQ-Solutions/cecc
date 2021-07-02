@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+name: Campaign
+vid: cecc_campaign
+description: 'Campaign the publication is used in'
+weight: 0

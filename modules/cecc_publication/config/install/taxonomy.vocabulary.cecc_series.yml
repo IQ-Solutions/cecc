@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+name: Series
+vid: cecc_series
+description: 'The publication series'
+weight: 0

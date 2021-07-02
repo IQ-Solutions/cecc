@@ -1,0 +1,31 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - field.storage.commerce_product.field_cecc_campaign
+    - taxonomy.vocabulary.cecc_campaign
+id: commerce_product.cecc_publication.field_cecc_campaign
+field_name: field_cecc_campaign
+entity_type: commerce_product
+bundle: cecc_publication
+label: Campaign
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      cecc_campaign: cecc_campaign
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

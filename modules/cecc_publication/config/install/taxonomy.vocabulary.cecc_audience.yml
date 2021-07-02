@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+name: Audience
+vid: cecc_audience
+description: 'The audience(s) of a publication'
+weight: 0

@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - field.storage.commerce_product.field_cecc_alternate_language_de
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - text
+id: commerce_product.cecc_publication.field_cecc_alternate_language_de
+field_name: field_cecc_alternate_language_de
+entity_type: commerce_product
+bundle: cecc_publication
+label: 'Alternate Language Description'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

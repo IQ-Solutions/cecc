@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+name: Format
+vid: cecc_format
+description: 'The format the publication is in'
+weight: 0

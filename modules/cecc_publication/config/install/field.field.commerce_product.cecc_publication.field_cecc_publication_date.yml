@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - field.storage.commerce_product.field_cecc_publication_date
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - datetime
+id: commerce_product.cecc_publication.field_cecc_publication_date
+field_name: field_cecc_publication_date
+entity_type: commerce_product
+bundle: cecc_publication
+label: 'Publication Date'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    default_date_type: now
+    default_date: now
+default_value_callback: ''
+settings: {  }
+field_type: datetime

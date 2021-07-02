@@ -5,4 +5,4 @@ cecc.settings:
    _title: 'Customer Engagement Center Catalog'
   requirements:
     _permission:
-      'administer site configuration'
+      'access commerce administration pages'
