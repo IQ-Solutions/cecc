@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\Core\Form\FormStateInterface;
+
 /**
  * Implements hook_preprocess_HOOK().
  */
@@ -10,4 +12,81 @@ function cecc_cart_preprocess_page_title(&$variables) {
     $variables['title'] = t('Cart');
   }
 
+}
+
+/**
+ * Implements hook_entity_type_build().
+ */
+function cecc_cart_entity_type_build(array &$entity_types) {
+  if (isset($entity_types['commerce_order_item'])) {
+    $cartConfig = \Drupal::config('cecc_cart');
+
+    if ($cartConfig->get('use_ajax')) {
+      $entity_types['commerce_order_item']->setFormClass('cecc_cart_ajax_add_to_cart', '\Drupal\cecc_cart\Form\AjaxAddToCartForm');
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function cecc_cart_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['cecc_cart_add_cart_modal'] = [
+    'variables' => [
+      'product_variation' => NULL,
+      'product_variation_entity' => NULL,
+      'cart_url' => NULL,
+    ],
+  ];
+
+  $themeArray['cecc_cart_show_cart_modal'] = [
+    'variables' => [
+      'order_items' => NULL,
+      'purchased_entity' => NULL,
+      'messageList' => NULL,
+      'cart_url' => NULL,
+    ],
+  ];
+
+  $themeArray['cecc_cart_tippy'] = [
+    'variables' => [
+      'content' => NULL,
+      'type' => NULL,
+    ],
+  ];
+
+  return $themeArray;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for 'entity_form_display_edit_form'.
+ *
+ * Hides irrelevant purchased_entity widgets on the dc_ajax_add_cart order item
+ * form display.
+ */
+function cecc_cart_form_entity_form_display_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+  if ($form['#entity_type'] == 'commerce_order_item' && $entity->getMode() == 'cecc_cart_ajax_add_to_cart') {
+    $options = &$form['fields']['purchased_entity']['plugin']['type']['#options'];
+    unset($options['commerce_entity_select']);
+    unset($options['entity_reference_autocomplete_tags']);
+    unset($options['entity_reference_autocomplete']);
+    unset($options['inline_entity_form_complex']);
+    unset($options['options_buttons']);
+    unset($options['options_select']);
+  }
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function cecc_cart_views_data_alter(array &$data) {
+  $data['commerce_order_item']['select_quantity']['field'] = [
+    'title' => t('Quantity select field'),
+    'help' => t('Adds a select field for editing the quantity.'),
+    'id' => 'cecc_cart_item_select_quantity',
+  ];
 }

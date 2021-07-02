@@ -1,0 +1,9 @@
+{% set tippyIcon = type == 'success' ? 'glyphicon-ok-sign text-success' : 'glyphicon-exclamation-sign text-danger' %}
+<div class="tippy-custom-content">
+  <div class="tippy-icon">
+    <span class="glyphicon {{ tippyIcon }}"></span>
+  </div>
+  <div class="tippy-po-content">
+    {{ content|raw }}
+  </div>
+</div>

@@ -1,0 +1,57 @@
+{#
+/**
+ * @file
+ *
+ * Default template for the ajax add-to-cart popup.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the wrapper.
+ * - product_variation: The rendered product variation fields.
+ *   Use 'product_variation' to print them all, or print a subset such as
+ *   'product_variation.title'. Use the following code to exclude the
+ *   printing of a given field:
+ *   @code
+ *   {{ product_variation|without('title') }}
+ *   @endcode
+ * - product_variation_entity: The product variation entity.
+ * - cart_url: The URL of the shopping cart page.
+ *
+ * @ingroup themeable
+ */
+#}
+{% set hasErrors = messageList|length > 0 %}
+<div{{attributes.addClass('po-cart-modal')}}>
+  <div class="cart--list">
+    {% for order_item in order_items %}
+    {% set isActiveItem = order_item['#commerce_order_item'].getPurchasedEntity.id == purchased_entity ? ' active-item' : '' %}
+    <div class="pub-related{{ isActiveItem }}{{ hasErrors ? ' errors': ''}}">
+      {{ order_item }}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="added-to-cart{{ hasErrors ? ' bg-danger': ' bg-success'}}">
+    {% if not hasErrors %}
+      <div class="success-display">
+        <div class="icon-display">
+          <span class="glyphicon glyphicon-ok-sign text-success"></span>
+        </div>
+        <p class="success-messages">{{ 'The item has been added to your cart.'|t }}</p>
+      </div>
+    {% else %}
+    <div class="error-display">
+      <div class="icon-display">
+        <span class="glyphicon glyphicon-exclamation-sign text-danger"></span>
+      </div>
+      <div class="error-messages">
+      {% for message in messageList %}
+        <p>{{ message }}</p>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <p class="modal-links">
+      <a href="/" class="back-to-search" data-dismiss="modal">Return to Catalog</a> <a class="btn btn-success" href="{{ cart_url }}">{{ 'Review Cart'|t }}</a>
+    </p>
+  </div>
+</div>
+

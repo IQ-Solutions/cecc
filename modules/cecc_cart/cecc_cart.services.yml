@@ -1,0 +1,23 @@
+services:
+  cecc_cart.ajax_add_to_cart_subscriber:
+    class: \Drupal\cecc_cart\EventSubscriber\AjaxAddToCartModal
+    arguments:
+      - '@entity_type.manager'
+      - '@commerce_cart.cart_provider'
+    tags:
+      - { name: event_subscriber }
+
+  cecc_cart.refresh_page_elements_helper:
+    class: Drupal\cecc_cart\Helper\RefreshPageElements
+    arguments:
+      - '@theme.manager'
+      - '@entity_type.manager'
+      - '@plugin.manager.block'
+      - '@renderer'
+      - '@commerce_cart.cart_provider'
+
+  cecc_cart.lazy_builders:
+    class: Drupal\cecc_cart\ProductLazyBuilders
+    arguments:
+      - '@entity_type.manager'
+      - '@form_builder'
