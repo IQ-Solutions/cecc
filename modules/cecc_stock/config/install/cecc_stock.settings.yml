@@ -1,0 +1,6 @@
+langcode: en
+over_limit_text: "Need to order more than %limit of %label. Contact the National Oral Health Information Center at <a href="tel:+18662324528">1-866-232-4528</a> or <a href="mailto:nidcrinfo@mail.nih.gov">nidcrinfo@mail.nih.gov</a>."
+order_over_limit_text: "Your cart already has %orderQuantity for %label. Need to order more than %limit of %label. Contact the National Oral Health Information Center at <a href="tel:+18662324528">1-866-232-4528</a> or <a href="mailto:nidcrinfo@mail.nih.gov">nidcrinfo@mail.nih.gov</a>."
+over_stock_level: "Sorry, we do not have enough stock to add %quantity of %label to your cart."
+order_over_stock_level: "Sorry, we do not have enough stock to add %quantity more of %label to your cart."
+limit_order_at_max_quantity: 0

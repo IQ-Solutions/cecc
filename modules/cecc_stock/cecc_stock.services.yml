@@ -1,0 +1,24 @@
+services:
+  cecc_stock.order_event_subscriber:
+    class: Drupal\cecc_stock\EventSubscriber\Order
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.factory'
+      - '@cecc_stock.stock_validation'
+    tags:
+      - { name: 'event_subscriber' }
+
+  cecc_stock.stock_validation:
+    class: Drupal\cecc_stock\Service\StockValidation
+    arguments:
+      - '@commerce_cart.cart_provider'
+      - '@entity_type.manager'
+      - '@config.factory'
+
+  cecc_stock.stock_helper:
+    class: Drupal\cecc_stock\Service\StockHelper
+    arguments:
+      - '@cecc_stock.stock_validation'
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@request_stack'

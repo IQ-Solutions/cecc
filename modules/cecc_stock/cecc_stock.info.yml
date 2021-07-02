@@ -1,0 +1,8 @@
+type: module
+name: CEC Catalog Stock
+description: 'Adds custom configuration for CEC Catalog stock management'
+package: 'Customer Engagement Center'
+core_version_requirement: ^8.8 || ^9
+dependencies:
+  - cecc
+  - drupal:commerce_cart

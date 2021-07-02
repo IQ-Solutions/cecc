@@ -1,0 +1,8 @@
+cecc_cart.settings:
+  path: '/admin/config/cecc_cart'
+  defaults:
+   _form: '\Drupal\cecc_cart\Form\CeccCartConfig'
+   _title: 'Cart'
+  requirements:
+    _permission:
+      'administer site configuration'
