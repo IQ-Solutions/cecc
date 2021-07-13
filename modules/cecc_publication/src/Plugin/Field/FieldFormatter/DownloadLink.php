@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\media\Entity\Media;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,6 +28,17 @@ class DownloadLink extends FormatterBase {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   public $entityTypeManager;
+
+  /**
+   * An array of mimetypes and labels.
+   *
+   * @var array
+   */
+  private $mimeTypeList = [
+    'application/pdf' => 'PDF',
+    'application/epub+zip' => 'EPUB',
+    'application/x-mobipocket-ebook' => 'MOBI',
+  ];
 
   /**
    * Constructs a FormatterBase object.
@@ -109,7 +119,7 @@ class DownloadLink extends FormatterBase {
 
       if (!empty($handlerSettings)) {
         $targetBundles = $handlerSettings['target_bundles'];
-        return (in_array('remote_file', $targetBundles));
+        return (in_array('document', $targetBundles));
       }
     }
 
@@ -134,16 +144,17 @@ class DownloadLink extends FormatterBase {
       $mediaItem = $this->entityTypeManager->getStorage('media')->load($media_id);
 
       /** @var \Drupal\file\Entity\File $file */
-      $file = $mediaItem->get('field_media_file')->entity;
+      $file = $mediaItem->get('field_media_document')->entity;
 
-      if ($file) {
+      if (!$file) {
         return [];
       }
 
       $path = $file->createFileUrl();
 
       $fileSize = $file->getSize();
-      $fileType = $file->getMimeType();
+      $fileType = isset($this->mimeTypeList[$file->getMimeType()]) ?
+        $this->mimeTypeList[$file->getMimeType()] : NULL;
 
       $elements[$delta] = [
         '#theme' => 'cecc_download_link',
