@@ -35,3 +35,18 @@ function cecc_price_default_value(
     return [new Price('0', 'USD')];
   }
 }
+
+function cecc_publication_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['cecc_download_link'] = [
+    'variables' => [
+      'link_url' => NULL,
+      'link_alt' => NULL,
+      'file_type' => NULL,
+      'file_size' => NULL,
+    ],
+  ];
+
+  return $themeArray;
+}
