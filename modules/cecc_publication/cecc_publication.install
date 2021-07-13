@@ -1,0 +1,69 @@
+<?php
+
+use Drupal\Core\Config\FileStorage;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+function _processAddFields(array $entity_fields) {
+  $modulePath = \Drupal::moduleHandler()->getModule('cecc_publication')->getPath();
+  $configDirectory = new FileStorage($modulePath . '/config/install');
+
+  foreach ($entity_fields as $entityType => $bundles) {
+    foreach ($bundles as $bundle => $fields) {
+      foreach ($fields as $field) {
+        $fieldStorageName = 'field.storage.' . $entityType . '.' . $field;
+        $configRecord = $configDirectory->read($fieldStorageName);
+        $fieldStorage = FieldStorageConfig::loadByName(
+          $configRecord['entity_type'],
+          $configRecord['field_name']);
+
+        if (!$fieldStorage) {
+          $fieldStorage = FieldStorageConfig::create($configRecord)->save();
+        }
+
+        $fieldConfigName = 'field.field.' . $entityType . '.' . $bundle . '.' . $field;
+        $configRecord = $configDirectory->read($fieldConfigName);
+        $fieldConfig = FieldConfig::loadByName(
+          $configRecord['entity_type'],
+          $configRecord['bundle'],
+          $configRecord['field_name']);
+
+        if (!$fieldConfig) {
+          $fieldConfig = FieldConfig::create($configRecord);
+        }
+
+        /** @var \Drupal\Core\Entity\EntityDisplayRepository $entityDisplay */
+        $entityDisplay = \Drupal::service('entity_display.repository');
+        $formDisplay = $entityDisplay->getFormDisplay($entityType, $bundle);
+        $viewDisplay = $entityDisplay->getViewDisplay($entityType, $bundle);
+
+        if (!$formDisplay->getComponent($fieldConfig->getName())) {
+          $formDisplay->setComponent($fieldConfig->getName());
+          $formDisplay->save();
+        }
+
+        if (!$viewDisplay->getComponent($fieldConfig->getName())) {
+          $viewDisplay->setComponent($fieldConfig->getName());
+          $viewDisplay->save();
+        }
+
+      }
+    }
+  }
+
+}
+
+/**
+ * Adds different physical version field.
+ */
+function cecc_publication_update_9101() {
+  $entity_fields = [
+    'commerce_production_variation' => [
+      'cecc_publication' => [
+        'field_cecc_different_physical_ve'
+      ],
+    ],
+  ];
+
+  _processAddFields($entity_fields);
+}

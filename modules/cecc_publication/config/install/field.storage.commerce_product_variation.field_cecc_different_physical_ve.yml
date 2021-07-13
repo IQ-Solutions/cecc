@@ -1,0 +1,21 @@
+uuid: 5bc0dab5-da9e-464c-9c5f-3bc4925360f2
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product_variation.field_cecc_different_physical_ve
+field_name: field_cecc_different_physical_ve
+entity_type: commerce_product_variation
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
