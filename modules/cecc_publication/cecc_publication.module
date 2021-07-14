@@ -41,7 +41,11 @@ function cecc_publication_theme($existing, $type, $theme, $path) {
 
   $themeArray['cecc_download_link'] = [
     'variables' => [
-      'link_url' => NULL,
+      'media' => NULL,
+      'file' => NULL,
+      'product' => NULL,
+      'product_title' => NULL,
+      'product_url' => NULL,
       'link_alt' => NULL,
       'file_type' => NULL,
       'file_size' => NULL,

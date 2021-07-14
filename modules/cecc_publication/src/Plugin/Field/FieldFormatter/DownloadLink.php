@@ -138,6 +138,9 @@ class DownloadLink extends FormatterBase {
         continue;
       }
 
+      /** @var \Drupal\commerce_product\Entity\Product $product */
+      $product = $item->getEntity();
+
       // Get the media item.
       $media_id = $item->getValue()['target_id'];
       /** @var \Drupal\media\Entity\Media $mediaItem */
@@ -147,7 +150,7 @@ class DownloadLink extends FormatterBase {
       $file = $mediaItem->get('field_media_document')->entity;
 
       if (!$file) {
-        return [];
+        continue;
       }
 
       $path = $file->createFileUrl();
@@ -158,7 +161,11 @@ class DownloadLink extends FormatterBase {
 
       $elements[$delta] = [
         '#theme' => 'cecc_download_link',
-        '#link_url' => $path,
+        '#media' => $mediaItem,
+        '#file' => $file,
+        '#product' => $product,
+        '#product_title' => $product->get('field_cecc_display_title')->value,
+        '#product_url' => $path,
         '#link_alt' => $mediaItem->getName(),
         '#file_type' => $fileType,
         '#file_size' => format_size($fileSize),

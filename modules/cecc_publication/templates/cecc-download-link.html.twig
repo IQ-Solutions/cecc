@@ -1,1 +1,22 @@
-<a href="{{ link_url }}" target="_blank" alt="{{ link_alt }}">{{ file_type }} - {{ file_size }}</a>
+{#
+/**
+ * @file
+ *
+ * Default product template.
+ *
+ * Available variables:
+ * - product: The product entity.
+ * - media: The media entity.
+ * - file: The file entity.
+ * - product_url: The product URL.
+ * - product_title: The product title.
+ * - link_alt: The media entity alt text.
+ * - file_type: The file type.
+ * - file_size: The file size.
+ *
+ * @ingroup themeable
+ */
+#}
+<a href="{{ product_url }}" target="_blank" alt="{{ product_title }}">{{ product_title }} ({{ file_type }}, {{ file_size }})</a>
+
+
