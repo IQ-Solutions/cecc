@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @Block(
  *   id = "cecc_commerce_cart_button",
  *   admin_label = @Translation("Cart Button"),
- *   category = @Translation("Commerce")
+ *   category = @Translation("CEC Catalog")
  * )
  */
 class CartButtonBlock extends BlockBase implements ContainerFactoryPluginInterface {
