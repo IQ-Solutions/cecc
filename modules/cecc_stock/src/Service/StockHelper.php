@@ -161,7 +161,7 @@ class StockHelper {
           continue;
         }
 
-        $form['edit_quantity'][$index]['#max'] = $purchasedEntity->get('field_maximum_order_amount')->value;
+        $form['edit_quantity'][$index]['#max'] = $purchasedEntity->get('field_cecc_order_limit')->value;
       }
 
       // Force a check to display the stock state to the user.
@@ -271,7 +271,7 @@ class StockHelper {
     if ($stockValidation->isCartOverQuantityLimit($variation_id, $quantity)) {
       $form_state->setError($form, t($stockConfig->get('over_limit_text'), [
         '%label' => $purchasedEntity->getOrderItemTitle(),
-        '%limit' => $purchasedEntity->get('field_maximum_order_amount')->value,
+        '%limit' => $purchasedEntity->get('field_cecc_order_limit')->value,
       ]));
     }
   }

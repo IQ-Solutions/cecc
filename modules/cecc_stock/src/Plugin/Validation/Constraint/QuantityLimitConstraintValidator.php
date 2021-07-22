@@ -39,7 +39,7 @@ class QuantityLimitConstraintValidator extends ConstraintValidator {
       return;
     }
 
-    $orderLimit = $purchasedEntity->get('field_maximum_order_amount')->value;
+    $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
 
     if ($orderLimit > 0) {
       if ($quantity > $orderLimit) {

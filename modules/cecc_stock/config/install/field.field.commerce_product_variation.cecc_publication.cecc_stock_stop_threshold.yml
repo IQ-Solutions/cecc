@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_stock
+  config:
+    - commerce_product.commerce_product_variation_type.cecc_publication
+    - field.storage.commerce_product_variation.cecc_stock_stop_threshold
+id: commerce_product_variation.cecc_publication.cecc_stock_stop_threshold
+field_name: cecc_stock_stop_threshold
+entity_type: commerce_product_variation
+bundle: cecc_publication
+label: Stock Stop Threshold
+description: 'Stock level where ordering is disabled'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

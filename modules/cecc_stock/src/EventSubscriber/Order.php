@@ -60,7 +60,7 @@ class Order implements EventSubscriberInterface {
     StockValidation $stockValidation
   ) {
     $this->entityTypeManager = $entityTypeManager;
-    $this->logger = $loggerFactory->get('publication_ordering');
+    $this->logger = $loggerFactory->get('cecc');
     $this->stockValidation = $stockValidation;
   }
 

@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_stock
+  config:
+    - commerce_product.commerce_product_variation_type.cecc_publication
+    - field.storage.commerce_product_variation.field_cecc_stock
+id: commerce_product_variation.cecc_publication.field_cecc_stock
+field_name: field_cecc_stock
+entity_type: commerce_product_variation
+bundle: cecc_publication
+label: Stock
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
