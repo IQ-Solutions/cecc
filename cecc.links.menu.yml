@@ -3,3 +3,8 @@ cecc.config:
   parent: commerce.admin_commerce
   description: 'Customer Engagement Center Catalog configuration'
   route_name: cecc.settings
+
+cecc.register:
+  weight: 10
+  menu_name: account
+  class: Drupal\user\Plugin\Menu\RegisterMenuLink
