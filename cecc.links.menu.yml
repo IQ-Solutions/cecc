@@ -7,4 +7,4 @@ cecc.config:
 cecc.register:
   weight: 10
   menu_name: account
-  class: Drupal\user\Plugin\Menu\RegisterMenuLink
+  class: Drupal\cecc\Plugin\Menu\RegisterMenuLink
