@@ -1,4 +1,4 @@
-po_api.contents:
+cecc_api.contents:
   title: "CEC Catalog Inventory APIs"
   api_path: "src/api/catalog_services.yml"
   config:
