@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Form;
+namespace Drupal\cecc_cart\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -47,7 +47,7 @@ class CeccCartConfigForm extends ConfigFormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('cecc.settings')
+    $this->config('cecc_cart.settings')
       ->set('use_ajax', $form_state->getValue('use_ajax'))
       ->save();
 
