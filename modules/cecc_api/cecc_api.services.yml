@@ -4,7 +4,7 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@logger.factory'
-      - '@po_stock.stock_validation'
+      - '@cecc_stock.stock_validation'
       - '@queue'
     tags:
       - { name: 'event_subscriber' }
