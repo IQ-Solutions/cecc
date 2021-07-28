@@ -149,7 +149,7 @@ class Stock implements ContainerInjectionInterface {
   public function refreshAllInventory() {
     $query = $this->connection->select('commerce_product_variation_field_data', 'cpv')
       ->fields('cpv.id')
-      ->where('cpv.field_stock_threshold >= cpv.field_po_stock');
+      ->where('cpv.cecc_check_stock_threshold >= cpv.field_cecc_stock');
 
     $count = $query->countQuery()->execute()->fetchField();
 
@@ -160,7 +160,7 @@ class Stock implements ContainerInjectionInterface {
 
     $ids = $query->execute()->fetchAll();
 
-    $queue = $this->queueFactory->get('po_update_stock');
+    $queue = $this->queueFactory->get('cecc_update_stock');
 
     foreach ($ids as $id) {
       $item = [
@@ -194,7 +194,7 @@ class Stock implements ContainerInjectionInterface {
 
     $params = [
       'agency' => $this->config->get('agency'),
-      'warehouse_item_id' => $productVariation->get('field_warehouse_item_id')->value,
+      'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
       'code' => $this->config->get('api_key'),
     ];
 
@@ -203,7 +203,7 @@ class Stock implements ContainerInjectionInterface {
         ->call('GetSingleInventory', $params);
 
       if ($response['code'] != 200) {
-        $message = $this->t('The service failed with the follow error: %error', [
+        $message = $this->t('The service failed with the following error: %error', [
           '%error' => $response['message'],
         ]);
 
@@ -211,14 +211,14 @@ class Stock implements ContainerInjectionInterface {
         $this->messenger()->addError($message);
       }
 
-      $productVariation->set('field_po_stock', $response['inventory']['warehouse_stock_on_hand']);
+      $productVariation->set('field_cecc_stock', $response['inventory']['warehouse_stock_on_hand']);
       $productVariation->set('field_awaiting_stock_refresh', FALSE);
 
       try {
         $productVariation->save();
         $message = $this->t('Stock for %label has been refreshed to %level', [
           '%label' => $productVariation->getTitle(),
-          '%level' => $productVariation->get('field_po_stock')->value,
+          '%level' => $productVariation->get('field_cecc_stock')->value,
         ]);
 
         $this->logger->info($message);

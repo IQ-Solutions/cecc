@@ -9,6 +9,7 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\RequeueException;
+use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\http_client_manager\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -97,7 +98,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       $message = 'An API Key and service ID must be entered.';
 
       $this->logger->error($message);
-      throw new RequeueException($message);
+      throw new SuspendQueueException($message);
     }
 
     /**
@@ -115,7 +116,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       $response = $this->httpClient
         ->call('GetSingleInventory', [
           'agency' => $this->config->get('agency'),
-          'warehouse_item_id' => $productVariation->get('field_warehouse_item_id')->value,
+          'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
           'code' => $this->config->get('api_key'),
         ]);
 
@@ -125,10 +126,10 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
         ]);
 
         $this->logger->error($message);
-        throw new RequeueException($message);
+        throw new SuspendQueueException($message);
       }
 
-      $productVariation->set('field_po_stock', $item['warehouse_stock_on_hand']);
+      $productVariation->set('field_cecc_stock', $item['warehouse_stock_on_hand']);
 
       try {
         $productVariation->save();
@@ -142,7 +143,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       $this->logger->error('@error', [
         '@error' => $error->getMessage(),
       ]);
-      throw new RequeueException($error->getMessage());
+      throw new SuspendQueueException($error->getMessage());
     }
   }
 

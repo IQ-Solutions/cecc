@@ -160,7 +160,7 @@ class Order implements ContainerInjectionInterface {
       /**
        * @todo Add a config value for the agency abbreviation.
        */
-      $response = $this->httpClient->request('POST', 'api/orders/NINDS', [
+      $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
         'headers' => [
           'IQ_Client_Key' => $apiKey,
           'Content-Type' => 'application/json',

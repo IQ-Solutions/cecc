@@ -6,7 +6,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Manages base Publication Ordering API config.
+ * Manages base CECC API config.
  */
 class CeccCartConfigForm extends ConfigFormBase {
 

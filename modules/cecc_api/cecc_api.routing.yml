@@ -2,7 +2,7 @@ cecc_api.settings:
   path: '/admin/config/cecc_api'
   defaults:
    _form: '\Drupal\cecc_api\Form\CeccApiConfig'
-   _title: 'Publication Ordering API Config'
+   _title: 'CEC Catalog API Config'
   requirements:
     _permission:
       'administer site configuration'
