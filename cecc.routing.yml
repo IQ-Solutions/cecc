@@ -1,5 +1,5 @@
 cecc.settings:
-  path: '/admin/config/cecc'
+  path: '/admin/commerce/cecc'
   defaults:
    _form: '\Drupal\cecc\Form\CeccConfigForm'
    _title: 'Customer Engagement Center Catalog'

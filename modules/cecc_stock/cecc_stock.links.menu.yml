@@ -1,0 +1,5 @@
+cecc_stock.config:
+  title: 'Stock'
+  parent: cecc.config
+  description: 'Customer Engagement Center Catalog Stock configuration'
+  route_name: cecc_stock.settings

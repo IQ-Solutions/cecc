@@ -1,5 +1,5 @@
 cecc_stock.settings:
-  path: '/admin/config/publication_ordering/stock'
+  path: '/admin/commerce/cecc/stock'
   defaults:
    _form: '\Drupal\cecc_stock\Form\CeccStockConfigForm'
    _title: 'CEC Catalog Stock Config'

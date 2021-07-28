@@ -38,12 +38,20 @@ class CeccStockConfigForm extends ConfigFormBase {
       '#markup' => $this->t('Allows changing of various warning and info messages throughout the site.'),
     ];
 
-    $form['limit_order_at_max_quantity'] = [
+    $form['hard_limit_order_quantity'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Limit ordering at quantity limit (Strict)'),
+      '#description' => $this->t('When a product is at quantity limit and this is enabled, the <em>Add|Update</em> button will change to <em>View Your Cart</em> and display a "at quantity limit for the product" message.'),
+      '#default_value' => !empty($config->get('hard_limit_order_quantity')) ?
+      $config->get('hard_limit_order_quantity') : 0,
+    ];
+
+    $form['soft_limit_order_quantity'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Limit ordering at quantity limit'),
-      '#description' => $this->t('When a product is at quantity limit and this is enabled, the <em>Add|Update</em> button will change to <em>View Your Cart</em> and display a "at quantity limit for the product" message.'),
-      '#default_value' => !empty($config->get('limit_order_at_max_quantity')) ?
-      $config->get('limit_order_at_max_quantity') : 0,
+      '#description' => $this->t('When a product is at quantity limit and this is enabled, and additonal form entry will display on the cart.'),
+      '#default_value' => !empty($config->get('soft_limit_order_quantity')) ?
+      $config->get('soft_limit_order_quantity') : 0,
     ];
 
     $form['quantity_limit_messaging'] = [
@@ -110,7 +118,8 @@ class CeccStockConfigForm extends ConfigFormBase {
       ->set('order_over_limit_text', $form_state->getValue('order_over_limit_text')['value'])
       ->set('over_stock_level', $form_state->getValue('over_stock_level')['value'])
       ->set('order_over_stock_level', $form_state->getValue('order_over_stock_level')['value'])
-      ->set('limit_order_at_max_quantity', $form_state->getValue('limit_order_at_max_quantity'))
+      ->set('hard_limit_order_quantity', $form_state->getValue('hard_limit_order_quantity'))
+      ->set('soft_limit_order_quantity', $form_state->getValue('soft_limit_order_quantity'))
       ->save();
 
     parent::submitForm($form, $form_state);

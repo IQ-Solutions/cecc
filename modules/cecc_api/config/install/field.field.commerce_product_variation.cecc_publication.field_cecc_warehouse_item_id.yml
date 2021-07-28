@@ -1,0 +1,22 @@
+uuid: b7626ea4-321d-45f6-8479-cee6bf0ec24f
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_api
+  config:
+    - commerce_product.commerce_product_variation_type.cecc_publication
+    - field.storage.commerce_product_variation.field_cecc_warehouse_item_id
+id: commerce_product_variation.cecc_publication.field_cecc_warehouse_item_id
+field_name: field_cecc_warehouse_item_id
+entity_type: commerce_product_variation
+bundle: cecc_publication
+label: 'Warehouse Item ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

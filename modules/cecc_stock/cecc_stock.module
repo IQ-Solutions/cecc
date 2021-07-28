@@ -13,8 +13,12 @@ function cecc_stock_form_alter(&$form, FormStateInterface $form_state, $form_id)
  */
 function cecc_stock_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
   if ($entity_type->id() === 'commerce_order_item') {
+    $config = \Drupal::configFactory()->get('cecc_stock.settings');
     if (!empty($fields['quantity'])) {
-      $fields['quantity']->addConstraint('QuantityLimit');
+      if ($config->get('hard_limit_order_quantity')) {
+        $fields['quantity']->addConstraint('QuantityLimit');
+      }
+
       $fields['quantity']->addConstraint('StockLevel');
     }
   }
@@ -23,8 +27,8 @@ function cecc_stock_entity_base_field_info_alter(&$fields, EntityTypeInterface $
 function cecc_stock_preprocess_commerce_product__publication(&$variables) {
   $config = \Drupal::config('cecc_stock.settings');
 
-  if (!empty($config->get('limit_order_at_max_quantity')) &&
-    $config->get('limit_order_at_max_quantity')
+  if (!empty($config->get('hard_limit_order_quantity')) &&
+    $config->get('hard_limit_order_quantity')
   ) {
     /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
     $product = $variables['product_entity'];
@@ -36,7 +40,7 @@ function cecc_stock_preprocess_commerce_product__publication(&$variables) {
     $productVariationId = $productVariation->id();
     $limitText = t($config->get('order_over_limit_text'), [
       '%label' => $product->getTitle(),
-      '%limit' => $productVariation->get('field_maximum_order_amount')->value,
+      '%limit' => $productVariation->get('field_cecc_order_limit')->value,
     ]);
 
     $variables['atQuantityLimit'] = $stockValidation->isCartAtQuantityLimit($productVariationId);

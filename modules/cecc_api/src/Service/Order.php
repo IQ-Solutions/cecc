@@ -157,7 +157,10 @@ class Order implements ContainerInjectionInterface {
     ];
 
     try {
-      $response = $this->httpClient->request('POST', 'api/orders/NIDCR', [
+      /**
+       * @todo Add a config value for the agency abbreviation.
+       */
+      $response = $this->httpClient->request('POST', 'api/orders/NINDS', [
         'headers' => [
           'IQ_Client_Key' => $apiKey,
           'Content-Type' => 'application/json',
@@ -204,7 +207,7 @@ class Order implements ContainerInjectionInterface {
 
       $orderArray = [
         'sku' => $purchasedEntity->get('sku')->value,
-        'warehouse_item_id' => $purchasedEntity->get('field_warehouse_item_id')->value,
+        'warehouse_item_id' => $purchasedEntity->get('field_cecc_warehouse_item_id')->value,
         'quantity' => (int) $orderItem->getQuantity(),
       ];
 

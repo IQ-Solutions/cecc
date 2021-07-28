@@ -17,6 +17,9 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\http_client_manager\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * The Stock API service class.
+ */
 class Stock implements ContainerInjectionInterface {
   use StringTranslationTrait;
   use MessengerTrait;

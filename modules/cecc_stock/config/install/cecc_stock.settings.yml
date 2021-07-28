@@ -3,4 +3,4 @@ over_limit_text: "Need to order more than %limit of %label."
 order_over_limit_text: "Your cart already has %orderQuantity for %label."
 over_stock_level: "Sorry, we do not have enough stock to add %quantity of %label to your cart."
 order_over_stock_level: "Sorry, we do not have enough stock to add %quantity more of %label to your cart."
-limit_order_at_max_quantity: 0
+hard_limit_order_quantity: 0

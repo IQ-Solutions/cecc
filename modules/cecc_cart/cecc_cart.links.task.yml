@@ -1,4 +1,4 @@
 cecc_cart.settings:
   route_name: cecc_cart.settings
   base_route: cecc.settings
-  title: 'Stock'
+  title: 'Cart'

@@ -128,7 +128,7 @@ class OrderResource extends ResourceBase {
     $query = $this->entityTypeMananger->getStorage('commerce_order')
       ->getQuery()
       ->accessCheck(FALSE)
-      ->condition('type', 'po_publication');
+      ->condition('type', 'cecc_publication');
 
     $orderIds = $query->execute();
 
@@ -173,7 +173,7 @@ class OrderResource extends ResourceBase {
 
       $orderArray = [
         'sku' => $purchasedEntity->get('sku')->value,
-        'warehouse_item_id' => $purchasedEntity->get('field_warehouse_item_id')->value,
+        'warehouse_item_id' => $purchasedEntity->get('field_cecc_warehouse_item_id')->value,
         'quantity' => (int) $orderItem->getQuantity(),
       ];
 

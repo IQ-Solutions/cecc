@@ -14,7 +14,7 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\po_stock\Service\StockValidation;
+use Drupal\cecc_stock\Service\StockValidation;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -61,7 +61,7 @@ class Order implements EventSubscriberInterface {
    *   Entity Type Manager service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   Logger Channel Factory.
-   * @param \Drupal\po_stock\Service\StockValidation $stockValidation
+   * @param \Drupal\cecc_stock\Service\StockValidation $stockValidation
    *   Logger Channel Factory.
    * @param \Drupal\Core\Queue\QueueFactory $queueFactory
    *   Queue Factory service.
@@ -113,6 +113,12 @@ class Order implements EventSubscriberInterface {
     }
   }
 
+  /**
+   * Queue order to be sent.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order to be sent.
+   */
   private function queueOrderSend(OrderInterface $order) {
     $queue = $this->queueFactory->get('po_send_order');
     $queue->createItem(['id' => $order->id()]);
@@ -151,6 +157,12 @@ class Order implements EventSubscriberInterface {
 
   }
 
+  /**
+   * Order update event.
+   *
+   * @param \Drupal\commerce_order\Event\OrderEvent $event
+   *   The order event
+   */
   public function onOrderUpdate(OrderEvent $event) {
     $order = $event->getOrder();
 

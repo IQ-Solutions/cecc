@@ -1,5 +1,5 @@
 cecc_cart.settings:
-  path: '/admin/config/cecc_cart'
+  path: '/admin/commerce/cecc/cart'
   defaults:
    _form: '\Drupal\cecc_cart\Form\CeccCartConfig'
    _title: 'Cart'
