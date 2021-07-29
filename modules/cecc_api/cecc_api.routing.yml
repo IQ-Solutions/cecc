@@ -1,8 +1,17 @@
 cecc_api.settings:
-  path: '/admin/config/cecc_api'
+  path: '/admin/commerce/cecc/api'
   defaults:
    _form: '\Drupal\cecc_api\Form\CeccApiConfig'
    _title: 'CEC Catalog API Config'
+  requirements:
+    _permission:
+      'administer site configuration'
+
+cecc_api.publication_field_mapping:
+  path: '/admin/commerce/cecc/api/field_mapping'
+  defaults:
+   _form: '\Drupal\cecc_api\Form\PublicationFieldMapping'
+   _title: 'CEC Catalog API Field Mapping'
   requirements:
     _permission:
       'administer site configuration'

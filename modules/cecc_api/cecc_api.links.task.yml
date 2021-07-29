@@ -2,3 +2,8 @@ cecc_api.settings:
   route_name: cecc_api.settings
   base_route: cecc.settings
   title: 'API'
+
+cecc_api.publication_field_mapping:
+  route_name: cecc_api.publication_field_mapping
+  base_route: cecc.settings
+  title: 'Publication Field Mapping'
