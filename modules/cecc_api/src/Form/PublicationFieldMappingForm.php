@@ -76,35 +76,95 @@ class PublicationFieldMappingForm extends ConfigFormBase {
   }
 
   /**
+   * Gets field definitions.
+   *
+   * @param string $entity_id
+   *   The entity id.
+   *
+   * @return array
+   *   Returns array [field_name] = label.
+   */
+  private function getFieldDefinitions($entity_id) {
+    $fields = [];
+    $definitions = $this->entityFieldManager
+      ->getFieldDefinitions($entity_id, 'cecc_publication');
+
+    foreach ($definitions as $defintion) {
+      $fields[$defintion->getName()] = $defintion->getLabel();
+    }
+
+    return $fields;
+
+  }
+
+  /**
    * {@inheritDoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('cecc_api.publication_field_mapping');
 
-    /** @var \Drupal\Core\Field\FieldDefinitionInterface[] $publicationFieldDefinitions */
-    $publicationFieldDefinitions = $this->entityFieldManager
-      ->getFieldDefinitions('commerce_product', 'cecc_publication');
+    $publicationFields = $this->getFieldDefinitions('commerce_product');
+    $publicationVariationFields = $this->getFieldDefinitions('commerce_product_variation');
 
-    $publicationFields = [];
+    $form['description'] = [
+      '#type' => 'item',
+      '#title' => $this->t('API Field Mapping'),
+      '#markup' => $this->t('Allows mapping fields to specific values for CEC.'),
+    ];
 
-    foreach ($publicationFieldDefinitions as $publicationFieldDefinition) {
-      $publicationFields[$publicationFieldDefinition->getName()] = $publicationFieldDefinition->getLabel();
-    }
+    $form['publication'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Publication Display Fields'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    ];
+
+    $form['publication_variation'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Publication Data Fields'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    ];
 
     foreach ($publicationFields as $name => $label) {
-      $form[$name] = [
+      $machineName = 'pf_' . $name;
+
+      $form['publication'][$machineName] = [
+        '#name' => $machineName,
         '#type' => 'textfield',
         '#title' => $this->t('Mapping for :label field', [
           ':label' => $label,
         ]),
-        '#default_value' => $config->get($name),
+        '#default_value' => $config->get($machineName),
       ];
 
-      $form[$name . '_send'] = [
+      $form['publication'][$machineName . '_send'] = [
+        '#name' => $machineName . '_send',
         '#type' => 'checkbox',
         '#title' => $this->t('Send as API value'),
         '#description' => $this->t('Check if field should be sent as an API value'),
-        '#default_value' => $config->get('enable_api') ?: 0,
+        '#default_value' => $config->get($machineName . '_send') ?: 0,
+      ];
+    }
+
+    foreach ($publicationVariationFields as $name => $label) {
+      $machineName = 'pvf_' . $name;
+
+      $form['publication_variation'][$machineName] = [
+        '#name' => $machineName,
+        '#type' => 'textfield',
+        '#title' => $this->t('Mapping for :label field', [
+          ':label' => $label,
+        ]),
+        '#default_value' => $config->get($machineName),
+      ];
+
+      $form['publication_variation'][$machineName . '_send'] = [
+        '#name' => $machineName . '_send',
+        '#type' => 'checkbox',
+        '#title' => $this->t('Send as API value'),
+        '#description' => $this->t('Check if field should be sent as an API value'),
+        '#default_value' => $config->get($machineName . '_send') ?: 0,
       ];
     }
 
@@ -115,13 +175,25 @@ class PublicationFieldMappingForm extends ConfigFormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $config = $this->configFactory()->getEditable('cecc_api.settings');
-    $config
-      ->set('enable_api', $form_state->getValue('enable_api'))
-      ->set('agency', $form_state->getValue('agency'))
-      ->set('api_key', $form_state->getValue('api_key'))
-      ->set('base_api_url', $form_state->getValue('base_api_url'))
-      ->save();
+    $config = $this->configFactory()->getEditable('cecc_api.publication_field_mapping');
+    $publicationFields = $this->getFieldDefinitions('commerce_product');
+    $publicationVariationFields = $this->getFieldDefinitions('commerce_product_variation');
+
+    foreach ($publicationFields as $name => $label) {
+      $machineName = 'pf_' . $name;
+      $config
+        ->set($machineName, $form_state->getValue($machineName))
+        ->set($machineName . '_send', $form_state->getValue($machineName . '_send'));
+    }
+
+    foreach ($publicationVariationFields as $name => $label) {
+      $machineName = 'pvf_' . $name;
+      $config
+        ->set($machineName, $form_state->getValue($machineName))
+        ->set($machineName . '_send', $form_state->getValue($machineName . '_send'));
+    }
+
+    $config->save();
 
     parent::submitForm($form, $form_state);
   }

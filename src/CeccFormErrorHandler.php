@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormElementHelper;
 use Drupal\Core\Form\FormErrorHandler as CoreFormErrorHandler;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 
@@ -13,6 +14,7 @@ use Drupal\Core\Url;
  * Produces inline form errors.
  */
 class CeccFormErrorHandler extends CoreFormErrorHandler {
+  use MessengerTrait;
 
   /**
    * Loops through and displays all form errors.
@@ -66,7 +68,7 @@ class CeccFormErrorHandler extends CoreFormErrorHandler {
 
     // Set normal error messages for all remaining errors.
     foreach ($errors as $error) {
-      $this->messenger->addError($error);
+      $this->messenger()->addError($error);
     }
   }
 

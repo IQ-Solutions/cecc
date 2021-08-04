@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Plugin\rest\resource;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -46,6 +47,20 @@ class PublicationResource extends ResourceBase {
   protected $request;
 
   /**
+   * The API config object.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
+   * The field mapping config object.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $fieldMapping;
+
+  /**
    * Constructs a new object.
    *
    * @param array $configuration
@@ -73,12 +88,15 @@ class PublicationResource extends ResourceBase {
     LoggerInterface $logger,
     AccountProxyInterface $current_user,
     Request $request,
-    EntityTypeManagerInterface $entity_type_manager
+    EntityTypeManagerInterface $entity_type_manager,
+    ConfigFactoryInterface $config_factory
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
     $this->request = $request;
     $this->currentUser = $current_user;
     $this->entityTypeMananger = $entity_type_manager;
+    $this->fieldMapping = $config_factory->get('cecc_api.publication_field_mapping');
+    $this->config = $config_factory->get('cecc_api.settings');
   }
 
   /**
@@ -93,8 +111,13 @@ class PublicationResource extends ResourceBase {
       $container->get('logger.factory')->get('cecc_api'),
       $container->get('current_user'),
       $container->get('request_stack')->getCurrentRequest(),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('config.factory')
     );
+  }
+
+  private function mapField($field) {
+
   }
 
   /**
