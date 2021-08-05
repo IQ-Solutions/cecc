@@ -32,18 +32,6 @@ class CeccConfigForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('cecc.settings');
 
-    $form['add_to_cart_dest'] = [
-      '#type' => 'radios',
-      '#title' => $this->t('Add to Cart Button Destination'),
-      '#description' => $this->t('Sets where the add to cart button sends the user when adding to cart. Default is back to the referring page.'),
-      '#options' => [
-        'default' => 'Default (Referrer)',
-        'cart' => 'Cart',
-      ],
-      '#default_value' => !empty($config->get('add_to_cart_dest')) ?
-      $config->get('add_to_cart_dest') : 'default',
-    ];
-
     $form['quantity_update_type'] = [
       '#type' => 'radios',
       '#title' => $this->t('Quantity Update Type'),

@@ -195,8 +195,11 @@ class FormHelper implements FormHelperInterface {
    *   The form array.
    */
   private function alterCartForm(array &$form) {
-    // Get the product variation.
-    $this->formState->setRedirect('commerce_cart.page');
+    $ceccSettings = $this->configFactory->get('cecc.settings');
+
+    if ($ceccSettings->get('add_to_cart_dest') == 'cart') {
+      $this->formState->setRedirect('commerce_cart.page');
+    }
   }
 
   /**
