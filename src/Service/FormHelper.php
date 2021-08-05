@@ -152,6 +152,10 @@ class FormHelper implements FormHelperInterface {
       case 'commerce_checkout_flow':
         $this->alterCheckout($form);
         break;
+
+      case 'commerce_order_item_add_to_cart_form':
+        $this->alterCartForm($form);
+        break;
     }
   }
 
@@ -182,6 +186,17 @@ class FormHelper implements FormHelperInterface {
         ],
       ]
     )->toString();
+  }
+
+  /**
+   * Alter cart form.
+   *
+   * @param array $form
+   *   The form array.
+   */
+  private function alterCartForm(array &$form) {
+    // Get the product variation.
+    $this->formState->setRedirect('commerce_cart.page');
   }
 
   /**
