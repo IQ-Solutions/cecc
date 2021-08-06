@@ -78,7 +78,7 @@ class ByWeight extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-      'rate_label' => NULL,
+      'rate_label' => '',
       'rate_description' => '',
       'base_price' => NULL,
       'weight_price' => NULL,
