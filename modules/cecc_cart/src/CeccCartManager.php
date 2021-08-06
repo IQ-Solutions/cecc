@@ -54,11 +54,17 @@ class CeccCartManager extends CartManager {
    * {@inheritdoc}
    */
   public function addOrderItem(OrderInterface $cart, OrderItemInterface $order_item, $combine = TRUE, $save_cart = TRUE) {
+
+    $commerceConfig = $this->configFactory->get('cecc.settings');
+    $addToCartType = $commerceConfig->get('quantity_update_type');
+
+    if ($addToCartType == 'normal') {
+      return parent::addOrderItem($cart, $order_item, $combine, $save_cart);
+    }
+
     $purchased_entity = $order_item->getPurchasedEntity();
     $quantity = $order_item->getQuantity();
     $matching_order_item = NULL;
-    $commerceConfig = $this->configFactory->get('cecc.settings');
-    $addToCartType = $commerceConfig->get('quantity_update_type');
 
     if ($combine) {
       $matching_order_item = $this->orderItemMatcher->match($order_item, $cart->getItems());
