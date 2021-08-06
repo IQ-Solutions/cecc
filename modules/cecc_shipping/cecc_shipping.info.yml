@@ -1,0 +1,7 @@
+type: module
+name: 'Customer Engagement Center Catalog Shipping'
+description: 'Customer Engagement Center (CEC) Catalog Shipping module'
+package: 'Customer Engagement Center'
+core_version_requirement: ^8.8 || ^9
+dependencies:
+  - drupal:commerce_shipping
