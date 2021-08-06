@@ -69,7 +69,7 @@ class ByWeight extends ShippingMethodBase {
       $container->get('plugin.manager.commerce_package_type'),
       $container->get('plugin.manager.workflow')
     );
-    $plugin->shipmentWeightCalculator = $container->get('commerce_shipping_by_weight.shipment_weight_calculator');
+    $plugin->shipmentWeightCalculator = $container->get('cecc_shipping.shipment_weight_calculator');
     return $plugin;
   }
 
@@ -79,6 +79,7 @@ class ByWeight extends ShippingMethodBase {
   public function defaultConfiguration() {
     return [
       'rate_label' => NULL,
+      'rate_description' => '',
       'base_price' => NULL,
       'weight_price' => NULL,
       'services' => ['default'],
@@ -97,6 +98,12 @@ class ByWeight extends ShippingMethodBase {
       '#description' => $this->t('Shown to customers during checkout.'),
       '#default_value' => $this->configuration['rate_label'],
       '#required' => TRUE,
+    ];
+    $form['rate_description'] = [
+      '#type' => 'textfield',
+      '#title' => t('Rate description'),
+      '#description' => t('Provides additional details about the rate to the customer.'),
+      '#default_value' => $this->configuration['rate_description'],
     ];
 
     $form['base_price'] = [

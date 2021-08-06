@@ -1,0 +1,4 @@
+services:
+  cecc_shipping.shipment_weight_calculator:
+    class: Drupal\cecc_shipping\Service\ShipmentWeightCalculator
+    arguments: [ ]
