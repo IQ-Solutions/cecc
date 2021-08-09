@@ -229,11 +229,11 @@ class Stock implements ContainerInjectionInterface {
       }
     }
     catch (\Exception $error) {
-      $this->messenger()->addError($this->t('@label failed to update. Check the error logs for more information.', [
+      $this->messenger()->addError($this->t('%label failed to update. Check the error logs for more information.', [
         '%label' => $productVariation->getTitle(),
       ]));
 
-      $this->logger->error('@label failed to update. @error', [
+      $this->logger->error('%label failed to update. @error', [
         '%label' => $productVariation->getTitle(),
         '@error' => $error->getMessage(),
       ]);
