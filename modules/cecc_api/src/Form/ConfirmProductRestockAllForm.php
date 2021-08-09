@@ -61,14 +61,26 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+
+    $productVariations = \Drupal::service('entity_type.manager')
+      ->getStorage('commerce_product_variation')->loadMultiple();
+
+    $operations = [];
+    $batchSize = 20;
+    $total = count($productVariations);
+
+    if (!empty($productVariations)) {
+      foreach (array_chunk($productVariations, $batchSize) as $index => $batchData) {
+        $operations[] = [
+          '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::batchProcessInventory',
+          [$batchData, $batchSize, $index, $total],
+        ];
+      }
+    }
+
     $batch = [
       'title' => $this->t('Refresh All Product Inventory'),
-      'operations' => [
-        [
-          '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::batchProcessInventory',
-          [],
-        ],
-      ],
+      'operations' => $operations,
       'finished' => '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::finishedInventoryRefresh',
       'init_message' => $this->t('Loading products'),
       'progress_message' => $this->t('Processed @current out of @total. Estimated: @estimate'),
@@ -86,51 +98,24 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
    * @param array $context
    *   The batch context.
    */
-  public static function batchProcessInventory(array &$context) {
-    $batchSize = 10;
+  public static function batchProcessInventory(array $batchData, int $batchSize, int $index, int $total, array &$context) {
     /** @var \Drupal\cecc_api\Service\Stock $stockApi */
     $stockApi = \Drupal::service('cecc_api.stock');
 
-    if (empty($context['sandbox'])) {
-      $context['sandbox']['progress'] = 0;
-      $context['sandbox']['max'] = \Drupal::service('entity_type.manager')
-        ->getStorage('commerce_product_variation')
-        ->getQuery()
-        ->count()
-        ->execute();
-    }
-
-    $start = $context['sandbox']['progress'];
-    $max = $context['sandbox']['progress'] + $batchSize;
-
-    if ($max > $context['sandbox']['max']) {
-      $max = $context['sandbox']['max'];
-    }
-
-    $productVariationIds = \Drupal::service('entity_type.manager')
-      ->getStorage('commerce_product_variation')
-      ->getQuery()
-      ->range($context['sandbox']['progress'], $batchSize)
-      ->execute();
-
-    foreach ($productVariationIds as $productVariationId) {
-      $productVariation = ProductVariation::load($productVariationId);
-
+    foreach ($batchData as $productVariation) {
       $stockApi->refreshInventory($productVariation);
-
-      $context['sandbox']['progress']++;
-      sleep(15);
     }
+
+    $start = $index * $batchSize;
+    $max = $start + $batchSize;
 
     $context['message'] = t('Processed @starting through @max of @total.', [
       '@starting' => $start,
       '@max' => $max,
-      '@total' => $context['sandbox']['max'],
+      '@total' => $total,
     ]);
 
-    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
-    }
+    $context['finished'] = TRUE;
   }
 
   /**
