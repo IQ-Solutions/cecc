@@ -116,8 +116,58 @@ class PublicationResource extends ResourceBase {
     );
   }
 
-  private function mapField($field) {
+  private function mapField($prefix, $field) {
+    $fieldName = $prefix . '_' . $field;
+    $sendField = $this->fieldMapping->get($fieldName . '_send');
+    return $sendField ? $this->fieldMapping->get($prefix . '_' . $field) : FALSE;
+  }
 
+  /**
+   * Map field values.
+   *
+   * @param \Drupal\commerce_product\Entity\ProductInterface|\Drupal\commerce_product\Entity\ProductVariationInterface $entity
+   *   The product entity.
+   * @param string $type
+   *   The field type.
+   * @param string $fieldName
+   *   The field name.
+   *
+   * @return string
+   *   The field value.
+   */
+  private function mapFieldValue($entity, $type, $fieldName) {
+
+    switch ($type) {
+      case 'string':
+      case 'list_string':
+      case 'integer':
+        return $entity->get($fieldName)->value;
+
+      case 'datetime':
+        return $entity->get($fieldName)->value;
+
+      case 'text_with_summary':
+      case 'text_long':
+        return $entity->get($fieldName)->value;
+
+      case 'entity_reference':
+        $field = $entity->get($fieldName);
+        $targetType = $field->getFieldDefinition()->getSetting('target_type');
+        $value = '';
+
+        switch ($targetType) {
+          case 'taxonomy_term':
+            $value = implode(';', $this->getTaxonomy($field));
+            break;
+
+          case 'media':
+            $value = $this->getMedia($field);
+            break;
+        }
+
+        return $value;
+
+    }
   }
 
   /**
@@ -132,7 +182,7 @@ class PublicationResource extends ResourceBase {
     $query = $this->entityTypeMananger->getStorage('commerce_product_variation')
       ->getQuery()
       ->accessCheck(FALSE)
-      ->condition('type', 'publication');
+      ->condition('type', 'cecc_publication');
 
     $productIds = $query->execute();
 
@@ -141,7 +191,34 @@ class PublicationResource extends ResourceBase {
       ->loadMultiple($productIds);
 
     foreach ($publications as $publication) {
+      $pvfFields = $publication->getFields();
+      $pubArray = [];
+
+      foreach ($pvfFields as $key => $fieldItemList) {
+        $fieldName = $this->mapField('pvf', $key);
+        $type = $fieldItemList->getFieldDefinition()->getType();
+
+        if ($fieldName !== FALSE) {
+          $pubArray[$fieldName] = $this->mapFieldValue($publication, $type, $key);
+        }
+      }
+
       $product = $publication->getProduct();
+
+      if ($product) {
+        $pfFields = $product->getFields();
+
+        foreach ($pfFields as $key => $fieldItemList) {
+          $fieldName = $this->mapField('pf', $key);
+          $type = $fieldItemList->getFieldDefinition()->getType();
+
+          if ($fieldName !== FALSE) {
+            $pubArray[$fieldName] = $this->mapFieldValue($product, $type, $key);
+          }
+        }
+      }
+
+      /*
       $categories = $this->getProductCategories($product->get('field_product_category'));
 
       $pdfDownload = $product->get('field_pdf_link');
@@ -165,9 +242,11 @@ class PublicationResource extends ResourceBase {
         'pdf_download_url' => $pdfDownloadLink,
         'main_image_url' => $mainImageUrl,
         'alernate_language_link' => $product->get('field_spanish_version')->value,
-      ];
+      ];*/
 
-      $response['publications'][] = $pubArray;
+      if (!empty($pubArray)) {
+        $response['publications'][] = $pubArray;
+      }
     }
 
     $build = [
@@ -179,14 +258,82 @@ class PublicationResource extends ResourceBase {
     return (new ResourceResponse($response))->addCacheableDependency($build);
   }
 
-  private function getProductCategories(FieldItemListInterface $field) {
-    $categories = [];
+  /**
+   * Get product taxonomy.
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface $fieldItemList
+   *   The field object.
+   *
+   * @return array
+   *   Array of taxonomy terms.
+   */
+  private function getTaxonomy(FieldItemListInterface $fieldItemList) {
+    $taxonomy = [];
 
-    foreach ($field as $category) {
-      $categories[] = $category->entity->label();
+    foreach ($fieldItemList as $field) {
+      $taxonomy[] = $field->entity->label();
     }
 
-    return $categories;
+    return $taxonomy;
+  }
+
+  /**
+   * Get product taxonomy.
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface $fieldItemList
+   *   The field object.
+   *
+   * @return array
+   *   Array of media urls.
+   */
+  private function getMedia(FieldItemListInterface $fieldItemList) {
+    /** @var \Drupal\media\Entity\Media $media */
+    $media = $fieldItemList->entity;
+
+    if (!$media) {
+      return '';
+    }
+
+    $mediaType = $media->bundle();
+    $mediaLinks = [
+      'src' => NULL,
+    ];
+
+    if (!$fieldItemList->isEmpty()) {
+      /** @var \Drupal\file\Entity\File $file */
+      $file = $media->get('field_media_' . $mediaType)->entity;
+      $fileUri = $file->getFileUri();
+
+      $filePath = file_create_url($fileUri);
+      $mediaLinks['src'] = $filePath ?: NULL;
+
+      if ($mediaType == 'image') {
+        $thumbnailImagePath = $this->getImageStyle('cart_list')->buildUrl($fileUri);
+        $detailImagePath = $this->getImageStyle('featured_publications_cover')->buildUrl($fileUri);
+        $popularImagePath = $this->getImageStyle('popular_publicationsc')->buildUrl($fileUri);
+        $summaryImagePath = $this->getImageStyle('summary_42xx_')->buildUrl($fileUri);
+        $mediaLinks['thumbnail'] = $thumbnailImagePath ?: NULL;
+        $mediaLinks['featured'] = $detailImagePath ?: NULL;
+        $mediaLinks['popular'] = $popularImagePath ?: NULL;
+        $mediaLinks['summary'] = $summaryImagePath ?: NULL;
+      }
+    }
+
+    return $mediaLinks;
+  }
+
+  /**
+   * Get image style object.
+   *
+   * @param string $imageStyle
+   *   The image style machine name.
+   *
+   * @return \Drupal\image\Entity\ImageStyle
+   *   The image style object.
+   */
+  private function getImageStyle($imageStyle) {
+    return $this->entityTypeMananger->getStorage('image_style')
+      ->load($imageStyle);
   }
 
   private function getProductCoverImage(FieldItemListInterface $field) {
