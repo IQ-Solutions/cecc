@@ -125,7 +125,6 @@ class CartButtonBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   A render array.
    */
   public function build() {
-    $cartIcon = '/' . drupal_get_path('module', 'commerce') . '/icons/ffffff/cart.png';
     $cartUrl = Url::fromRoute('commerce_cart.page')->toString();
     $count = 0;
     $publicationCount = 0;
