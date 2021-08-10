@@ -218,32 +218,6 @@ class PublicationResource extends ResourceBase {
         }
       }
 
-      /*
-      $categories = $this->getProductCategories($product->get('field_product_category'));
-
-      $pdfDownload = $product->get('field_pdf_link');
-
-      $pdfDownloadLink = '';
-      $mainImageUrl = $this->getProductCoverImage($product->get('field_cover'));
-
-      if (!$pdfDownload->isEmpty()) {
-        $pdfDownloadLink = $pdfDownload->entity
-          ->get('field_media_remote_file')->value;
-      }
-
-      $pubArray = [
-        'title' => $product->getTitle(),
-        'sku' => $publication->get('sku')->value,
-        'warehouse_item_id' => $publication->get('field_warehouse_item_id')->value,
-        'language' => ucwords($product->get('field_po_lanuage')->value),
-        'website' => $product->get('field_website')->value,
-        'description' => $product->body->value,
-        'product_category' => $categories,
-        'pdf_download_url' => $pdfDownloadLink,
-        'main_image_url' => $mainImageUrl,
-        'alernate_language_link' => $product->get('field_spanish_version')->value,
-      ];*/
-
       if (!empty($pubArray)) {
         $response['publications'][] = $pubArray;
       }
@@ -334,28 +308,6 @@ class PublicationResource extends ResourceBase {
   private function getImageStyle($imageStyle) {
     return $this->entityTypeMananger->getStorage('image_style')
       ->load($imageStyle);
-  }
-
-  private function getProductCoverImage(FieldItemListInterface $field) {
-    $mainImage = [];
-    $media = $field->entity;
-
-    if (!$field->isEmpty()) {
-      /** @var \Drupal\file\Entity\File $file */
-      $file = $media->get('field_media_image')->entity;
-      $fileUri = $file->getFileUri();
-
-      $mainImagePath = file_create_url($fileUri);
-      $thumbnailImagePath = $this->entityTypeMananger->getStorage('image_style')
-        ->load('list_item')->buildUrl($fileUri);
-      $detailImagePath = $this->entityTypeMananger->getStorage('image_style')
-        ->load('publication_detail_cover')->buildUrl($fileUri);
-      $mainImage['src'] = $mainImagePath ?: NULL;
-      $mainImage['thumbnail'] = $thumbnailImagePath ?: NULL;
-      $mainImage['detail'] = $detailImagePath ?: NULL;
-    }
-
-    return $mainImage;
   }
 
 }

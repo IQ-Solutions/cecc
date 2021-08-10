@@ -5,7 +5,7 @@
     attach: function (context, settings) {
       var options = {
         onKeyUp: function (cep, e, field, options) {
-          $("#edit-po-contact-information-phone-phone-number").mask('+1 (000) 000-0000', options);
+          $("#edit-shipping-contact-information-phone-phone-number").mask('+1 (000) 000-0000', options);
         }
       }
 

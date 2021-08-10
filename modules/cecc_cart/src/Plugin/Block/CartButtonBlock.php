@@ -126,20 +126,9 @@ class CartButtonBlock extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function build() {
     $cartIcon = '/' . drupal_get_path('module', 'commerce') . '/icons/ffffff/cart.png';
-
-    $build['cart_button'] = [
-      '#type' => 'link',
-      '#url' => Url::fromRoute('commerce_cart.page'),
-      '#title' => $this->t('<img src=":icon" alt="View Cart"> <span>View Cart</span>', [
-        ':icon' => $cartIcon,
-      ]),
-      '#attributes' => [
-        'class' => 'cart-link',
-      ],
-      '#cache' => [
-        'contexts' => ['cart'],
-      ],
-    ];
+    $cartUrl = Url::fromRoute('commerce_cart.page')->toString();
+    $count = 0;
+    $publicationCount = 0;
 
     $cachable_metadata = new CacheableMetadata();
     $cachable_metadata->addCacheContexts(['user', 'session']);
@@ -154,9 +143,6 @@ class CartButtonBlock extends BlockBase implements ContainerFactoryPluginInterfa
       return $cart->hasItems() && $cart->cart->value;
     });
 
-    $count = 0;
-    $publicationCount = 0;
-
     // @todo make this configurable later.
     if (!empty($carts)) {
       foreach ($carts as $cart) {
@@ -170,14 +156,20 @@ class CartButtonBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     if ($count > 0) {
-      $build['cart_button']['#title'] = $this->t('<img src=":icon" alt="View Cart (@count)"> <span>View Cart</span> (@count)', [
-        '@count' => $this->configuration['item_count_type'] == 'total_items'
-        ? $publicationCount : $count,
-        ':icon' => $cartIcon,
-      ]);
+      $count = $this->configuration['item_count_type'] == 'total_items'
+      ? $publicationCount : $count;
     }
 
-    return $build;
+    return [
+      '#title' => $this->t('View Cart'),
+      '#description' => $this->t('CECC view cart button.'),
+      '#theme' => 'cecc_cart_button',
+      '#cart_url' => $cartUrl,
+      '#item_count' => $count,
+      '#cache' => [
+        'contexts' => ['cart'],
+      ],
+    ];
   }
 
   /**

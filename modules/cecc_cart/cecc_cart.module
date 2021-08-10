@@ -57,6 +57,13 @@ function cecc_cart_theme($existing, $type, $theme, $path) {
     ],
   ];
 
+  $themeArray['cecc_cart_button'] = [
+    'variables' => [
+      'cart_url' => NULL,
+      'item_count' => NULL,
+    ],
+  ];
+
   return $themeArray;
 }
 
