@@ -37,6 +37,10 @@ function cecc_element_info_alter(array &$types) {
     // Add custom email validation for domains.
     $types['email']['#element_validate'][] = [FormHelper::class, 'validateEmail'];
   }
+
+  if (isset($types['tel'])) {
+    $types['tel']['#attached']['library'][] = 'cecc/telephone_formatter';
+  }
 }
 
 /**

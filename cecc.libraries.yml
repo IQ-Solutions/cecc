@@ -1,8 +1,8 @@
-telephone:
+telephone_formatter:
   js:
     js/telephone.js: {}
   dependencies:
-    - publication_ordering/jquery_mask
+    - cecc/jquery_mask
 
 jquery_mask:
   remote: https://igorescobar.github.io/jQuery-Mask-Plugin/
@@ -13,4 +13,5 @@ jquery_mask:
     gpl-compatible: true
   js:
     /libraries/jquery-mask-plugin/dist/jquery.mask.min.js: { minified: true }
-
+  dependencies:
+    - core/jquery
