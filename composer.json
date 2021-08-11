@@ -16,5 +16,8 @@
   "support": {
     "issues": "https://github.com/IQ-Solutions/cecc/issues",
     "source": "https://github.com/IQ-Solutions/cecc"
+  },
+  "require": {
+    "npm-asset/jquery-mask-plugin": "^1.14"
   }
 }
