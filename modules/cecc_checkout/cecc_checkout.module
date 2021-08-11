@@ -3,16 +3,6 @@
 use Drupal\cecc_checkout\Plugin\Commerce\CheckoutPane\CeccShippingInformation;
 use Drupal\Core\Form\FormStateInterface;
 
-/**
- * Implements hook_commerce_checkout_pane_info_alter().
- */
-function cecc_checkout_commerce_checkout_pane_info_alter(&$definitions) {
-  if (isset($definitions['billing_information'])) {
-    $definitions['billing_information']['class'] = CeccShippingInformation::class;
-    $definitions['billing_information']['provider'] = 'cecc';
-  }
-}
-
 function cecc_checkout_commerce_inline_form_alter(
   array &$inline_form,
   FormStateInterface $form_state,

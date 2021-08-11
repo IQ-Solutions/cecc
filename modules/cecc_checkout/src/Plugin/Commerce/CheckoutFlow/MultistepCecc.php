@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Plugin\Commerce\CheckoutFlow;
+namespace Drupal\cecc_checkout\Plugin\Commerce\CheckoutFlow;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowWithPanesBase;
 
@@ -8,8 +8,8 @@ use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowWithPanesB
  * Provides the default multistep checkout flow.
  *
  * @CommerceCheckoutFlow(
- *   id = "multistep_cec",
- *   label = "Multistep - Default (CEC)",
+ *   id = "cecc_multistep_default",
+ *   label = "CECC Multistep",
  * )
  */
 class MultistepCecc extends CheckoutFlowWithPanesBase {
@@ -22,6 +22,11 @@ class MultistepCecc extends CheckoutFlowWithPanesBase {
     // shown on the step itself. Instead, they are the labels shown
     // when going back to the step, or proceeding to the step.
     return [
+      'order_notes' => [
+        'label' => $this->t('Order Notes'),
+        'previous_label' => $this->t('Back to cart'),
+        'has_sidebar' => TRUE,
+      ],
       'login' => [
         'label' => $this->t('Login'),
         'previous_label' => $this->t('Go Back'),
@@ -29,6 +34,11 @@ class MultistepCecc extends CheckoutFlowWithPanesBase {
       ],
       'order_information' => [
         'label' => $this->t('Order Information'),
+        'has_sidebar' => TRUE,
+        'previous_label' => $this->t('Go Back'),
+      ],
+      'payment_information' => [
+        'label' => $this->t('Payment Information'),
         'has_sidebar' => TRUE,
         'previous_label' => $this->t('Go Back'),
       ],
