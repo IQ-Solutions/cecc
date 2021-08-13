@@ -46,14 +46,16 @@ class OverLimit extends CheckoutPaneBase implements CheckoutPaneInterface {
    * {@inheritdoc}
    */
   public function buildPaneSummary() {
-    $build = [
-      'summary_display' => [
-        '#type' => 'container',
-        '#title' => $this->t('Item Over Limit Notes'),
-      ],
-    ];
+    $build = [];
 
     if (!$this->order->get('field_cecc_over_limit_desc')->isEmpty()) {
+      $build = [
+        'summary_display' => [
+          '#type' => 'container',
+          '#title' => $this->t('Item Over Limit Notes'),
+        ],
+      ];
+
       $build['summary_display']['field_cecc_over_limit_desc'] = [
         '#type' => 'item',
         '#title' => $this->order->get('field_cecc_over_limit_desc')->getFieldDefinition()->getLabel(),

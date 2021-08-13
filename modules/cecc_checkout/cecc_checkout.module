@@ -20,17 +20,11 @@ function cecc_checkout_commerce_inline_form_alter(
 }
 
 function cecc_checkout_address_fields($element, $form_state) {
-  $element['given_name']['#title'] = t('First Name');
-  $element['family_name']['#title'] = t('Last Name');
 
   $element['address_line1']['#type'] = 'textarea';
   $element['address_line1']['#title'] = t('Street Address');
   $element['address_line1']['#maxlength'] = 255;
   $element['address_line1']['#attributes']['placeholder'] = t("Please enter your street address. Ex.\nOffice name (optional)\nBuilding name (optional)\nStreet address");
-
-  $element['organization']['#attributes']['placeholder'] = t('Please enter your company or organization name.');
-  $element['organization']['#description'] = t('Please enter your company or organization name.');
-  $element['organization']['#title'] = t('Organization');
 
   $element['address_line2']['#description'] = t('Room or Suite Number. Ex. Room 104');
   $element['address_line2']['#attributes']['placeholder'] = t('Room or Suite Number. Ex. Room 104');
@@ -40,16 +34,4 @@ function cecc_checkout_address_fields($element, $form_state) {
   $element['postal_code']['#maxlength'] = 20;
 
   return $element;
-}
-
-/**
- * Implements hook_preprocess_HOOK().
- */
-function cecc_checkout_preprocess_page_title(&$variables) {
-  $routeName = \Drupal::routeMatch()->getRouteName();
-
-  if ($routeName == 'commerce_checkout.form') {
-    $variables['title'] = t('Order Information');
-  }
-
 }
