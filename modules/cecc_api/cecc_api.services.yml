@@ -18,7 +18,7 @@ services:
     arguments:
       - '@date.formatter'
       - '@datetime.time'
-      - '@cecc_api.http_client.contents'
+      - '@cecc_api.inventory_api'
       - '@logger.factory'
       - '@entity_type.manager'
       - '@config.factory'

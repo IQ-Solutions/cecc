@@ -14,7 +14,6 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\http_client_manager\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -134,7 +133,7 @@ class Stock implements ContainerInjectionInterface {
     return new static(
       $container->get('date.formatter'),
       $container->get('datetime.time'),
-      $container->get('cecc_api.http_client.contents'),
+      $container->get('cecc_api.inventory_api'),
       $container->get('logger.factory'),
       $container->get('entity_type.manager'),
       $container->get('config.factory'),
