@@ -25,6 +25,13 @@ services:
       - '@queue'
       - '@database'
 
+  cecc_api.inventory_api:
+    class: Drupal\cecc_api\Service\InventoryApi
+    arguments:
+      - '@cecc_api.http_client.contents'
+      - '@logger.factory'
+      - '@config.factory'
+
   cecc_api.order:
     class: Drupal\cecc_api\Service\Order
     arguments:

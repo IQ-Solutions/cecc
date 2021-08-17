@@ -34,9 +34,9 @@ class Stock implements ContainerInjectionInterface {
   /**
    * Guzzle\Client instance.
    *
-   * @var \Drupal\http_client_manager\HttpClientInterface
+   * @var \Drupal\cecc_api\Service\InventoryApi
    */
-  protected $httpClient;
+  protected $inventoryApi;
 
   /**
    * Date formatter service.
@@ -94,8 +94,8 @@ class Stock implements ContainerInjectionInterface {
    *   Date formatter service.
    * @param \Drupal\Component\Datetime\TimeInterface $timeInterface
    *   Time service.
-   * @param \Drupal\http_client_manager\HttpClientInterface $http_client
-   *   Http client manager client.
+   * @param \Drupal\cecc_api\Service\InventoryApi $inventory_api
+   *   Inventory API service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   Drupal logger service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -110,7 +110,7 @@ class Stock implements ContainerInjectionInterface {
   public function __construct(
     DateFormatter $dateFormatter,
     TimeInterface $timeInterface,
-    HttpClientInterface $http_client,
+    InventoryApi $inventory_api,
     LoggerChannelFactoryInterface $loggerFactory,
     EntityTypeManagerInterface $entity_type_manager,
     ConfigFactory $configFactory,
@@ -119,7 +119,7 @@ class Stock implements ContainerInjectionInterface {
   ) {
     $this->dateFormatter = $dateFormatter;
     $this->time = $timeInterface;
-    $this->httpClient = $http_client;
+    $this->inventoryApi = $inventory_api;
     $this->logger = $loggerFactory->get($this->moduleName);
     $this->entityTypeManager = $entity_type_manager;
     $this->config = $configFactory->get('cecc_api.settings');
@@ -143,12 +143,26 @@ class Stock implements ContainerInjectionInterface {
     );
   }
 
+  private function isInventoryApiAvailable() {
+    if (!$this->inventoryApi->apiActive) {
+      $message = 'An API Key and service ID must be entered.';
+      $this->messenger()->addError($message);
+    }
+
+    return $this->inventoryApi->apiActive;
+  }
+
   /**
    * Gets all inventory.
    */
   public function refreshAllInventory() {
+
+    if (!$this->isInventoryApiAvailable()) {
+      return;
+    }
+
     $query = $this->connection->select('commerce_product_variation_field_data', 'cpv')
-      ->fields('cpv.id')
+      ->fields('cpv', ['id', 'field_cecc_warehouse_item_id'])
       ->where('cpv.cecc_check_stock_threshold >= cpv.field_cecc_stock');
 
     $count = $query->countQuery()->execute()->fetchField();
@@ -158,13 +172,22 @@ class Stock implements ContainerInjectionInterface {
       return FALSE;
     }
 
+    $response = $this->inventoryApi->getAllInventory();
+
+    if (empty($response)) {
+      $this->logger->info('The inventory API returned an empty response.');
+      return FALSE;
+    }
+
     $ids = $query->execute()->fetchAll();
 
     $queue = $this->queueFactory->get('cecc_update_stock');
 
     foreach ($ids as $id) {
+      $warehouse_record = array_search($id->field_cecc_warehouse_item_id, array_column($response, 'warehouse_item_id'));
       $item = [
         'id' => $id->id,
+        'new_stock_value' => $warehouse_record['warehouse_stock_on_hand'],
       ];
 
       $queue->createItem($item);
@@ -182,61 +205,46 @@ class Stock implements ContainerInjectionInterface {
    *   The product variation.
    */
   public function refreshInventory(ProductVariationInterface $productVariation) {
-    $agency = $this->config->get('agency');
-    $apiKey = $this->config->get('api_key');
 
-    if (empty($apiKey) || empty($agency)) {
-      $message = 'An API Key and service ID must be entered.';
-
-      $this->logger->error($message);
-      $this->messenger()->addError($message);
+    if (!$this->isInventoryApiAvailable()) {
+      return;
     }
 
-    $params = [
-      'agency' => $this->config->get('agency'),
-      'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
-      'code' => $this->config->get('api_key'),
-    ];
+    $response = $this->inventoryApi->getSingleInventory($productVariation->get('field_cecc_warehouse_item_id')->value);
 
-    try {
-      $response = $this->httpClient
-        ->call('GetSingleInventory', $params);
-
-      if ($response['code'] != 200) {
-        $message = $this->t('The service failed with the following error: %error', [
-          '%error' => $response['message'],
-        ]);
-
-        $this->logger->error($message);
-        $this->messenger()->addError($message);
-      }
-
-      $productVariation->set('field_cecc_stock', $response['inventory']['warehouse_stock_on_hand']);
-      $productVariation->set('field_awaiting_stock_refresh', FALSE);
-
-      try {
-        $productVariation->save();
-        $message = $this->t('Stock for %label has been refreshed to %level', [
-          '%label' => $productVariation->getTitle(),
-          '%level' => $productVariation->get('field_cecc_stock')->value,
-        ]);
-
-        $this->logger->info($message);
-        $this->messenger()->addStatus($message);
-      }
-      catch (EntityStorageException $error) {
-        $this->logger->error($error->getMessage());
-      }
-    }
-    catch (\Exception $error) {
+    if (empty($response)) {
       $this->messenger()->addError($this->t('%label failed to update. Check the error logs for more information.', [
         '%label' => $productVariation->getTitle(),
       ]));
 
-      $this->logger->error('%label failed to update. @error', [
+      if ($this->inventoryApi->connectionError) {
+        $this->logger->error('%label failed to update. @error', [
+          '%label' => $productVariation->getTitle(),
+          '@error' => $this->inventoryApi->connectionError,
+        ]);
+      }
+
+      return;
+    }
+
+    $productVariation->set('field_cecc_stock', $response['inventory']['warehouse_stock_on_hand']);
+    $productVariation->set('field_awaiting_stock_refresh', FALSE);
+
+    try {
+      $productVariation->save();
+      $message = $this->t('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
-        '@error' => $error->getMessage(),
+        '%level' => $productVariation->get('field_cecc_stock')->value,
       ]);
+
+      $this->logger->info($message);
+      $this->messenger()->addStatus($message);
+    }
+    catch (EntityStorageException $error) {
+      $this->logger->error($error->getMessage());
+      $this->messenger()->addError($this->t('%label failed to update. Check the error logs for more information.', [
+        '%label' => $productVariation->getTitle(),
+      ]));
     }
   }
 

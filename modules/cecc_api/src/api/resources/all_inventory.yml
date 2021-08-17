@@ -26,7 +26,7 @@ models:
       message:
         type: "string"
         location: "json"
-      inventory:
+      Catalog:
         type: "array"
         location: "json"
         items:
@@ -39,9 +39,12 @@ models:
       sku:
         location: "json"
         type: "string"
-      zoho_item_id:
+      name:
         location: "json"
-        type: "integer"
-      actual_available_stock:
+        type: "string"
+      warehouse_item_id:
+        location: "json"
+        type: "string"
+      warehouse_stock_on_hand:
         location: "json"
         type: "integer"

@@ -91,16 +91,6 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    * {@inheritdoc}
    */
   public function processItem($item) {
-    $agency = $this->config->get('agency');
-    $apiKey = $this->config->get('api_key');
-
-    if (empty($apiKey) || empty($agency)) {
-      $message = 'An API Key and service ID must be entered.';
-
-      $this->logger->error($message);
-
-      throw new SuspendQueueException($message);
-    }
 
     /**
      * @var \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation
@@ -113,45 +103,19 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
       return FALSE;
     }
 
-    $params = [
-      'agency' => $this->config->get('agency'),
-      'warehouse_item_id' => $productVariation->get('field_warehouse_item_id')->value,
-      'code' => $this->config->get('api_key'),
-    ];
+    $productVariation->set('field_cecc_stock', $item['new_stock_value']);
+    $productVariation->set('field_awaiting_stock_refresh', FALSE);
 
     try {
-      $response = $this->httpClient
-        ->call('GetSingleInventory', $params);
-
-      if ($response['code'] != 200) {
-        $message = $this->t('The service failed with the follow error: %error', [
-          '%error' => $response['message'],
-        ]);
-
-        $this->logger->error($message);
-        throw new SuspendQueueException($message);
-      }
-
-      $productVariation->set('field_po_stock', $response['inventory']['warehouse_stock_on_hand']);
-      $productVariation->set('field_awaiting_stock_refresh', FALSE);
-
-      try {
-        $productVariation->save();
-        $this->logger->info('Stock for %label has been refreshed to %level', [
-          '%label' => $productVariation->getTitle(),
-          '%level' => $productVariation->get('field_po_stock')->value,
-        ]);
-      }
-      catch (EntityStorageException $error) {
-        $this->logger->error($error->getMessage());
-        throw new RequeueException($error->getMessage());
-      }
-    }
-    catch (\Exception $error) {
-      $this->logger->error('@error', [
-        '@error' => $error->getMessage(),
+      $productVariation->save();
+      $this->logger->info('Stock for %label has been refreshed to %level', [
+        '%label' => $productVariation->getTitle(),
+        '%level' => $productVariation->get('field_po_stock')->value,
       ]);
-      throw new SuspendQueueException($error->getMessage());
+    }
+    catch (EntityStorageException $error) {
+      $this->logger->error($error->getMessage());
+      throw new RequeueException($error->getMessage());
     }
   }
 
