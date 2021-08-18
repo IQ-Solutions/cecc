@@ -55,14 +55,14 @@ class InventoryApi implements ContainerInjectionInterface {
    *
    * @var bool
    */
-  protected $apiActive = TRUE;
+  public $apiActive = TRUE;
 
   /**
    * The connection error message.
    *
    * @var string
    */
-  protected $connectionError;
+  public $connectionError;
 
   /**
    * Inventory API service contructor.
@@ -77,7 +77,7 @@ class InventoryApi implements ContainerInjectionInterface {
   public function __construct(
     HttpClientInterface $http_client,
     LoggerChannelFactoryInterface $logger_factory,
-    ConfigFactoryInterface $config_factory,
+    ConfigFactoryInterface $config_factory
   ) {
     $this->httpClient = $http_client;
     $this->logger = $logger_factory->get('cecc_api');

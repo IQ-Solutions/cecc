@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Form;
 
+use Drupal\cecc_api\Service\InventoryApi;
 use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -23,15 +24,24 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
   protected $stock;
 
   /**
+   * Guzzle\Client instance.
+   *
+   * @var \Drupal\cecc_api\Service\InventoryApi
+   */
+  protected $inventoryApi;
+
+  /**
    * Constructs a ContentEntityForm object.
    *
    * @param \Drupal\cecc_api\Service\Stock $stock
    *   The stock service.
    */
   public function __construct(
-    Stock $stock) {
+    Stock $stock,
+    InventoryApi $inventory_api) {
 
     $this->stock = $stock;
+    $this->inventoryApi = $inventory_api;
   }
 
   /**
@@ -39,7 +49,8 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('cecc_api.stock')
+      $container->get('cecc_api.stock'),
+      $container->get('cecc_api.inventory_api')
     );
   }
 
@@ -62,32 +73,41 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $productVariations = \Drupal::service('entity_type.manager')
-      ->getStorage('commerce_product_variation')->loadMultiple();
+    if ($this->inventoryApi->apiActive) {
+      $response = $this->inventoryApi->getAllInventory();
 
-    $operations = [];
-    $batchSize = 20;
-    $total = count($productVariations);
+      if (!empty($response)) {
+        $operations = [];
+        $batchSize = 20;
+        $total = count($response);
 
-    if (!empty($productVariations)) {
-      foreach (array_chunk($productVariations, $batchSize) as $index => $batchData) {
-        $operations[] = [
-          '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::batchProcessInventory',
-          [$batchData, $batchSize, $index, $total],
+        foreach (array_chunk($response, $batchSize) as $index => $batchData) {
+          $operations[] = [
+            '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::batchProcessInventory',
+            [$batchData, $batchSize, $index, $total],
+          ];
+        }
+
+        $batch = [
+          'title' => $this->t('Refresh All Product Inventory'),
+          'operations' => $operations,
+          'finished' => '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::finishedInventoryRefresh',
+          'init_message' => $this->t('Loading products'),
+          'progress_message' => $this->t('Processed @current out of @total. Estimated: @estimate'),
+          'error_message' => $this->t('The generation progress has encountered an error.'),
         ];
+
+        batch_set($batch);
+
+      }
+      else {
+        if (!empty($this->inventoryApi->connectionError)) {
+          $this->logger('cecc_api')->warning($this->inventoryApi->connectionError);
+        }
+
+        $this->messenger()->addWarning($this->t('Could not retrieve inventory. Please check the error logs for more information.'));
       }
     }
-
-    $batch = [
-      'title' => $this->t('Refresh All Product Inventory'),
-      'operations' => $operations,
-      'finished' => '\Drupal\cecc_api\Form\ConfirmProductRestockAllForm::finishedInventoryRefresh',
-      'init_message' => $this->t('Loading products'),
-      'progress_message' => $this->t('Processed @current out of @total. Estimated: @estimate'),
-      'error_message' => $this->t('The generation progress has encountered an error.'),
-    ];
-
-    batch_set($batch);
 
     $form_state->setRedirect('cecc_api.settings');
   }
@@ -99,15 +119,23 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
    *   The batch context.
    */
   public static function batchProcessInventory(array $batchData, int $batchSize, int $index, int $total, array &$context) {
-    /** @var \Drupal\cecc_api\Service\Stock $stockApi */
-    $stockApi = \Drupal::service('cecc_api.stock');
 
-    foreach ($batchData as $productVariation) {
-      $stockApi->refreshInventory($productVariation);
+    $storage = \Drupal::entityTypeManager()->getStorage('commerce_product_variation');
+
+    foreach ($batchData as $data) {
+      $cpvId = $storage->getQuery()
+        ->condition('field_cecc_warehouse_item_id', $data['warehouse_item_id'])
+        ->execute();
+
+      $product = ProductVariation::load(reset($cpvId));
+
+      $product->set('field_cecc_stock', $data['warehouse_stock_on_hand']);
+
+      $product->save();
     }
 
-    $start = $index * $batchSize;
-    $max = $start + $batchSize;
+    $start = $index * $batchSize + 1;
+    $max = $start + $batchSize - 1;
 
     $context['message'] = t('Processed @starting through @max of @total.', [
       '@starting' => $start,
