@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Drupal\cecc_api\Service\Stock;
+use Drupal\Core\Entity\EntityStorageException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -121,17 +122,36 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
   public static function batchProcessInventory(array $batchData, int $batchSize, int $index, int $total, array &$context) {
 
     $storage = \Drupal::entityTypeManager()->getStorage('commerce_product_variation');
+    $logger = \Drupal::logger('cecc_api');
+    $messenger = \Drupal::messenger();
 
     foreach ($batchData as $data) {
       $cpvId = $storage->getQuery()
         ->condition('field_cecc_warehouse_item_id', $data['warehouse_item_id'])
         ->execute();
 
-      $product = ProductVariation::load(reset($cpvId));
+      $productVariation = ProductVariation::load(reset($cpvId));
 
-      $product->set('field_cecc_stock', $data['warehouse_stock_on_hand']);
+      if ($productVariation) {
+        $productVariation->set('field_cecc_stock', $data['warehouse_stock_on_hand']);
 
-      $product->save();
+        try {
+          $productVariation->save();
+          $message = t('Stock for %label has been refreshed to %level', [
+            '%label' => $productVariation->getTitle(),
+            '%level' => $productVariation->get('field_cecc_stock')->value,
+          ]);
+
+          $logger->info($message);
+          $messenger->addStatus($message);
+        }
+        catch (EntityStorageException $error) {
+          $logger->error($error->getMessage());
+          $messenger->addError(t('%label failed to update. Check the error logs for more information.', [
+            '%label' => $productVariation->getTitle(),
+          ]));
+        }
+      }
     }
 
     $start = $index * $batchSize + 1;
