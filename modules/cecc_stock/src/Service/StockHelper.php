@@ -120,7 +120,7 @@ class StockHelper {
     $this->baseFormId = $this->formObject->getBaseFormId();
 
     switch ($this->baseFormId) {
-      case 'views_form_publication_cart_form_default':
+      case 'views_form_cecc_cart_form_default':
         $this->alterCartPage($form);
         break;
 
@@ -161,7 +161,25 @@ class StockHelper {
           continue;
         }
 
-        $form['edit_quantity'][$index]['#max'] = $purchasedEntity->get('field_cecc_order_limit')->value;
+        $quantityLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+        $quantity = $orderItem->getQuantity();
+
+        if (!empty($quantityLimit)) {
+          $overLimit = $quantity > $quantityLimit;
+
+          //$form['edit_quantity'][$index]['#max'] = $purchasedEntity->get('field_cecc_order_limit')->value;
+
+          $form['edit_quantity'][$index]['#suffix'] = $this->t('<span>Quantity Limit: %limit</span>', [
+            '%limit' => $purchasedEntity->get('field_cecc_order_limit')->value,
+          ]);
+
+          if ($overLimit) {
+            $this->messenger()->addWarning($this->t('%label is over the quantity limit of %limit.', [
+              '%label' => $purchasedEntity->getOrderItemTitle(),
+              '%limit' => $quantityLimit,
+            ]));
+          }
+        }
       }
 
       // Force a check to display the stock state to the user.
