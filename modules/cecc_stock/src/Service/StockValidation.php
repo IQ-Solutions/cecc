@@ -175,15 +175,21 @@ class StockValidation {
    *   Returns true if cart quantity is above order limit. False if below.
    */
   public function isCartAtQuantityLimit($variationId) {
-    /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
-    $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
-      ->load($variationId);
+    $config = $this->configFactory->get('cecc_stock.settings');
 
-    // Get the maximum orderable quantity.
-    $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
-    $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
+    if ($config->get('hard_limit_order_quantity')) {
+      /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
+      $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
+        ->load($variationId);
 
-    return $orderLimit > 0 ? $cartQuantity >= $orderLimit : FALSE;
+      // Get the maximum orderable quantity.
+      $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
+
+      return $orderLimit > 0 ? $cartQuantity >= $orderLimit : FALSE;
+    }
+
+    return FALSE;
   }
 
   /**
@@ -198,21 +204,27 @@ class StockValidation {
    *   Returns true if quantity is above order limit. False if below.
    */
   public function isCartOverQuantityLimit($variationId, $quantity) {
-    /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
-    $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
-      ->load($variationId);
-    $commerceConfig = $this->configFactory->get('cecc.settings');
+    $config = $this->configFactory->get('cecc_stock.settings');
 
-    // Get the maximum orderable quantity.
-    $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
-    $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
-    $totalQuantity = $cartQuantity + $quantity;
+    if ($config->get('hard_limit_order_quantity')) {
+      /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
+      $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
+        ->load($variationId);
+      $commerceConfig = $this->configFactory->get('cecc.settings');
 
-    if ($commerceConfig->get('quantity_update_type') == 'cart') {
-      $totalQuantity = $quantity;
+      // Get the maximum orderable quantity.
+      $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
+      $totalQuantity = $cartQuantity + $quantity;
+
+      if ($commerceConfig->get('quantity_update_type') == 'cart') {
+        $totalQuantity = $quantity;
+      }
+
+      return $orderLimit > 0 ? $totalQuantity > $orderLimit : FALSE;
     }
 
-    return $orderLimit > 0 ? $totalQuantity > $orderLimit : FALSE;
+    return FALSE;
   }
 
   /**
