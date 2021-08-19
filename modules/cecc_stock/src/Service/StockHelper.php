@@ -7,6 +7,7 @@ use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 class StockHelper {
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * Stock Validation Service.
