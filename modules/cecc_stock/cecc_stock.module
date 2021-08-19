@@ -11,7 +11,7 @@ function cecc_stock_form_alter(&$form, FormStateInterface $form_state, $form_id)
 /**
  * Implements hook_views_data_alter().
  */
-function cecc_cart_views_data_alter(array &$data) {
+function cecc_stock_views_data_alter(array &$data) {
   $data['commerce_order_item']['order_over_limit']['field'] = [
     'title' => t('Order Item Over Limit'),
     'help' => t('Adds a field to display an over limit notification'),
