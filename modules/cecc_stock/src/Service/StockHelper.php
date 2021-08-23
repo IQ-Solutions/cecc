@@ -215,6 +215,15 @@ class StockHelper {
       $selected_variation = $product->getDefaultVariation();
     }
 
+    $quantityLimit = $selected_variation->get('field_cecc_order_limit');
+    $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity');
+
+    if (!empty($quantityLimit)) {
+      $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity (Limit: @quantityLimit)', [
+        '@quantityLimit' => $quantityLimit,
+      ]);
+    }
+
     // Add a form validate needed for the add to cart action.
     $form['#validate'] = array_merge($form['#validate'], [
       '\Drupal\cecc_stock\Service\StockHelper::validateAddToCart',
