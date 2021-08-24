@@ -215,7 +215,7 @@ class StockHelper {
       $selected_variation = $product->getDefaultVariation();
     }
 
-    $quantityLimit = $selected_variation->get('field_cecc_order_limit');
+    $quantityLimit = $selected_variation->get('field_cecc_order_limit')->value;
     $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity');
 
     if (!empty($quantityLimit)) {
