@@ -12,7 +12,7 @@ function cecc_checkout_commerce_inline_form_alter(
   $plugin = $inline_form['#inline_form'];
 
   if ($plugin->getPluginId() == 'customer_profile') {
-    if ($inline_form['#profile_scope'] == 'billing' && !isset($inline_form['rendered'])) {
+    if (!isset($inline_form['rendered'])) {
       $inline_form['address']['widget'][0]['address']['#process'][] = ['Drupal\address\Element\Address', 'processAddress'];
       $inline_form['address']['widget'][0]['address']['#process'][] = 'cecc_checkout_address_fields';
     }
