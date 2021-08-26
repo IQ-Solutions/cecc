@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -149,6 +150,10 @@ class FormHelper implements FormHelperInterface {
    */
   public function negotiateForms(array &$form) {
     switch ($this->baseFormId) {
+      case 'views_form_cecc_cart_form_default':
+        $this->alterCartPage($form);
+        break;
+
       case 'commerce_checkout_flow':
         $this->alterCheckout($form);
         break;
@@ -156,6 +161,36 @@ class FormHelper implements FormHelperInterface {
       case 'commerce_order_item_add_to_cart_form':
         $this->alterCartForm($form);
         break;
+    }
+  }
+
+  /**
+   * Alter cart page form.
+   *
+   * @param array $form
+   *   The form array.
+   */
+  private function alterCartPage(array &$form): void {
+    /** @var \Drupal\views\ViewExecutable $view */
+    $view = reset($this->formState->getBuildInfo()['args']);
+
+    if ($view->storage->get('tag') == 'commerce_cart_form' && !empty($view->result)) {
+
+      $form['actions']['continue_shopping'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Continue Shopping'),
+        '#url' => Url::fromRoute('view.publication_search.page_1'),
+        '#weight' => 0,
+        '#attributes' => [
+          'class' => [
+            'usa-button',
+            'usa-button--outline',
+          ],
+        ],
+      ];
+
+      $form['actions']['submit']['#weight'] = 1;
+      $form['actions']['checkout']['#weight'] = 2;
     }
   }
 
@@ -176,16 +211,20 @@ class FormHelper implements FormHelperInterface {
       $form['actions']['next']['#value'] = $this->t('Complete Checkout');
     }
 
-    $form['actions']['next']['#suffix'] = Link::createFromRoute(
-      'Back to Cart',
-      'commerce_cart.page',
-      [],
-      [
-        'attributes' => [
-          'class' => ['link--previous'],
+    $form['actions']['next']['#weight'] = 1;
+
+    $form['actions']['back_to_cart'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Back to Cart'),
+      '#url' => Url::fromRoute('commerce_cart.page'),
+      '#weight' => 0,
+      '#attributes' => [
+        'class' => [
+          'usa-button',
+          'usa-button--outline',
         ],
-      ]
-    )->toString();
+      ],
+    ];
   }
 
   /**
