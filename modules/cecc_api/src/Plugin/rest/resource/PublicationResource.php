@@ -281,7 +281,7 @@ class PublicationResource extends ResourceBase {
       $filePath = file_create_url($fileUri);
       $mediaLinks['src'] = $filePath ?: NULL;
 
-      if ($mediaType == 'image') {
+      /**if ($mediaType == 'image') {
         $thumbnailImagePath = $this->getImageStyle('cart_list')->buildUrl($fileUri);
         $detailImagePath = $this->getImageStyle('featured_publications_cover')->buildUrl($fileUri);
         $popularImagePath = $this->getImageStyle('popular_publicationsc')->buildUrl($fileUri);
@@ -290,7 +290,7 @@ class PublicationResource extends ResourceBase {
         $mediaLinks['featured'] = $detailImagePath ?: NULL;
         $mediaLinks['popular'] = $popularImagePath ?: NULL;
         $mediaLinks['summary'] = $summaryImagePath ?: NULL;
-      }
+      }**/
     }
 
     return $mediaLinks;
