@@ -40,3 +40,4 @@ services:
       - '@entity_type.manager'
       - '@config.factory'
       - '@telephone_formatter.formatter'
+      - '@commerce_price.currency_formatter'
