@@ -5,3 +5,4 @@ services:
       - '@entity_type.manager'
       - '@config.factory'
       - '@request_stack'
+      - '@module_handler'

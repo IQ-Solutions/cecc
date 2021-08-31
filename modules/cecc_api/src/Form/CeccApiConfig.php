@@ -39,6 +39,13 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('enable_api') ?: 1,
     ];
 
+    $form['debug'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Debug API'),
+      '#description' => $this->t('Outputs API info to browser or as file.'),
+      '#default_value' => $config->get('debug') ?: 0,
+    ];
+
     $form['agency'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Service ID'),
@@ -70,6 +77,7 @@ class CeccApiConfig extends ConfigFormBase {
     $config = $this->configFactory()->getEditable('cecc_api.settings');
     $config
       ->set('enable_api', $form_state->getValue('enable_api'))
+      ->set('debug', $form_state->getValue('debug'))
       ->set('agency', $form_state->getValue('agency'))
       ->set('api_key', $form_state->getValue('api_key'))
       ->set('base_api_url', $form_state->getValue('base_api_url'))

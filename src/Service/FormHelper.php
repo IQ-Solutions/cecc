@@ -5,6 +5,7 @@ namespace Drupal\cecc\Service;
 use Drupal\Component\Utility\Number;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -67,6 +68,13 @@ class FormHelper implements FormHelperInterface {
   protected $requestStack;
 
   /**
+   * The module handler service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * Constructor method.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -79,11 +87,13 @@ class FormHelper implements FormHelperInterface {
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     ConfigFactoryInterface $config_factory,
-    RequestStack $requestStack
+    RequestStack $requestStack,
+    ModuleHandlerInterface $moduleHandler
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->configFactory = $config_factory;
     $this->requestStack = $requestStack;
+    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -205,6 +215,13 @@ class FormHelper implements FormHelperInterface {
 
     if ($stepId == 'order_information') {
       $form['actions']['next']['#value'] = $this->t('Review Your Order');
+
+      if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
+        $form['captcha'] = [
+          '#type' => 'captcha',
+          '#captcha_type' => 'recaptcha_v3/default'
+        ];
+      }
     }
 
     if ($stepId == 'review') {

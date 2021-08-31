@@ -7,9 +7,11 @@ use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Http\ClientFactory;
+use Drupal\Core\Link;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 use Drupal\telephone_formatter\Formatter;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -31,6 +33,13 @@ class Order implements ContainerInjectionInterface {
   const API_CONNECTION_ERROR = 2;
   const INTERNAL_CONNECTION_ERROR = 4;
   const ORDER_SENT = 0;
+
+  /**
+   * Is order over limit.
+   *
+   * @var bool
+   */
+  public $isOverLimit = FALSE;
 
   /**
    * Guzzle\Client instance.
@@ -134,11 +143,11 @@ class Order implements ContainerInjectionInterface {
     $store = $this->entityTypeManager->getStorage('commerce_store')
       ->loadDefault();
 
-    $profession = $order->get('field_profession')->value;
+    //$profession = $order->get('field_profession')->value;
     $setting = $order->get('field_setting')->value;
 
     $cart = $this->getOrderItems($order);
-    $profile = $this->getShippingInformation($order);
+    $profile = $this->getCustomerInformation($order);
 
     $orderArray = [
       'source_order_id' => $order->getOrderNumber(),
@@ -148,43 +157,68 @@ class Order implements ContainerInjectionInterface {
       'order_type' => 'web',
       'email' => $order->getEmail(),
       'complete' => $order->getState()->getId() == 'completed',
+      'is_overlimit' => $this->isOverLimit ? 'true' : 'false',
+      'overlimit_comments' => $this->t('@event_location@event_name@description', [
+        '@event_location' => $order->get('field_event_location')->isEmpty() ? NULL : $order->get('field_event_location')->value . '|',
+        '@event_name' => $order->get('field_event_name')->isEmpty() ? NULL : $order->get('field_event_name')->value . '|',
+        '@description' => $order->get('field_cecc_over_limit_desc')->isEmpty() ? NULL : $order->get('field_cecc_over_limit_desc')->value,
+      ]),
+      'shipping_method' => '',
+      'estimated_shipping_cost' => 0,
+      'stripe_confirmation_code' => '',
+      'use_shipping_account' => 'false',
+      'shipping account_no' => '',
       'cart' => $cart,
-      'shipping_address' => $profile['address'],
+      'shipping_address' => $profile['shipping_address'],
+      'billing_address' => $profile['billing_address'],
       'customer_questions' => [
-        'profession' => $profession,
+        //'profession' => $profession,
         'setting' => $setting,
       ],
     ];
 
-    try {
-      /**
-       * @todo Add a config value for the agency abbreviation.
-       */
-      $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
-        'headers' => [
-          'IQ_Client_Key' => $apiKey,
-          'Content-Type' => 'application/json',
-        ],
-        'body' => json_encode($orderArray),
-      ]);
-
-      if ($response->getStatusCode() != 200) {
-        $message = $this->t('The service failed with the following error: %error', [
-          '%error' => $response['message'],
-          '%response' => json_encode($orderArray),
+    if ($this->config->get('debug') == 0) {
+      try {
+        /**
+         * @todo Add a config value for the agency abbreviation.
+         */
+        $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
+          'headers' => [
+            'IQ_Client_Key' => $apiKey,
+            'Content-Type' => 'application/json',
+          ],
+          'body' => json_encode($orderArray),
         ]);
 
-        $this->logger->error($message);
-        return self::API_CONNECTION_ERROR;
+        if ($response->getStatusCode() != 200) {
+          $message = $this->t('The service failed with the following error: %error', [
+            '%error' => $response['message'],
+            '%response' => json_encode($orderArray),
+          ]);
+
+          $this->logger->error($message);
+          return self::API_CONNECTION_ERROR;
+        }
+      }
+      catch (GuzzleException $error) {
+        $this->logger->error('@error | @response', [
+          '@error' => $error->getMessage(),
+          '@response' => json_encode($orderArray),
+        ]);
+
+        return self::INTERNAL_CONNECTION_ERROR;
       }
     }
-    catch (GuzzleException $error) {
-      $this->logger->error('@error | @response', [
-        '@error' => $error->getMessage(),
-        '@response' => json_encode($orderArray),
-      ]);
+    else {
+      $file = file_save_data(json_encode($orderArray), 'public://testorder.json');
+      $url = file_create_url($file->getFileUri());
 
-      return self::INTERNAL_CONNECTION_ERROR;
+      $this->logger->info('<a href="@file">File available at @file</a>', [
+        '@file' => $url,
+      ]);
+      $this->messenger()->addStatus($this->t('<a href="@file">File available at @file</a>', [
+        '@file' => $url,
+      ]));
     }
 
     return self::ORDER_SENT;
@@ -204,6 +238,8 @@ class Order implements ContainerInjectionInterface {
 
     foreach ($order->getItems() as $orderItem) {
       $purchasedEntity = $orderItem->getPurchasedEntity();
+      $quantity = $orderItem->getQuantity();
+      $overLimitValue = $purchasedEntity->get('field_cecc_order_limit');
 
       $orderArray = [
         'sku' => $purchasedEntity->get('sku')->value,
@@ -212,6 +248,10 @@ class Order implements ContainerInjectionInterface {
       ];
 
       $orderItems[] = $orderArray;
+
+      if (!$this->isOverLimit) {
+        $this->isOverLimit = $quantity > $overLimitValue;
+      }
     }
 
     return $orderItems;
@@ -226,44 +266,72 @@ class Order implements ContainerInjectionInterface {
    * @return array
    *   The address information in array format.
    */
-  private function getShippingInformation(OrderInterface $order) {
+  private function getCustomerInformation(OrderInterface $order) {
     /** @var \Drupal\profile\Entity\ProfileInterface $shippingProfile */
-    $shippingProfile = $this->getProfile($order);
+    $shippingProfile = $this->getProfile($order, 'shipping');
+    /** @var \Drupal\profile\Entity\ProfileInterface $billingProfile */
+    $billingProfile = $this->getProfile($order, 'billing');
 
     $profile = [
-      'address' => [],
+      'shipping_address' => [],
+      'billing_address' => [],
       'customer' => [],
     ];
 
     if ($shippingProfile) {
       $addressArray = $shippingProfile->get('address')->getValue()[0];
-      $phone = $shippingProfile->get('field_phone')->value;
+      $phone = $shippingProfile->get('field_phone_number')->value;
       $phoneExt = $shippingProfile->get('field_extension')->value;
-      $profile['address']['first_name'] = $addressArray['given_name'];
-      $profile['address']['last_name'] = $addressArray['family_name'];
-      $profile['address']['company_name'] = $addressArray['organization'];
-      $profile['address']['address'] = $addressArray['address_line1'];
-      $profile['address']['street2'] = $addressArray['address_line2'];
-      $profile['address']['street3'] = '';
-      $profile['address']['suite_no'] = '';
-      $profile['address']['city'] = $addressArray['locality'];
-      $profile['address']['state'] = $addressArray['administrative_area'];
-      $profile['address']['zip'] = $addressArray['postal_code'];
-      $profile['address']['country'] = $addressArray['country_code'];
-      $profile['address']['phone'] = !empty($phone) ? $this->telephoneFormatter
+      $profile['shipping_address']['first_name'] = $shippingProfile->get('field_name');
+      $profile['shipping_address']['last_name'] = $addressArray['family_name'];
+      $profile['shipping_address']['company_name'] = $addressArray['organization'];
+      $profile['shipping_address']['address'] = $addressArray['address_line1'];
+      $profile['shipping_address']['street2'] = $addressArray['address_line2'];
+      $profile['shipping_address']['street3'] = '';
+      $profile['shipping_address']['suite_no'] = '';
+      $profile['shipping_address']['city'] = $addressArray['locality'];
+      $profile['shipping_address']['state'] = $addressArray['administrative_area'];
+      $profile['shipping_address']['zip'] = $addressArray['postal_code'];
+      $profile['shipping_address']['country'] = $addressArray['country_code'];
+      $profile['shipping_address']['phone'] = !empty($phone) ? $this->telephoneFormatter
         ->format($phone, 2, 'US') : NULL;
-      $profile['address']['phone_ext'] = $phoneExt;
+      $profile['shipping_address']['phone_ext'] = $phoneExt;
+    }
+
+    if ($billingProfile) {
+      $addressArray = $billingProfile->get('address')->getValue()[0];
+      $phone = $billingProfile->get('field_phone_number')->value;
+      $phoneExt = $billingProfile->get('field_extension')->value;
+      $profile['billing_address']['first_name'] = $billingProfile->get('field_name');
+      $profile['billing_address']['last_name'] = $addressArray['family_name'];
+      $profile['billing_address']['company_name'] = $addressArray['organization'];
+      $profile['billing_address']['address'] = $addressArray['address_line1'];
+      $profile['billing_address']['street2'] = $addressArray['address_line2'];
+      $profile['billing_address']['street3'] = '';
+      $profile['billing_address']['suite_no'] = '';
+      $profile['billing_address']['city'] = $addressArray['locality'];
+      $profile['billing_address']['state'] = $addressArray['administrative_area'];
+      $profile['billing_address']['zip'] = $addressArray['postal_code'];
+      $profile['billing_address']['country'] = $addressArray['country_code'];
+      $profile['billing_address']['phone'] = !empty($phone) ? $this->telephoneFormatter
+        ->format($phone, 2, 'US') : NULL;
+      $profile['billing_address']['phone_ext'] = $phoneExt;
     }
 
     return $profile;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets a customer profile.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order.
+   * @param string $type
+   *   The profile type.
    */
-  public function getProfile(OrderInterface $order) {
+  public function getProfile(OrderInterface $order, $type) {
     $profiles = $order->collectProfiles();
-    return isset($profiles['billing']) ? $profiles['billing'] : NULL;
+    return isset($profiles[$type]) ? $profiles[$type] : NULL;
   }
 
 }
