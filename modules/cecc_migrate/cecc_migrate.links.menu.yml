@@ -1,5 +1,5 @@
-cecc_migrate.migrate_users:
-  title: 'Migrate Users'
+cecc_migrate.migrate_orders:
+  title: 'Migrate Orders'
   parent: cecc.config
-  description: 'Customer Engagement Center Catalog Migrate Users'
-  route_name: cecc_migrate.migrate_users
+  description: 'Customer Engagement Center Catalog Migrate Orders'
+  route_name: cecc_migrate.migrate_orders

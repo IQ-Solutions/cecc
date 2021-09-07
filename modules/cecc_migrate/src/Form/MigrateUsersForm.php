@@ -148,6 +148,7 @@ class MigrateUsersForm extends FormBase {
     if (empty($user)) {
       $user = User::create();
 
+      $user->set('field_customer_id_legacy', $data[0]);
       $user->set('name', $data[11]);
       $user->uid = $data[0];
       $user->setEmail($data[11]);

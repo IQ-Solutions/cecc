@@ -1,8 +1,8 @@
-cecc_migrate.migrate_users:
-  path: '/admin/commerce/cecc/migrate-users'
+cecc_migrate.migrate_orders:
+  path: '/admin/commerce/cecc/migrate-orders'
   defaults:
-   _form: '\Drupal\cecc_migrate\Form\MigrateUsersForm'
-   _title: 'Migrate Commerce Users'
+   _form: '\Drupal\cecc_migrate\Form\MigrateOrdersForm'
+   _title: 'Migrate Commerce Orders'
   requirements:
     _permission:
       'administer site configuration'
