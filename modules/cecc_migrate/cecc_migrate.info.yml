@@ -1,0 +1,7 @@
+type: module
+name: 'Customer Engagement Center Catalog Migration'
+description: 'Customer Engagement Center (CEC) Catalog migration module'
+package: 'Customer Engagement Center'
+core_version_requirement: ^8.8 || ^9
+dependencies:
+  - drupal:commerce
