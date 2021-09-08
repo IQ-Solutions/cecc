@@ -181,15 +181,10 @@ class MigrateOrdersForm extends FormBase {
       'sku' => $sku,
     ]);
 
-    if (empty($productVariationIds)) {
-      $context['finished'] = TRUE;
-      return;
-    }
+    if (!empty($productVariationIds)) {
+      /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation */
+      $productVariation = reset($productVariationIds);
 
-    /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation */
-    $productVariation = reset($productVariationIds);
-
-    if (!empty($productVariation)) {
       $orderItem->set('purchased_entity', $productVariation->id());
 
       $product = $productVariation->getProduct();
