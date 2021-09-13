@@ -137,10 +137,10 @@ class MigrateOrdersForm extends FormBase {
     $modulePath = $this->fileSystem->realpath($this->moduleHandler->getModule('ninds')->getPath());
     $sourceFile = $modulePath . '/source_files/List_Customers_Orders_07312020_07312021.csv';
     $siteModule = $form_state->getValue('site_module');
+    $skipFirstLine = $form_state->getValue('skip_first_line');
 
     if (empty($siteModule)) {
       $fileId = reset($form_state->getValue('csv_file'));
-      $skipFirstLine = $form_state->getValue('skip_first_line');
 
       /** @var \Drupal\file\Entity\File $file */
       $file = $this->entityTypeManager->getStorage('file')->load($fileId);
@@ -149,14 +149,22 @@ class MigrateOrdersForm extends FormBase {
       $sourceFile = $this->fileSystem->realpath($file->getFileUri());
     }
 
+    $this->logger('cecc_migrate')->info('Loading File: @file', [
+      '@file' => $sourceFile,
+    ]);
+
     //$fileObj = new \SplFileObject($sourceFile);
     //$fileObj->setFlags($fileObj::READ_CSV);
     $fh = fopen($sourceFile, 'r');
 
     if ($fh !== FALSE) {
 
+      $this->logger('cecc_migrate')->info('File loaded');
+
       $operations = [];
       $row = 0;
+
+      $this->logger('cecc_migrate')->info('Started loading rows');
 
       while (($line = fgetcsv($fh, 1000)) !== FALSE) {
         if ($skipFirstLine == 1 && $row == 0) {
@@ -173,7 +181,10 @@ class MigrateOrdersForm extends FormBase {
 
         $row++;
       }
+
+      $this->logger('cecc_migrate')->info('Done loading rows');
       fclose($fh);
+      $this->logger('cecc_migrate')->info('Batch process started');
 
       $batch = [
         'title' => $this->t('Import Orders from CSV'),
