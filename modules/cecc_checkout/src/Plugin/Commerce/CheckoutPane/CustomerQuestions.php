@@ -11,7 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @CommerceCheckoutPane(
  *   id = "cecc_customer_questions",
- *   label = @Translation("Additional Information"),
+ *   label = @Translation("How will you use these publications?"),
  *   default_step = "order_information",
  *   wrapper_element = "fieldset",
  * )
@@ -51,7 +51,7 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
     $build = [
       'summary_display' => [
         '#type' => 'container',
-        '#title' => $this->t('Additional Information'),
+        '#title' => $this->t('How will you use these publications?'),
       ],
     ];
 
