@@ -4,8 +4,6 @@ namespace Drupal\cecc_migrate\Form;
 
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\commerce_shipping\Entity\Shipment;
-use Drupal\commerce_shipping\ShipmentItem;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -15,8 +13,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
-use Drupal\physical\Weight;
-use Drupal\physical\WeightUnit;
 use Drupal\profile\Entity\Profile;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,7 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Migrates orders from IQ Legacy systems.
  */
-class MigrateOrdersForm extends FormBase {
+class MigrateFavoritesForm extends FormBase {
   /**
    * EntityTypeManager service.
    *
@@ -93,7 +89,7 @@ class MigrateOrdersForm extends FormBase {
    * {@inheritDoc}
    */
   public function getFormId() {
-    return 'cecc_migrate_orders_form';
+    return 'cecc_migrate_favorites_form';
   }
 
   /**
@@ -149,43 +145,34 @@ class MigrateOrdersForm extends FormBase {
       $sourceFile = $this->fileSystem->realpath($file->getFileUri());
     }
 
-    //$fileObj = new \SplFileObject($sourceFile);
-    //$fileObj->setFlags($fileObj::READ_CSV);
-    $fh = fopen($sourceFile, 'r');
+    $fileObj = new \SplFileObject($sourceFile);
+    $fileObj->setFlags($fileObj::READ_CSV);
 
-    if ($fh !== FALSE) {
+    $operations = [];
 
-      $operations = [];
-      $row = 0;
-
-      while (($line = fgetcsv($fh, 1000)) !== FALSE) {
-        if ($skipFirstLine == 1 && $row == 0) {
-          $row++;
-          continue;
-        }
-
-        $operations[] = [
-          '\Drupal\cecc_migrate\Form\MigrateOrdersForm::migrateOrders',
-          [
-            $line,
-          ],
-        ];
-
-        $row++;
+    foreach ($fileObj as $index => $line) {
+      if ($skipFirstLine == 1 && $index == 0) {
+        continue;
       }
-      fclose($fh);
 
-      $batch = [
-        'title' => $this->t('Import Orders from CSV'),
-        'operations' => $operations,
-        'finished' => '\Drupal\cecc_migrate\Form\MigrateUsersForm::finishedImportingOrders',
-        'init_message' => $this->t('Importing Orders'),
-        'progress_message' => $this->t('Processed @current order items of @total. Estimated: @estimate'),
-        'error_message' => $this->t('The import process has encountered an error.'),
+      $operations[] = [
+        '\Drupal\cecc_migrate\Form\MigrateOrdersForm::migrateOrders',
+        [
+          $line,
+        ],
       ];
-
-      batch_set($batch);
     }
+
+    $batch = [
+      'title' => $this->t('Import Orders from CSV'),
+      'operations' => $operations,
+      'finished' => '\Drupal\cecc_migrate\Form\MigrateUsersForm::finishedImportingOrders',
+      'init_message' => $this->t('Importing Orders'),
+      'progress_message' => $this->t('Processed @current order items of @total. Estimated: @estimate'),
+      'error_message' => $this->t('The import process has encountered an error.'),
+    ];
+
+    batch_set($batch);
 
   }
 
