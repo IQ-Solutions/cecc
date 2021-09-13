@@ -10,6 +10,7 @@ use Drupal\Component\Utility\Xss;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\File\FileSystem;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
@@ -46,6 +47,13 @@ class MigrateOrdersForm extends FormBase {
   protected $moduleHandler;
 
   /**
+   * Password Generator service.
+   *
+   * @var \Drupal\Core\File\FileSystem
+   */
+  protected $fileSystem;
+
+  /**
    * Undocumented function.
    *
    * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -54,15 +62,19 @@ class MigrateOrdersForm extends FormBase {
    *   The password generator service.
    * @param Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler service.
+   * @param Drupal\Core\File\FileSystem $file_system
+   *   The module handler service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     PasswordGeneratorInterface $password_generator,
-    ModuleHandlerInterface $module_handler
+    ModuleHandlerInterface $module_handler,
+    FileSystem $file_system
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->passwordGenerator = $password_generator;
     $this->moduleHandler = $module_handler;
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -72,7 +84,8 @@ class MigrateOrdersForm extends FormBase {
     return new static(
       $container->get('entity_type.manager'),
       $container->get('password_generator'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('file_system')
     );
   }
 
@@ -121,8 +134,8 @@ class MigrateOrdersForm extends FormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $modulePath = $this->moduleHandler->getModule('ninds')->getPath();
-    $sourceFile = $modulePath . 'source_files/List_Customers_Orders_07312020_07312021.csv';
+    $modulePath = $this->fileSystem->realpath($this->moduleHandler->getModule('ninds')->getPath());
+    $sourceFile = $modulePath . '/source_files/List_Customers_Orders_07312020_07312021.csv';
     $siteModule = $form_state->getValue('site_module');
 
     if (empty($siteModule)) {
@@ -133,9 +146,7 @@ class MigrateOrdersForm extends FormBase {
       $file = $this->entityTypeManager->getStorage('file')->load($fileId);
       $file->save();
 
-      $filePath = $file->createFileUrl();
-
-      $sourceFile = DRUPAL_ROOT . $filePath;
+      $sourceFile = $this->fileSystem->realpath($file->getFileUri());
     }
 
     $fileObj = new \SplFileObject($sourceFile);
