@@ -9,6 +9,7 @@ use Drupal\commerce_shipping\ShipmentItem;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
@@ -38,19 +39,30 @@ class MigrateOrdersForm extends FormBase {
   protected $passwordGenerator;
 
   /**
+   * Password Generator service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * Undocumented function.
    *
    * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager service.
    * @param Drupal\Core\Password\PasswordGeneratorInterface $password_generator
    *   The password generator service.
+   * @param Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
-    PasswordGeneratorInterface $password_generator
+    PasswordGeneratorInterface $password_generator,
+    ModuleHandlerInterface $module_handler
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->passwordGenerator = $password_generator;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -59,7 +71,8 @@ class MigrateOrdersForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('password_generator')
+      $container->get('password_generator'),
+      $container->get('module_handler')
     );
   }
 
@@ -74,6 +87,7 @@ class MigrateOrdersForm extends FormBase {
    * {@inheritDoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+
     $form['csv_file'] = [
       '#type' => 'managed_file',
       '#upload_location' => 'public://migrations/',
@@ -82,6 +96,12 @@ class MigrateOrdersForm extends FormBase {
           'csv',
         ],
       ],
+    ];
+
+    $form['site_module'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Source file from Module'),
+      '#description' => $this->t('Use a source file stored in a custom module directory. Enter the module machine name'),
     ];
 
     $form['skip_first_line'] = [
@@ -101,16 +121,24 @@ class MigrateOrdersForm extends FormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $fileId = reset($form_state->getValue('csv_file'));
-    $skipFirstLine = $form_state->getValue('skip_first_line');
+    $modulePath = $this->moduleHandler->getModule('ninds')->getPath();
+    $sourceFile = $modulePath . 'source_files/List_Customers_Orders_07312020_07312021.csv';
+    $siteModule = $form_state->getValue('site_module');
 
-    /** @var \Drupal\file\Entity\File $file */
-    $file = $this->entityTypeManager->getStorage('file')->load($fileId);
-    $file->save();
+    if (empty($siteModule)) {
+      $fileId = reset($form_state->getValue('csv_file'));
+      $skipFirstLine = $form_state->getValue('skip_first_line');
 
-    $filePath = $file->createFileUrl();
+      /** @var \Drupal\file\Entity\File $file */
+      $file = $this->entityTypeManager->getStorage('file')->load($fileId);
+      $file->save();
 
-    $fileObj = new \SplFileObject(DRUPAL_ROOT . $filePath);
+      $filePath = $file->createFileUrl();
+
+      $sourceFile = DRUPAL_ROOT . $filePath;
+    }
+
+    $fileObj = new \SplFileObject($sourceFile);
     $fileObj->setFlags($fileObj::READ_CSV);
 
     $operations = [];
