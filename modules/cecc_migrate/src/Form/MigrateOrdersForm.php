@@ -3,6 +3,7 @@
 namespace Drupal\cecc_migrate\Form;
 
 use Drupal\commerce_order\Entity\Order;
+use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItem;
 use Drupal\commerce_shipping\Entity\Shipment;
 use Drupal\commerce_shipping\ShipmentItem;
@@ -18,6 +19,7 @@ use Drupal\Core\Password\PasswordGeneratorInterface;
 use Drupal\physical\Weight;
 use Drupal\physical\WeightUnit;
 use Drupal\profile\Entity\Profile;
+use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -217,7 +219,6 @@ class MigrateOrdersForm extends FormBase {
    *   The csv line data.
    */
   public static function migrateOrders(array $data) {
-    $entityTypeManager = \Drupal::entityTypeManager();
 
     $title = $data[27];
     $quantity = (int) $data[18];
@@ -236,32 +237,105 @@ class MigrateOrdersForm extends FormBase {
       return;
     }
 
-    $orderItem = OrderItem::create([
-      'type' => 'cecc_publication',
-    ]);
+    $order = self::getOrder($data, $user, $profile);
+    $orderItem = self::getOrderItem($quantity, $sku, $title, $order);
 
-    $orderItem->setQuantity($quantity);
+    if (!$order->hasItem($orderItem)) {
+      $order = $order->addItem($orderItem);
+    }
 
-    $productVariationIds = $entityTypeManager->getStorage('commerce_product_variation')->loadByProperties([
+    $order->save();
+  }
+
+  /**
+   * Get order items if it exist.
+   *
+   * @param int $quantity
+   *   The item quantity.
+   * @param string $sku
+   *   The item number.
+   * @param string $title
+   *   The item title.
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order item.
+   *
+   * @return \Drupal\commerce_order\Entity\OrderItemInterface
+   *   The order item.
+   */
+  public static function getOrderItem($quantity, $sku, $title, OrderInterface $order) {
+    $entityTypeManager = \Drupal::entityTypeManager();
+    $orderItem = NULL;
+    $productVariation = NULL;
+
+    /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
+    $productVariations = $entityTypeManager->getStorage('commerce_product_variation')->loadByProperties([
       'sku' => $sku,
     ]);
 
-    if (!empty($productVariationIds)) {
-      /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation */
-      $productVariation = reset($productVariationIds);
+    $orderItemProperties = [];
 
-      $orderItem->set('purchased_entity', $productVariation->id());
+    if (!empty($productVariations)) {
+      $productVariation = reset($productVariations);
+      $orderItemProperties = [
+        'purchased_entity' => $productVariation->id(),
+        'order_id' => $order->id(),
+      ];
+    }
 
-      $product = $productVariation->getProduct();
+    /** @var \Drupal\commerce_order\Entity\OrderItem[] $orderItems */
+    $orderItems = !empty($orderItemProperties) ?
+      $entityTypeManager->getStorage('commerce_order_item')->loadByProperties($orderItemProperties)
+      : NULL;
 
-      if (!empty($product)) {
-        $title = $product->getTitle();
+    if (empty($orderItems)) {
+      $orderItem = OrderItem::create([
+        'type' => 'cecc_publication',
+      ]);
+
+      $orderItem->setQuantity($quantity);
+
+      if (!empty($productVariation)) {
+        $orderItem->set('purchased_entity', $productVariation->id());
+
+        $product = $productVariation->getProduct();
+
+        if (!empty($product)) {
+          $title = $product->getTitle();
+        }
+      }
+
+      $orderItem->setTitle($title);
+
+      $orderItem->save();
+    }
+    else {
+      $orderItem = reset($orderItems);
+
+      if (!$orderItem->hasPurchasedEntity() && !empty($productVariation)) {
+        $orderItem->set('purchased_entity', $productVariation->id());
+        $orderItem->save();
       }
     }
 
-    $orderItem->setTitle($title);
+    return $orderItem;
+  }
 
-    $orderItem->save();
+  /**
+   * Get the order.
+   *
+   * @param array $data
+   *   The csv data line.
+   * @param \Drupal\user\Entity\User $user
+   *   The drupal user.
+   * @param \Drupal\profile\Entity\ProfileInterface $profile
+   *   The Drupal user profile used.
+   *
+   * @return \Drupal\commerce_order\Entity\OrderInterface|null
+   *   The order.
+   */
+  public static function getOrder(array $data, User $user, ProfileInterface $profile) {
+    $entityTypeManager = \Drupal::entityTypeManager();
+
     $orderIds = $entityTypeManager->getStorage('commerce_order')->loadByProperties([
       'order_number' => $data[1],
     ]);
@@ -277,17 +351,14 @@ class MigrateOrdersForm extends FormBase {
         'store_id' => 1,
         'placed' => strtotime($data[3]),
       ]);
+      $order->save();
     }
     else {
       /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
       $order = reset($orderIds);
     }
 
-    if (!$order->hasItem($orderItem)) {
-      $order = $order->addItem($orderItem);
-    }
-
-    $order->save();
+    return $order;
   }
 
   /**
