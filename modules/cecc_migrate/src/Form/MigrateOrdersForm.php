@@ -149,30 +149,20 @@ class MigrateOrdersForm extends FormBase {
       $sourceFile = $this->fileSystem->realpath($file->getFileUri());
     }
 
-    $fileObj = new \SplFileObject($sourceFile);
-    $fileObj->setFlags($fileObj::READ_CSV);
-
-    $operations = [];
-
-    foreach ($fileObj as $index => $line) {
-      if ($skipFirstLine == 1 && $index == 0) {
-        continue;
-      }
-
-      $operations[] = [
-        '\Drupal\cecc_migrate\Form\MigrateOrdersForm::migrateOrders',
-        [
-          $line,
-        ],
-      ];
-    }
-
     $batch = [
       'title' => $this->t('Import Orders from CSV'),
-      'operations' => $operations,
-      'finished' => '\Drupal\cecc_migrate\Form\MigrateUsersForm::finishedImportingOrders',
+      'operations' => [
+        [
+          '\Drupal\cecc_migrate\Form\MigrateOrdersForm::processCsv',
+          [
+            $skipFirstLine,
+            $sourceFile,
+          ],
+        ],
+      ],
+      'finished' => '\Drupal\cecc_migrate\Form\MigrateOrdersForm::finishedImportingOrders',
       'init_message' => $this->t('Importing Orders'),
-      'progress_message' => $this->t('Processed @current order items of @total. Estimated: @estimate'),
+      'progress_message' => $this->t('Processing order items. Time remaining: @estimate'),
       'error_message' => $this->t('The import process has encountered an error.'),
     ];
 
@@ -181,18 +171,53 @@ class MigrateOrdersForm extends FormBase {
   }
 
   /**
+   * Processes the csv file.
+   *
+   * @param int $skipFirstLine
+   *   Skips the first line.
+   * @param string $file
+   *   The file path.
+   * @param array $context
+   *   The batch context.
+   */
+  public static function processCsv($skipFirstLine, $file, array &$context) {
+
+    $fileObj = new \SplFileObject($file);
+    $fileObj->setFlags($fileObj::READ_CSV);
+
+    if (empty($context['sandbox'])) {
+      $context['sandbox']['progress'] = $skipFirstLine ? 1 : 0;
+      $fileObj->seek(PHP_INT_MAX);
+      $context['sandbox']['max'] = $fileObj->key();
+      $fileObj->rewind();
+    }
+
+    $fileObj->seek($context['sandbox']['progress']);
+
+    $context['finished'] = !$fileObj->valid();
+
+    if ($fileObj->valid()) {
+      $line = $fileObj->current();
+      self::migrateOrders($line);
+
+      $context['message'] = t('Processing order item for order @order. Total order items: @orderItems | Processed: @current', [
+        '@order' => $line[1],
+        '@orderItems' => $context['sandbox']['max'],
+        '@current' => $context['sandbox']['progress'],
+      ]);
+    }
+
+    $context['sandbox']['progress']++;
+  }
+
+  /**
    * Process order and order items.
    *
    * @param array $data
    *   The csv line data.
-   * @param array $context
-   *   The batch context.
    */
-  public static function migrateOrders(array $data, array &$context) {
+  public static function migrateOrders(array $data) {
     $entityTypeManager = \Drupal::entityTypeManager();
-    \Drupal::logger('cecc_migrate')->info('Migrating order number @order_number', [
-      '@order_number' => $data[1],
-    ]);
 
     $title = $data[27];
     $quantity = (int) $data[18];
@@ -201,7 +226,6 @@ class MigrateOrdersForm extends FormBase {
     $user = self::getUser($data);
 
     if (!$user) {
-      $context['finished'] = TRUE;
       return;
     }
 
@@ -209,7 +233,6 @@ class MigrateOrdersForm extends FormBase {
     $profile = self::getProfile($data, $user);
 
     if (empty($profile)) {
-      $context['finished'] = TRUE;
       return;
     }
 
@@ -265,15 +288,6 @@ class MigrateOrdersForm extends FormBase {
     }
 
     $order->save();
-    \Drupal::logger('cecc_migrate')->info('Created order @user', [
-      '@user' => $order->getOrderNumber(),
-    ]);
-
-    $context['message'] = t('Created order @user', [
-      '@user' => $order->getOrderNumber(),
-    ]);
-
-    $context['finished'] = TRUE;
   }
 
   /**
@@ -297,7 +311,7 @@ class MigrateOrdersForm extends FormBase {
       'mail' => $data[17],
     ]);
 
-    if (empty($userIds)) {
+    if (empty($users)) {
       $user = User::create();
       /** @var Drupal\Core\Password\PasswordGeneratorInterface $passwordGenerator */
       $passwordGenerator = \Drupal::service('password_generator');
