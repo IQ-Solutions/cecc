@@ -149,54 +149,34 @@ class MigrateOrdersForm extends FormBase {
       $sourceFile = $this->fileSystem->realpath($file->getFileUri());
     }
 
-    $this->logger('cecc_migrate')->info('Loading File: @file', [
-      '@file' => $sourceFile,
-    ]);
+    $fileObj = new \SplFileObject($sourceFile);
+    $fileObj->setFlags($fileObj::READ_CSV);
 
-    //$fileObj = new \SplFileObject($sourceFile);
-    //$fileObj->setFlags($fileObj::READ_CSV);
-    $fh = fopen($sourceFile, 'r');
+    $operations = [];
 
-    if ($fh !== FALSE) {
-
-      $this->logger('cecc_migrate')->info('File loaded');
-
-      $operations = [];
-      $row = 0;
-
-      $this->logger('cecc_migrate')->info('Started loading rows');
-
-      while (($line = fgetcsv($fh, 1000)) !== FALSE) {
-        if ($skipFirstLine == 1 && $row == 0) {
-          $row++;
-          continue;
-        }
-
-        $operations[] = [
-          '\Drupal\cecc_migrate\Form\MigrateOrdersForm::migrateOrders',
-          [
-            $line,
-          ],
-        ];
-
-        $row++;
+    foreach ($fileObj as $index => $line) {
+      if ($skipFirstLine == 1 && $index == 0) {
+        continue;
       }
 
-      $this->logger('cecc_migrate')->info('Done loading rows');
-      fclose($fh);
-      $this->logger('cecc_migrate')->info('Batch process started');
-
-      $batch = [
-        'title' => $this->t('Import Orders from CSV'),
-        'operations' => $operations,
-        'finished' => '\Drupal\cecc_migrate\Form\MigrateUsersForm::finishedImportingOrders',
-        'init_message' => $this->t('Importing Orders'),
-        'progress_message' => $this->t('Processed @current order items of @total. Estimated: @estimate'),
-        'error_message' => $this->t('The import process has encountered an error.'),
+      $operations[] = [
+        '\Drupal\cecc_migrate\Form\MigrateOrdersForm::migrateOrders',
+        [
+          $line,
+        ],
       ];
-
-      batch_set($batch);
     }
+
+    $batch = [
+      'title' => $this->t('Import Orders from CSV'),
+      'operations' => $operations,
+      'finished' => '\Drupal\cecc_migrate\Form\MigrateUsersForm::finishedImportingOrders',
+      'init_message' => $this->t('Importing Orders'),
+      'progress_message' => $this->t('Processed @current order items of @total. Estimated: @estimate'),
+      'error_message' => $this->t('The import process has encountered an error.'),
+    ];
+
+    batch_set($batch);
 
   }
 
@@ -210,6 +190,9 @@ class MigrateOrdersForm extends FormBase {
    */
   public static function migrateOrders(array $data, array &$context) {
     $entityTypeManager = \Drupal::entityTypeManager();
+    \Drupal::logger('cecc_migrate')->info('Migrating order number @order_number', [
+      '@order_number' => $data[1],
+    ]);
 
     $title = $data[27];
     $quantity = (int) $data[18];
@@ -282,6 +265,13 @@ class MigrateOrdersForm extends FormBase {
     }
 
     $order->save();
+    \Drupal::logger('cecc_migrate')->info('Created order @user', [
+      '@user' => $order->getOrderNumber(),
+    ]);
+
+    $context['message'] = t('Created order @user', [
+      '@user' => $order->getOrderNumber(),
+    ]);
 
     $context['finished'] = TRUE;
   }
@@ -302,7 +292,8 @@ class MigrateOrdersForm extends FormBase {
       return FALSE;
     }
 
-    $userIds = $entityTypeManager->getStorage('user')->loadByProperties([
+    /** @var \Drupal\user\Entity\User[] $users */
+    $users = $entityTypeManager->getStorage('user')->loadByProperties([
       'mail' => $data[17],
     ]);
 
@@ -326,6 +317,9 @@ class MigrateOrdersForm extends FormBase {
 
       try {
         $user->save();
+        \Drupal::logger('cecc_migrate')->info('Created user @user', [
+          '@user' => $user->getAccountName(),
+        ]);
       }
       catch (EntityStorageException $e) {
         \Drupal::logger('cecc_migrate')->warning($e->getMessage());
@@ -333,7 +327,10 @@ class MigrateOrdersForm extends FormBase {
       }
     }
     else {
-      $user = reset($userIds);
+      $user = reset($users);
+      \Drupal::logger('cecc_migrate')->info('Loaded user @user', [
+        '@user' => $user->getAccountName(),
+      ]);
     }
 
     return $user;
@@ -379,6 +376,9 @@ class MigrateOrdersForm extends FormBase {
 
       try {
         $profile->save();
+        \Drupal::logger('cecc_migrate')->info('Created customer profile for @profile', [
+          '@profile' => $user->getAccountName(),
+        ]);
       }
       catch (EntityStorageException $e) {
         \Drupal::logger('cecc_migrate')->warning($e->getMessage());
@@ -387,6 +387,9 @@ class MigrateOrdersForm extends FormBase {
     }
     else {
       $profile = Profile::load(reset($profileIds));
+      \Drupal::logger('cecc_migrate')->info('Loaded customer profile for @profile', [
+        '@profile' => $user->getAccountName(),
+      ]);
     }
 
     return $profile;
