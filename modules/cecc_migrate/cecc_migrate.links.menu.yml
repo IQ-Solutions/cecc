@@ -3,3 +3,15 @@ cecc_migrate.migrate_orders:
   parent: cecc.config
   description: 'Customer Engagement Center Catalog Migrate Orders'
   route_name: cecc_migrate.migrate_orders
+
+cecc_migrate.migrate_weights:
+  title: 'Migrate Weight'
+  parent: cecc.config
+  description: 'Customer Engagement Center Catalog Migrate Weight'
+  route_name: cecc_migrate.migrate_weights
+
+cecc_migrate.migrate_favorites:
+  title: 'Migrate Favorites'
+  parent: cecc.config
+  description: 'Customer Engagement Center Catalog Migrate Customer Favorites'
+  route_name: cecc_migrate.migrate_favorites

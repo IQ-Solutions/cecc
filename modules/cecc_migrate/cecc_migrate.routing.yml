@@ -6,3 +6,21 @@ cecc_migrate.migrate_orders:
   requirements:
     _permission:
       'administer site configuration'
+
+cecc_migrate.migrate_weights:
+  path: '/admin/commerce/cecc/migrate-product-weight'
+  defaults:
+   _form: '\Drupal\cecc_migrate\Form\MigrateWeightsForm'
+   _title: 'Migrate Commerce Product Data (Weight)'
+  requirements:
+    _permission:
+      'administer site configuration'
+
+cecc_migrate.migrate_favorites:
+  path: '/admin/commerce/cecc/migrate-customer-favorites'
+  defaults:
+   _form: '\Drupal\cecc_migrate\Form\MigrateFavoritesForm'
+   _title: 'Migrate Commerce Customer Favories'
+  requirements:
+    _permission:
+      'administer site configuration'

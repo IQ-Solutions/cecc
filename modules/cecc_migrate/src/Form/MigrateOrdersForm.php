@@ -113,12 +113,6 @@ class MigrateOrdersForm extends FormBase {
       ],
     ];
 
-    $form['site_module'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Source file from Module'),
-      '#description' => $this->t('Use a source file stored in a custom module directory. Enter the module machine name'),
-    ];
-
     $form['skip_first_line'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Skip the first line'),
@@ -136,20 +130,14 @@ class MigrateOrdersForm extends FormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $modulePath = $this->fileSystem->realpath($this->moduleHandler->getModule('ninds')->getPath());
-    $sourceFile = $modulePath . '/source_files/List_Customers_Orders_07312020_07312021.csv';
-    $siteModule = $form_state->getValue('site_module');
     $skipFirstLine = $form_state->getValue('skip_first_line');
+    $fileId = reset($form_state->getValue('csv_file'));
 
-    if (empty($siteModule)) {
-      $fileId = reset($form_state->getValue('csv_file'));
+    /** @var \Drupal\file\Entity\File $file */
+    $file = $this->entityTypeManager->getStorage('file')->load($fileId);
+    $file->save();
 
-      /** @var \Drupal\file\Entity\File $file */
-      $file = $this->entityTypeManager->getStorage('file')->load($fileId);
-      $file->save();
-
-      $sourceFile = $this->fileSystem->realpath($file->getFileUri());
-    }
+    $sourceFile = $this->fileSystem->realpath($file->getFileUri());
 
     $batch = [
       'title' => $this->t('Import Orders from CSV'),
@@ -196,8 +184,6 @@ class MigrateOrdersForm extends FormBase {
 
     $fileObj->seek($context['sandbox']['progress']);
 
-    $context['finished'] = !$fileObj->valid();
-
     if ($fileObj->valid()) {
       $line = $fileObj->current();
       self::migrateOrders($line);
@@ -207,9 +193,13 @@ class MigrateOrdersForm extends FormBase {
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
       ]);
-    }
 
-    $context['sandbox']['progress']++;
+      $context['sandbox']['progress']++;
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    else {
+      $context['finished'] = !$fileObj->valid();
+    }
   }
 
   /**
@@ -347,7 +337,7 @@ class MigrateOrdersForm extends FormBase {
         'mail' => $user->getEmail(),
         'uid' => $user->id(),
         'order_number' => $data[1],
-        'billing_profile' => $profile,
+        'billing_profile' => $profile->createDuplicate(),
         'store_id' => 1,
         'placed' => strtotime($data[3]),
       ]);
@@ -431,9 +421,10 @@ class MigrateOrdersForm extends FormBase {
    */
   public static function getProfile(array $data, User $user) {
     $entityTypeManager = \Drupal::entityTypeManager();
-    $profileIds = $entityTypeManager->getStorage('profile')->getQuery()
-      ->condition('field_customer_id_legacy', $data[4])
-      ->execute();
+    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
+    $profileQuery->condition('field_customer_id_legacy', $data[4]);
+    $profileQuery->condition('uid', $user->id());
+    $profileIds = $profileQuery->execute();
 
     if (empty($profileIds)) {
       $profile = Profile::create([

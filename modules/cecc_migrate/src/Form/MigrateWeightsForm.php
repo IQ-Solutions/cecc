@@ -2,13 +2,7 @@
 
 namespace Drupal\cecc_migrate\Form;
 
-use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\commerce_shipping\Entity\Shipment;
-use Drupal\commerce_shipping\ShipmentItem;
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
@@ -16,18 +10,14 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
-use Drupal\flag\FlagServiceInterface;
 use Drupal\physical\Weight;
 use Drupal\physical\WeightUnit;
-use Drupal\profile\Entity\Profile;
-use Drupal\profile\Entity\ProfileInterface;
-use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Migrates orders from IQ Legacy systems.
  */
-class MigrateFavoritesForm extends FormBase {
+class MigrateWeightsForm extends FormBase {
   /**
    * EntityTypeManager service.
    *
@@ -57,13 +47,6 @@ class MigrateFavoritesForm extends FormBase {
   protected $fileSystem;
 
   /**
-   * Flag service.
-   *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected $flagService;
-
-  /**
    * Undocumented function.
    *
    * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -74,21 +57,17 @@ class MigrateFavoritesForm extends FormBase {
    *   The module handler service.
    * @param Drupal\Core\File\FileSystem $file_system
    *   The module handler service.
-   * @param Drupal\flag\FlagServiceInterface $flag_service
-   *   The flag service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     PasswordGeneratorInterface $password_generator,
     ModuleHandlerInterface $module_handler,
-    FileSystem $file_system,
-    FlagServiceInterface $flag_service
+    FileSystem $file_system
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->passwordGenerator = $password_generator;
     $this->moduleHandler = $module_handler;
     $this->fileSystem = $file_system;
-    $this->flagService = $flag_service;
   }
 
   /**
@@ -99,8 +78,7 @@ class MigrateFavoritesForm extends FormBase {
       $container->get('entity_type.manager'),
       $container->get('password_generator'),
       $container->get('module_handler'),
-      $container->get('file_system'),
-      $container->get('flag')
+      $container->get('file_system')
     );
   }
 
@@ -108,7 +86,7 @@ class MigrateFavoritesForm extends FormBase {
    * {@inheritDoc}
    */
   public function getFormId() {
-    return 'cecc_migrate_favorites_form';
+    return 'cecc_migrate_weights_form';
   }
 
   /**
@@ -144,6 +122,7 @@ class MigrateFavoritesForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $skipFirstLine = $form_state->getValue('skip_first_line');
+
     $fileId = reset($form_state->getValue('csv_file'));
 
     /** @var \Drupal\file\Entity\File $file */
@@ -153,19 +132,19 @@ class MigrateFavoritesForm extends FormBase {
     $sourceFile = $this->fileSystem->realpath($file->getFileUri());
 
     $batch = [
-      'title' => $this->t('Import Favorites from CSV'),
+      'title' => $this->t('Import Orders from CSV'),
       'operations' => [
         [
-          '\Drupal\cecc_migrate\Form\MigrateFavoritesForm::processCsv',
+          '\Drupal\cecc_migrate\Form\MigrateWeightsForm::processCsv',
           [
             $skipFirstLine,
             $sourceFile,
           ],
         ],
       ],
-      'finished' => '\Drupal\cecc_migrate\Form\MigrateFavoritesForm::finishedImporting',
-      'init_message' => $this->t('Importing Favorites'),
-      'progress_message' => $this->t('Processing order items. Time remaining: @estimate'),
+      'finished' => '\Drupal\cecc_migrate\Form\MigrateWeightsForm::finishedImporting',
+      'init_message' => $this->t('Importing Weights'),
+      'progress_message' => $this->t('Processing weights for items. Time remaining: @estimate'),
       'error_message' => $this->t('The import process has encountered an error.'),
     ];
 
@@ -201,9 +180,10 @@ class MigrateFavoritesForm extends FormBase {
 
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::migrateFavorites($line);
+      self::migrateWeight($line);
 
-      $context['message'] = t('Processing favorites. Total items: @orderItems | Processed: @current', [
+      $context['message'] = t('Processing weight for product @sku. Total order items: @orderItems | Processed: @current', [
+        '@sku' => $line[0],
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
       ]);
@@ -218,33 +198,10 @@ class MigrateFavoritesForm extends FormBase {
    * @param array $data
    *   The csv line data.
    */
-  public static function migrateFavorites(array $data) {
+  public static function migrateWeight(array $data) {
     $entityTypeManager = \Drupal::entityTypeManager();
-    /** @var \Drupal\flag\FlagServiceInterface $flagService */
-    $flagService = \Drupal::service('flag');
-    $flag = $flagService->getFlagById('favorites');
-
-    $customerId = $data[0];
-    $sku = $data[3];
-
-    $profileIds = $entityTypeManager->getStorage('profile')->getQuery()
-      ->condition('field_customer_id_legacy', $customerId)
-      ->execute();
-
-    if (empty($profileIds)) {
-      return;
-    }
-
-    $profile = Profile::load(reset($profileIds));
-
-    if (empty($profile)) {
-      return;
-    }
-
-    $user = $profile->getOwner();
-    \Drupal::logger('cecc_migrate')->info('Checking favorites for @user', [
-      '@user' => $user->getEmail(),
-    ]);
+    $sku = Xss::filter($data[0]);
+    $weight = new Weight(Xss::filter($data[1]), WeightUnit::POUND);
 
     /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
     $productVariations = $entityTypeManager->getStorage('commerce_product_variation')->loadByProperties([
@@ -253,17 +210,13 @@ class MigrateFavoritesForm extends FormBase {
 
     if (!empty($productVariations)) {
       $productVariation = reset($productVariations);
-      $product = $productVariation->getProduct();
 
-      if ($product) {
-        $flagging = $flagService->getFlagging($flag, $product, $user);
-
-        if (!$flagging) {
-          $flagService->flag($flag, $product, $user);
-        }
-      }
+      $productVariation->set('field_cecc_order_limit', Xss::filter($data[2]));
+      $productVariation->set('cecc_check_stock_threshold', Xss::filter($data[4]));
+      $productVariation->set('cecc_stock_stop_threshold', Xss::filter($data[3]));
+      $productVariation->set('weight', $weight);
+      $productVariation->save();
     }
-
   }
 
   /**
@@ -280,12 +233,12 @@ class MigrateFavoritesForm extends FormBase {
     $status = Messenger::TYPE_STATUS;
 
     if ($success) {
-      $message = t('Favorites imported.');
+      $message = t('Import completed.');
 
       \Drupal::logger('cecc_migrate')->info($message);
     }
     else {
-      $message = t('Failed to import.');
+      $message = t('Import failed. Please check the error logs.');
 
       $status = Messenger::TYPE_ERROR;
       \Drupal::logger('cecc_migrate')->error($message);
