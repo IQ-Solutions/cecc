@@ -24,3 +24,12 @@ cecc_migrate.migrate_favorites:
   requirements:
     _permission:
       'administer site configuration'
+
+cecc_migrate.remove_users:
+  path: '/admin/commerce/cecc/migrate-remove-users'
+  defaults:
+   _form: '\Drupal\cecc_migrate\Form\RemoveGuestUsersForm'
+   _title: 'Migrate Commerce Remove Migration Users'
+  requirements:
+    _permission:
+      'administer site configuration'

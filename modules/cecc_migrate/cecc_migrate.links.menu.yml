@@ -15,3 +15,9 @@ cecc_migrate.migrate_favorites:
   parent: cecc.config
   description: 'Customer Engagement Center Catalog Migrate Customer Favorites'
   route_name: cecc_migrate.migrate_favorites
+
+cecc_migrate.remove_users:
+  title: 'Remove Migration Guest Users'
+  parent: cecc.config
+  description: 'Customer Engagement Center Catalog Remove Migration Guest Users'
+  route_name: cecc_migrate.remove_users
