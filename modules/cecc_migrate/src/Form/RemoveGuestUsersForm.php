@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_migrate\Form;
 
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
@@ -278,10 +279,21 @@ class RemoveGuestUsersForm extends FormBase {
       if ($order) {
         $orderProfile = $order->getBillingProfile();
 
-        $order->delete();
+        try {
+          $order->delete();
+        }
+        catch (EntityStorageException $e) {
+          \Drupal::logger('cecc_migrate')->error($e->getMessage());
+        }
 
         if ($orderProfile && !$orderProfile->equalToProfile($profile)) {
-          $orderProfile->delete();
+
+          try {
+            $orderProfile->delete();
+          }
+          catch (EntityStorageException $e) {
+            \Drupal::logger('cecc_migrate')->error($e->getMessage());
+          }
         }
       }
     }
