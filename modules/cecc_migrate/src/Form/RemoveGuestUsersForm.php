@@ -2,13 +2,6 @@
 
 namespace Drupal\cecc_migrate\Form;
 
-use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\commerce_shipping\Entity\Shipment;
-use Drupal\commerce_shipping\ShipmentItem;
-use Drupal\Component\Utility\Xss;
-use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
@@ -16,9 +9,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
-use Drupal\flag\FlagServiceInterface;
-use Drupal\physical\Weight;
-use Drupal\physical\WeightUnit;
 use Drupal\profile\Entity\Profile;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
@@ -27,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Migrates orders from IQ Legacy systems.
  */
-class MigrateFavoritesForm extends FormBase {
+class RemoveGuestUsersForm extends FormBase {
   /**
    * EntityTypeManager service.
    *
@@ -57,13 +47,6 @@ class MigrateFavoritesForm extends FormBase {
   protected $fileSystem;
 
   /**
-   * Flag service.
-   *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected $flagService;
-
-  /**
    * Undocumented function.
    *
    * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -74,21 +57,17 @@ class MigrateFavoritesForm extends FormBase {
    *   The module handler service.
    * @param Drupal\Core\File\FileSystem $file_system
    *   The module handler service.
-   * @param Drupal\flag\FlagServiceInterface $flag_service
-   *   The flag service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     PasswordGeneratorInterface $password_generator,
     ModuleHandlerInterface $module_handler,
-    FileSystem $file_system,
-    FlagServiceInterface $flag_service
+    FileSystem $file_system
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->passwordGenerator = $password_generator;
     $this->moduleHandler = $module_handler;
     $this->fileSystem = $file_system;
-    $this->flagService = $flag_service;
   }
 
   /**
@@ -99,8 +78,7 @@ class MigrateFavoritesForm extends FormBase {
       $container->get('entity_type.manager'),
       $container->get('password_generator'),
       $container->get('module_handler'),
-      $container->get('file_system'),
-      $container->get('flag')
+      $container->get('file_system')
     );
   }
 
@@ -108,7 +86,7 @@ class MigrateFavoritesForm extends FormBase {
    * {@inheritDoc}
    */
   public function getFormId() {
-    return 'cecc_migrate_favorites_form';
+    return 'cecc_remove_guest_users_form';
   }
 
   /**
@@ -153,20 +131,20 @@ class MigrateFavoritesForm extends FormBase {
     $sourceFile = $this->fileSystem->realpath($file->getFileUri());
 
     $batch = [
-      'title' => $this->t('Import Favorites from CSV'),
+      'title' => $this->t('Remove Guest Users'),
       'operations' => [
         [
-          '\Drupal\cecc_migrate\Form\MigrateFavoritesForm::processCsv',
+          '\Drupal\cecc_migrate\Form\RemoveGuestUsersForm::processCsv',
           [
             $skipFirstLine,
             $sourceFile,
           ],
         ],
       ],
-      'finished' => '\Drupal\cecc_migrate\Form\MigrateFavoritesForm::finishedImporting',
-      'init_message' => $this->t('Importing Favorites'),
-      'progress_message' => $this->t('Processing order items. Time remaining: @estimate'),
-      'error_message' => $this->t('The import process has encountered an error.'),
+      'finished' => '\Drupal\cecc_migrate\Form\RemoveGuestUsersForm::finishedImporting',
+      'init_message' => $this->t('Loading CSV'),
+      'progress_message' => $this->t('Processing users and orders. Time remaining: @estimate'),
+      'error_message' => $this->t('The process has encountered an error.'),
     ];
 
     batch_set($batch);
@@ -197,19 +175,23 @@ class MigrateFavoritesForm extends FormBase {
 
     $fileObj->seek($context['sandbox']['progress']);
 
-    $context['finished'] = !$fileObj->valid();
-
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::migrateFavorites($line);
+      self::removeGuestsUsers($line);
 
-      $context['message'] = t('Processing favorites. Total items: @orderItems | Processed: @current', [
+      $context['message'] = t('Processing customer @order (@username). Total order items: @orderItems | Processed: @current', [
+        '@username' => $line[0],
+        '@type' => $line[2],
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
       ]);
-    }
 
-    $context['sandbox']['progress']++;
+      $context['sandbox']['progress']++;
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    else {
+      $context['finished'] = !$fileObj->valid();
+    }
   }
 
   /**
@@ -218,57 +200,98 @@ class MigrateFavoritesForm extends FormBase {
    * @param array $data
    *   The csv line data.
    */
-  public static function migrateFavorites(array $data) {
+  public static function removeGuestsUsers(array $data) {
     $entityTypeManager = \Drupal::entityTypeManager();
-    /** @var \Drupal\flag\FlagServiceInterface $flagService */
-    $flagService = \Drupal::service('flag');
-    $flag = $flagService->getFlagById('favorites');
 
     $customerId = $data[0];
-    $sku = $data[3];
+    $username = $data[2];
+    $email = $data[11];
 
-    $profileIds = $entityTypeManager->getStorage('profile')->getQuery()
-      ->condition('field_customer_id_legacy', $customerId)
-      ->execute();
-
-    if (empty($profileIds)) {
+    if (!empty($username) && $username != 'guest') {
       return;
     }
 
-    $profile = Profile::load(reset($profileIds));
+    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
+    $profileQuery->condition('field_customer_id_legacy', $customerId);
+    $profileIds = $profileQuery->execute();
 
-    if (empty($profile)) {
-      return;
-    }
+    $profiles = Profile::loadMultiple($profileIds);
 
-    $user = $profile->getOwner();
+    foreach ($profiles as $profile) {
+      $profileOwner = $profile->getOwner();
 
-    if (empty($user)) {
-      return;
-    }
+      if (empty($profileOwner)) {
+        continue;
+      }
 
-    \Drupal::logger('cecc_migrate')->info('Checking favorites for @user', [
-      '@user' => $user->getEmail(),
-    ]);
+      if (is_a($profileOwner, 'Drupal\user\Entity\User')) {
+        self::removeUserOrders($profileOwner, $profile);
 
-    /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
-    $productVariations = $entityTypeManager->getStorage('commerce_product_variation')->loadByProperties([
-      'sku' => $sku,
-    ]);
-
-    if (!empty($productVariations)) {
-      $productVariation = reset($productVariations);
-      $product = $productVariation->getProduct();
-
-      if ($product) {
-        $flagging = $flagService->getFlagging($flag, $product, $user);
-
-        if (!$flagging) {
-          $flagService->flag($flag, $product, $user);
-        }
+        $profile->delete();
+        user_cancel([], $profileOwner->id(), 'user_cancel_delete');
       }
     }
 
+    $userQuery = $entityTypeManager->getStorage('user')->getQuery();
+    $userQuery->condition('field_customer_id_legacy', $customerId);
+    $userIds = $userQuery->execute();
+
+    $users = User::loadMultiple($userIds);
+
+    foreach ($users as $user) {
+      self::removeUserOrders($user, $profile);
+
+      user_cancel([], $user->id(), 'user_cancel_delete');
+    }
+
+    $users = $entityTypeManager->getStorage('user')->loadByProperties([
+      'mail' => $email,
+    ]);
+
+    $users = User::loadMultiple($userIds);
+
+    foreach ($users as $user) {
+      self::removeUserOrders($user, $profile);
+
+      user_cancel([], $user->id(), 'user_cancel_delete');
+    }
+
+  }
+
+  /**
+   * Removes orders for a user.
+   *
+   * @param \Drupal\user\Entity\User $user
+   *   The order user.
+   * @param \Drupal\profile\Entity\ProfileInterface $profile
+   *   The user profile.
+   */
+  public static function removeUserOrders(User $user, ProfileInterface $profile) {
+    $entityTypeManager = \Drupal::entityTypeManager();
+
+    /** @var \Drupal\commerce_order\Entity\OrderInterface[] $orders */
+    $orders = $entityTypeManager->getStorage('commerce_order')->loadByProperties([
+      'uid' => $user->id(),
+    ]);
+
+    foreach ($orders as $order) {
+      if ($order) {
+        $orderProfile = $order->getBillingProfile();
+        $orderItems = $order->getItems();
+
+        foreach ($orderItems as $orderItem) {
+          $order->removeItem($orderItem);
+          $order->save();
+          $orderItem->delete();
+        }
+
+        $order->delete();
+
+        if ($orderProfile && !$orderProfile->equalToProfile($profile)) {
+          $orderProfile->delete();
+        }
+      }
+    }
   }
 
   /**
@@ -281,16 +304,16 @@ class MigrateFavoritesForm extends FormBase {
    * @param array $operations
    *   Array that contains batch operations.
    */
-  public static function finishedImporting(bool $success, array $results, array $operations) {
+  public static function finishedImportingOrders(bool $success, array $results, array $operations) {
     $status = Messenger::TYPE_STATUS;
 
     if ($success) {
-      $message = t('Favorites imported.');
+      $message = t('Orders imported.');
 
       \Drupal::logger('cecc_migrate')->info($message);
     }
     else {
-      $message = t('Failed to import.');
+      $message = t('Failed to import orders.');
 
       $status = Messenger::TYPE_ERROR;
       \Drupal::logger('cecc_migrate')->error($message);
