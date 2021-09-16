@@ -277,13 +277,6 @@ class RemoveGuestUsersForm extends FormBase {
     foreach ($orders as $order) {
       if ($order) {
         $orderProfile = $order->getBillingProfile();
-        $orderItems = $order->getItems();
-
-        foreach ($orderItems as $orderItem) {
-          $order->removeItem($orderItem);
-          $order->save();
-          $orderItem->delete();
-        }
 
         $order->delete();
 
