@@ -96,15 +96,15 @@ class Order implements EventSubscriberInterface {
         $item = [
           'id' => $entity->id(),
           'sku' => $entity->get('sku')->value,
-          'warehouse_item_id' => $entity->get('field_warehouse_item_id')->value,
+          'warehouse_item_id' => $entity->get('field_cecc_warehouse_item_id')->value,
         ];
 
-        $queue = $this->queueFactory->get('po_update_stock');
+        $queue = $this->queueFactory->get('cecc_update_stock');
         $queue->createItem($item);
 
         $this->messenger()->addStatus($this->t('Stock for %label has been fallen below %stockLevel. It has been queued for a stock refresh.', [
           '%label' => $entity->getOrderItemTitle(),
-          '%stockLevel' => $entity->get('field_stock_threshold')->value,
+          '%stockLevel' => $entity->get('cecc_check_stock_threshold')->value,
         ]));
       }
       catch (EntityStorageException $error) {
@@ -120,7 +120,7 @@ class Order implements EventSubscriberInterface {
    *   The order to be sent.
    */
   private function queueOrderSend(OrderInterface $order) {
-    $queue = $this->queueFactory->get('po_send_order');
+    $queue = $this->queueFactory->get('cecc_send_order');
     $queue->createItem(['id' => $order->id()]);
 
     $this->logger->info('Order %orderNumber has been queued to be sent.', [
@@ -229,18 +229,6 @@ class Order implements EventSubscriberInterface {
     $order = $event->getOrder();
     if (in_array($order->getState()->value, ['draft', 'canceled'])) {
       return;
-    }
-
-    $items = $order->getItems();
-
-    foreach ($items as $item) {
-      $entity = $item->getPurchasedEntity();
-
-      if (!$entity) {
-        continue;
-      }
-
-      $this->queueItemStockUpdate($entity);
     }
   }
 
