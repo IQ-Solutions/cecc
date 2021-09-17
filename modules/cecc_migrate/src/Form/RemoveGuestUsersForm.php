@@ -180,7 +180,7 @@ class RemoveGuestUsersForm extends FormBase {
       $line = $fileObj->current();
       self::removeGuestsUsers($line);
 
-      $context['message'] = t('Processing customer @username (@type). Total order items: @orderItems | Processed: @current', [
+      $context['message'] = t('Processing customer @order (@username). Total order items: @orderItems | Processed: @current', [
         '@username' => $line[0],
         '@type' => $line[2],
         '@orderItems' => $context['sandbox']['max'],
@@ -214,6 +214,7 @@ class RemoveGuestUsersForm extends FormBase {
 
     $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
     $profileQuery->condition('field_customer_id_legacy', $customerId);
+    $profileQuery->condition('uid', 0, '<>');
     $profileIds = $profileQuery->execute();
 
     $profiles = Profile::loadMultiple($profileIds);
@@ -226,10 +227,10 @@ class RemoveGuestUsersForm extends FormBase {
       }
 
       if (is_a($profileOwner, 'Drupal\user\Entity\User')) {
-        self::removeUserOrders($profileOwner, $profile);
+        self::removeUserOrders($profileOwner);
 
         $profile->delete();
-        user_cancel([], $profileOwner->id(), 'user_cancel_delete');
+        $profileOwner->delete();
       }
     }
 
@@ -240,7 +241,7 @@ class RemoveGuestUsersForm extends FormBase {
     $users = User::loadMultiple($userIds);
 
     foreach ($users as $user) {
-      self::removeUserOrders($user, $profile);
+      self::removeUserOrders($user);
 
       user_cancel([], $user->id(), 'user_cancel_delete');
     }
@@ -252,9 +253,8 @@ class RemoveGuestUsersForm extends FormBase {
     $users = User::loadMultiple($userIds);
 
     foreach ($users as $user) {
-      self::removeUserOrders($user, $profile);
-
-      user_cancel([], $user->id(), 'user_cancel_delete');
+      self::removeUserOrders($user);
+      $user->delete();
     }
 
   }
@@ -264,10 +264,8 @@ class RemoveGuestUsersForm extends FormBase {
    *
    * @param \Drupal\user\Entity\User $user
    *   The order user.
-   * @param \Drupal\profile\Entity\ProfileInterface $profile
-   *   The user profile.
    */
-  public static function removeUserOrders(User $user, ProfileInterface $profile) {
+  public static function removeUserOrders(User $user) {
     $entityTypeManager = \Drupal::entityTypeManager();
 
     /** @var \Drupal\commerce_order\Entity\OrderInterface[] $orders */
@@ -286,7 +284,7 @@ class RemoveGuestUsersForm extends FormBase {
           \Drupal::logger('cecc_migrate')->error($e->getMessage());
         }
 
-        if ($orderProfile && !$orderProfile->equalToProfile($profile)) {
+        if ($orderProfile) {
 
           try {
             $orderProfile->delete();
