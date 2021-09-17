@@ -180,7 +180,7 @@ class RemoveGuestUsersForm extends FormBase {
       $line = $fileObj->current();
       self::removeGuestsUsers($line);
 
-      $context['message'] = t('Processing customer @order (@username). Total order items: @orderItems | Processed: @current', [
+      $context['message'] = t('Processing customer @username (@type). Total order items: @orderItems | Processed: @current', [
         '@username' => $line[0],
         '@type' => $line[2],
         '@orderItems' => $context['sandbox']['max'],

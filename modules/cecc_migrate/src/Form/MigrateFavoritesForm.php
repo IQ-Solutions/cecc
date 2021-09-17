@@ -229,6 +229,7 @@ class MigrateFavoritesForm extends FormBase {
 
     $profileIds = $entityTypeManager->getStorage('profile')->getQuery()
       ->condition('field_customer_id_legacy', $customerId)
+      ->condition('uid', 0, '<>')
       ->execute();
 
     if (empty($profileIds)) {

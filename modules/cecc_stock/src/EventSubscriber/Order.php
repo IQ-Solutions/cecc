@@ -184,27 +184,6 @@ class Order implements EventSubscriberInterface {
     if (in_array($order->getState()->value, ['draft', 'canceled'])) {
       return;
     }
-
-    $items = $order->getItems();
-
-    foreach ($items as $item) {
-      $entity = $item->getPurchasedEntity();
-
-      if (!$entity) {
-        continue;
-      }
-
-      $quantity = $item->getQuantity();
-      $stock = $entity->get('field_cecc_stock')->value + $quantity;
-      $entity->set('field_cecc_stock', $stock);
-
-      try {
-        $entity->save();
-      }
-      catch (EntityStorageException $error) {
-        $this->logger->error($error->getMessage());
-      }
-    }
   }
 
   /**
