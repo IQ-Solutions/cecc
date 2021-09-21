@@ -189,7 +189,7 @@ class StockHelper {
 
       // If a GET e.g. not a submit/post.
       if ($request_method == 'GET') {
-        $this->stockValidation->isOrderInStock($order_id);
+        $this->stockValidation->isOrderInStock($order_id, FALSE);
       }
     }
   }
