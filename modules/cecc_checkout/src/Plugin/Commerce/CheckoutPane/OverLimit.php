@@ -76,8 +76,8 @@ class OverLimit extends CheckoutPaneBase {
 
     $form['message'] = [
       '#type' => 'text_format',
-      '#title' => $this->t('Over limit message'),
-      '#description' => $this->t('Over limit message text'),
+      '#title' => $this->t('Top text area'),
+      '#description' => $this->t('Text area after the header. Display while editing and on the summary page.'),
       '#default_value' => $this->configuration['message']['value'],
       '#format' => $this->configuration['message']['format'],
       '#element_validate' => ['token_element_validate'],
@@ -87,10 +87,21 @@ class OverLimit extends CheckoutPaneBase {
 
     $form['form_message'] = [
       '#type' => 'text_format',
-      '#title' => $this->t('Form over limit message'),
+      '#title' => $this->t('Text area before the form'),
       '#description' => $this->t('Over limit message text display while editing'),
       '#default_value' => $this->configuration['form_message']['value'],
       '#format' => $this->configuration['form_message']['format'],
+      '#element_validate' => ['token_element_validate'],
+      '#token_types' => ['commerce_order'],
+      '#required' => TRUE,
+    ];
+
+    $form['after_form_message'] = [
+      '#type' => 'text_format',
+      '#title' => $this->t('After form text area'),
+      '#description' => $this->t('Displays after the form and on the summary page.'),
+      '#default_value' => $this->configuration['after_form_message']['value'],
+      '#format' => $this->configuration['after_form_message']['format'],
       '#element_validate' => ['token_element_validate'],
       '#token_types' => ['commerce_order'],
       '#required' => TRUE,
@@ -114,6 +125,7 @@ class OverLimit extends CheckoutPaneBase {
       $values = $form_state->getValue($form['#parents']);
       $this->configuration['message'] = $values['message'];
       $this->configuration['form_message'] = $values['form_message'];
+      $this->configuration['after_form_message'] = $values['after_form_message'];
     }
   }
 
@@ -144,6 +156,9 @@ class OverLimit extends CheckoutPaneBase {
       'commerce_order' => $this->order,
     ]);
     $formMessage = $this->token->replace($this->configuration['form_message']['value'], [
+      'commerce_order' => $this->order,
+    ]);
+    $afterFormMessage = $this->token->replace($this->configuration['after_form_message']['value'], [
       'commerce_order' => $this->order,
     ]);
 
@@ -179,6 +194,11 @@ class OverLimit extends CheckoutPaneBase {
       '#required' => TRUE,
     ];
 
+    $pane_form['after_form_message'] = [
+      '#type' => 'markup',
+      '#markup' => $afterFormMessage,
+    ];
+
     return $pane_form;
   }
 
@@ -201,6 +221,9 @@ class OverLimit extends CheckoutPaneBase {
     $message = $this->token->replace($this->configuration['message']['value'], [
       'commerce_order' => $this->order,
     ]);
+    $afterFormMessage = $this->token->replace($this->configuration['after_form_message']['value'], [
+      'commerce_order' => $this->order,
+    ]);
 
     if (!$this->order->get('field_cecc_over_limit_desc')->isEmpty()) {
       $build = [
@@ -212,13 +235,6 @@ class OverLimit extends CheckoutPaneBase {
       $build['summary_display']['message'] = [
         '#type' => 'markup',
         '#markup' => $message,
-        //'#theme' => 'commerce_checkout_completion_message',
-        //'#order_entity' => $this->order,
-        //'#message' => [
-        //  '#type' => 'processed_text',
-        //  '#text' => $message,
-        //  '#format' => $this->configuration['message']['format'],
-        //],
       ];
 
       $build['summary_display']['field_event_name'] = [
@@ -243,6 +259,10 @@ class OverLimit extends CheckoutPaneBase {
         '#type' => 'item',
         '#title' => $this->order->get('field_cecc_over_limit_desc')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_cecc_over_limit_desc')->value . '</p>',
+      ];
+      $build['summary_display']['after_form_message'] = [
+        '#type' => 'markup',
+        '#markup' => $afterFormMessage,
       ];
     }
 
