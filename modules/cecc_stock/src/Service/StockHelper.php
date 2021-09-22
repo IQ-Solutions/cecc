@@ -154,6 +154,7 @@ class StockHelper {
         ->load($order_id);
 
       $orderItems = $order->getItems();
+      $hasOverLimitItems = FALSE;
 
       foreach ($orderItems as $index => $orderItem) {
         $purchasedEntity = $orderItem->getPurchasedEntity();
@@ -176,12 +177,13 @@ class StockHelper {
           ]);
 
           if ($overLimit) {
-            $this->messenger()->addWarning($this->t('%label is over the quantity limit of %limit.', [
-              '%label' => $purchasedEntity->getOrderItemTitle(),
-              '%limit' => $quantityLimit,
-            ]));
+            $hasOverLimitItems = TRUE;
           }
         }
+      }
+
+      if ($hasOverLimitItems) {
+        $this->messenger()->addWarning($this->t('Your cart has publications that are over the max order limit. You will need to complete an order limit request form at checkout.'));
       }
 
       // Force a check to display the stock state to the user.
