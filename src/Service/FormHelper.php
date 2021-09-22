@@ -214,6 +214,9 @@ class FormHelper implements FormHelperInterface {
     $stepId = $form['#step_id'];
 
     if ($stepId == 'order_information') {
+      $form['shipping_information']['#title'] = $this->t('Shipping Information');
+      $form['payment_information']['#title'] = $this->t('Billing Information');
+
       $form['actions']['next']['#value'] = $this->t('Review Your Order');
 
       if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {

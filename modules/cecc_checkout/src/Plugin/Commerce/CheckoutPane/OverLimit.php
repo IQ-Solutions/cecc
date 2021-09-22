@@ -177,6 +177,8 @@ class OverLimit extends CheckoutPaneBase {
       '#title' => 'Event name',
       '#default_value' => $this->order->get('field_event_name')->isEmpty() ?
       NULL : $this->order->get('field_event_name')->value,
+      '#required' => TRUE,
+      '#maxlength' => 200,
     ];
 
     $pane_form['field_event_location'] = [
@@ -184,6 +186,8 @@ class OverLimit extends CheckoutPaneBase {
       '#title' => 'Event location (state)',
       '#default_value' => $this->order->get('field_event_location')->isEmpty() ?
       NULL : $this->order->get('field_event_location')->value,
+      '#required' => TRUE,
+      '#maxlength' => 200,
     ];
 
     $pane_form['field_cecc_over_limit_desc'] = [
@@ -191,6 +195,7 @@ class OverLimit extends CheckoutPaneBase {
       '#title' => 'Description',
       '#default_value' => $this->order->get('field_cecc_over_limit_desc')->isEmpty() ?
       NULL : $this->order->get('field_cecc_over_limit_desc')->value,
+      '#maxlength' => 1000,
       '#required' => TRUE,
     ];
 
