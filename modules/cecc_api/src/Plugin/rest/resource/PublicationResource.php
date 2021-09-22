@@ -6,6 +6,8 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\physical\Weight;
+use Drupal\physical\WeightUnit;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
@@ -142,6 +144,18 @@ class PublicationResource extends ResourceBase {
       case 'list_string':
       case 'integer':
         return $entity->get($fieldName)->value;
+
+      case 'physical_measurement':
+        $displayWeight = 0;
+
+        if (!$entity->get($fieldName)->isEmpty()) {
+          $fieldValue = $entity->get($fieldName)->getValue()[0];
+
+          $weight = new Weight($fieldValue['number'], $fieldValue['unit']);
+          $displayWeight = $weight->convert(WeightUnit::POUND)->round(5)->__toString();
+        }
+
+        return $displayWeight;
 
       case 'datetime':
         return $entity->get($fieldName)->value;
