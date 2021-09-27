@@ -179,7 +179,7 @@ class Order implements ContainerInjectionInterface {
     /** @var \Drupal\commerce_payment\Entity\PaymentInterface[] $payments */
     $payments = $this->entityTypeManager->getStorage('commerce_payment')
       ->loadMultipleByOrder($order);
-    $payment = reset($payments);
+    $paymentId = !empty($payments) ? reset($payments) : '';
 
     $this->orderData = [
       'source_order_id' => $order->getOrderNumber(),
@@ -195,7 +195,7 @@ class Order implements ContainerInjectionInterface {
       'overlimit_comments' => $order->get('field_cecc_over_limit_desc')->isEmpty() ? NULL : $order->get('field_cecc_over_limit_desc')->value,
       'shipping_method' => $shippingMethod->label(),
       'estimated_shipping_cost' => $this->currencyFormatter->format($price->getNumber(), $price->getCurrencyCode()),
-      'stripe_confirmation_code' => $payment->getRemoteId(),
+      'stripe_confirmation_code' => $paymentId,
       'use_shipping_account' => 'false',
       'shipping account_no' => '',
       'cart' => $cart,
