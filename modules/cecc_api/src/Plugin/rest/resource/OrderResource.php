@@ -3,15 +3,14 @@
 namespace Drupal\cecc_api\Plugin\rest\resource;
 
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_shipping\ShippingOrderManagerInterface;
 use Drupal\commerce_store\SelectStoreTrait;
+use Drupal\Component\Utility\Xss;
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Drupal\telephone_formatter\Formatter;
-use Drupal\telephone_formatter\Plugin\Field\FieldFormatter\TelephoneFormatter;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +19,11 @@ use Symfony\Component\HttpFoundation\Request;
  * Provides a publication resource.
  *
  * @RestResource(
- *   id = "order_resource",
+ *   id = "cecc_order_resource",
  *   label = @Translation("Commerce order publication resource"),
  *   uri_paths = {
- *     "canonical" = "/catalog_api/order"
+ *     "canonical" = "/catalog_api/order",
+ *     "create" = "/catalog_api/order/update"
  *   }
  * )
  */
@@ -163,6 +163,87 @@ class OrderResource extends ResourceBase {
     ];
 
     return (new ResourceResponse($response))->addCacheableDependency($build);
+  }
+
+  /**
+   * Responds to POST requests.
+   *
+   * Creates a new node.
+   *
+   * @param mixed $data
+   *   Data to create the node.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+   *   Throws exception expected.
+   */
+  public function post($data) {
+    $response = ['code' => 200];
+
+    $build = [
+      '#cache' => [
+        'max-age' => 0,
+      ],
+    ];
+
+    if (empty($data)) {
+      $response['code'] = 500;
+      $response['message'] = $this->t('Empty payload recieved.');
+      return (new ResourceResponse($response, $response['code']))->addCacheableDependency($build);
+    }
+
+    if (!isset($data['order_id'])) {
+      $response['code'] = 500;
+      $response['message'] = $this->t('No order id recieved.');
+      return (new ResourceResponse($response, $response['code']))->addCacheableDependency($build);
+    }
+
+    $orderStorage = $this->entityTypeMananger->getStorage('commerce_order');
+
+    /** @var \Drupal\commerce_order\Entity\OrderInterface[] $orders */
+    $orders = $orderStorage->loadByProperties([
+      'order_number' => Xss::filter($data['order_id']),
+    ]);
+
+    if (!empty($orders)) {
+      $order = reset($orders);
+      $orderState = $order->getState();
+      $stateChange = FALSE;
+
+      switch ($data['status']) {
+        case 'cancelled':
+          $stateChange = 'cancel';
+          break;
+
+        case 'shipped':
+          $stateChange = 'fulfill';
+          break;
+      }
+
+      if ($stateChange !== FALSE) {
+
+        $orderState->applyTransitionById($stateChange);
+        try {
+          $order->save();
+          $response['message'] = $this->t('Order updated.');
+        }
+        catch (EntityStorageException $e) {
+          $this->logger->error($e->getMessage());
+          $response['code'] = 500;
+          $response['message'] = $this->t('Order failed to update.');
+        }
+
+      }
+      else {
+        $response['code'] = 304;
+        $response['message'] = $this->t('Order status not changed.');
+      }
+    }
+    else {
+      $response['code'] = 404;
+      $response['message'] = $this->t('No order found.');
+    }
+
+    return (new ResourceResponse($response, $response['code']))->addCacheableDependency($build);
   }
 
   private function getOrderItems(OrderInterface $order) {
