@@ -303,8 +303,8 @@ class Order implements ContainerInjectionInterface {
       $addressArray = $profile->get('address')->getValue()[0];
       $phone = $profile->get('field_phone_number')->value;
       $phoneExt = $profile->get('field_extension')->value;
-      $profiles[$type . '_address']['first_name'] = $profile->get('field_name')[0]->given;
-      $profiles[$type . '_address']['last_name'] = $profile->get('field_name')[0]->family;
+      $profiles[$type . '_address']['first_name'] = $profile->get('field_first_name')->value;
+      $profiles[$type . '_address']['last_name'] = $profile->get('field_last_name')->value;
       $profiles[$type . '_address']['company_name'] = $profile->get('field_organization')->value;
       $profiles[$type . '_address']['address'] = $addressArray['address_line1'];
       $profiles[$type . '_address']['street2'] = $addressArray['address_line2'];
