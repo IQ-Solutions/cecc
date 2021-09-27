@@ -226,7 +226,7 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    $productVariation->set('field_cecc_stock', $response['inventory']['warehouse_stock_on_hand']);
+    $productVariation->set('field_cecc_stock', $response['warehouse_stock_on_hand']);
     $productVariation->set('field_awaiting_stock_refresh', FALSE);
 
     try {
