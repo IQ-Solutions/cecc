@@ -172,7 +172,7 @@ class FormHelper implements FormHelperInterface {
         $this->alterCartForm($form);
         break;
 
-      case 'user_register_form':
+      case 'user_form':
         $this->alterUserRegistrationForm($form);
         break;
     }
@@ -271,10 +271,9 @@ class FormHelper implements FormHelperInterface {
    * @param array $form
    *   The form array.
    */
-  private function alterUserRegistrationForm(array $form) {
+  private function alterUserRegistrationForm(array &$form) {
     $form['account']['name']['#required'] = FALSE;
     $form['account']['name']['#access'] = FALSE;
-    $form['account']['name']['#required'] = FALSE;
     array_unshift($form['#validate'], '\Drupal\cecc\Service\FormHelper::prepareRegistrationFormValues');
     $form['#validate'][] = '\Drupal\cecc\Service\FormHelper::registerPostValidate';
   }
