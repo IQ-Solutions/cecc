@@ -171,6 +171,10 @@ class FormHelper implements FormHelperInterface {
       case 'commerce_order_item_add_to_cart_form':
         $this->alterCartForm($form);
         break;
+
+      case 'user_register_form':
+        $this->alterUserRegistrationForm($form);
+        break;
     }
   }
 
@@ -262,6 +266,20 @@ class FormHelper implements FormHelperInterface {
   }
 
   /**
+   * Alters the user registration form.
+   *
+   * @param array $form
+   *   The form array.
+   */
+  private function alterUserRegistrationForm(array $form) {
+    $form['account']['name']['#required'] = FALSE;
+    $form['account']['name']['#access'] = FALSE;
+    $form['account']['name']['#required'] = FALSE;
+    array_unshift($form['#validate'], '\Drupal\cecc\Service\FormHelper::prepareRegistrationFormValues');
+    $form['#validate'][] = '\Drupal\cecc\Service\FormHelper::registerPostValidate';
+  }
+
+  /**
    * Number Validation override.
    *
    * @param mixed $element
@@ -327,7 +345,7 @@ class FormHelper implements FormHelperInterface {
    * @param array $complete_form
    *   The complete form array.
    */
-  public static function validateEmail(&$element, FormStateInterface $form_state, &$complete_form) {
+  public static function validateEmail(array &$element, FormStateInterface $form_state, array &$complete_form) {
     $value = trim($element['#value']);
 
     if (empty($value)) {
@@ -339,6 +357,37 @@ class FormHelper implements FormHelperInterface {
     if (!\Drupal::service('email.validator')->isValid($value)
     || !filter_var($value, FILTER_VALIDATE_EMAIL)) {
       $form_state->setError($element, t('The email address %mail is not valid.', ['%mail' => $value]));
+    }
+  }
+
+  /**
+   * Copy the 'mail' field to the 'name' field before form validation.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   */
+  public static function prepareRegistrationFormValues(array &$form, FormStateInterface $form_state) {
+    $email = $form_state->getValue('mail');
+    $form_state->setValue('name', $email);
+  }
+
+  /**
+   * Removes errors related to the name field on the registration form.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   */
+  public static function registerPostValidate(array &$form, FormStateInterface $form_state) {
+    $errors = $form_state->getErrors();
+    unset($errors['name']);
+    $form_state->clearErrors();
+
+    foreach ($errors as $field => $value) {
+      $form_state->setErrorByName($field, $value);
     }
   }
 
