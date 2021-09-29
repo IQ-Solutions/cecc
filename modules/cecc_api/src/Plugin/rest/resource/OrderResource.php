@@ -207,6 +207,7 @@ class OrderResource extends ResourceBase {
     if (!empty($orders)) {
       $order = reset($orders);
       $orderState = $order->getState();
+      $orderStateTransitions = $orderState->getTransitions();
       $stateChange = FALSE;
 
       switch ($data['status']) {
@@ -219,23 +220,31 @@ class OrderResource extends ResourceBase {
           break;
       }
 
-      if ($stateChange !== FALSE) {
-
-        $orderState->applyTransitionById($stateChange);
-        try {
-          $order->save();
-          $response['message'] = $this->t('Order updated.');
-        }
-        catch (EntityStorageException $e) {
-          $this->logger->error($e->getMessage());
-          $response['code'] = 500;
-          $response['message'] = $this->t('Order failed to update.');
-        }
-
+      if (!isset($orderStateTransitions[$stateChange])) {
+        $response['code'] = 400;
+        $response['message'] = $this->t('This order cannot be transitioned to :status. It is currently :currentState', [
+          ':status' => $data['status'],
+          ':currentState' => $orderState->getLabel(),
+        ]);
       }
       else {
-        $response['code'] = 304;
-        $response['message'] = $this->t('Order status not changed.');
+        if ($stateChange !== FALSE) {
+
+          $orderState->applyTransitionById($stateChange);
+          try {
+            $order->save();
+            $response['message'] = $this->t('Order updated.');
+          }
+          catch (EntityStorageException $e) {
+            $this->logger->error($e->getMessage());
+            $response['code'] = 500;
+            $response['message'] = $this->t('Order failed to update.');
+          }
+        }
+        else {
+          $response['code'] = 304;
+          $response['message'] = $this->t('Order status not changed.');
+        }
       }
     }
     else {
