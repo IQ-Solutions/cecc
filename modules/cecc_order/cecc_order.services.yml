@@ -1,0 +1,14 @@
+services:
+  cecc_order.order_event_subscriber:
+    class: \Drupal\cecc_order\EventSubscriber\OrderEventSubscriber
+    arguments:
+      - '@cecc_order.cart_merge'
+    tags:
+      - { name: event_subscriber }
+
+  cecc_order.cart_merge:
+    class: Drupal\cecc_order\Service\CartMerge
+    arguments:
+      - '@commerce_cart.cart_provider'
+      - '@commerce_cart.cart_manager'
+      - '@current_route_match'
