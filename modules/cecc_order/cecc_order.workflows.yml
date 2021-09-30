@@ -1,0 +1,26 @@
+cecc_order_default:
+  id: cecc_order_default
+  group: commerce_order
+  label: 'Cecc Order Workflow'
+  states:
+    draft:
+      label: Cart
+    fulfillment:
+      label: 'In Process'
+    completed:
+      label: Completed
+    canceled:
+      label: Canceled
+  transitions:
+    place:
+      label: 'Place order'
+      from: [draft]
+      to:   fulfillment
+    fulfill:
+      label: 'Process order'
+      from: [fulfillment]
+      to: completed
+    cancel:
+      label: 'Cancel order'
+      from: [draft, fulfillment]
+      to:   canceled
