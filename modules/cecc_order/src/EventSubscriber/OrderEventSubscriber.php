@@ -2,7 +2,7 @@
 
 namespace Drupal\cecc_order\EventSubscriber;
 
-use Drupal\cecc_order\Service\CartMerge;
+use Drupal\cecc_order\Service\ReconcileCart;
 use Drupal\commerce_order\Event\OrderAssignEvent;
 use Drupal\commerce_order\Event\OrderEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -17,18 +17,18 @@ class OrderEventSubscriber implements EventSubscriberInterface {
   /**
    * The cart merge service.
    *
-   * @var \Drupal\cecc_order\Service\CartMerge
+   * @var \Drupal\cecc_order\Service\ReconcileCart
    */
-  protected $cartMerge;
+  protected $reconcileCart;
 
   /**
    * CartEventSubscriber constructor.
    *
-   * @param \Drupal\cecc_order\Service\CartMerge $cart_merge
+   * @param \Drupal\cecc_order\Service\ReconcileCart $reconcile_cart
    *   The cart merge service.
    */
-  public function __construct(CartMerge $cart_merge) {
-    $this->cartMerge = $cart_merge;
+  public function __construct(ReconcileCart $reconcile_cart) {
+    $this->reconcileCart = $reconcile_cart;
   }
 
   /**
@@ -52,8 +52,8 @@ class OrderEventSubscriber implements EventSubscriberInterface {
   public function onOrderAssign(OrderAssignEvent $event) {
     $order = $event->getOrder();
 
-    if (!$order->get('cart')->isEmpty() && $order->get('cart')->value) {
-      $this->cartMerge->assignCart($order, $event->getCustomer());
+    if (!$order->get('cart')->isEmpty()) {
+      $this->reconcileCart->assignCart($order, $event->getCustomer());
     }
   }
 

@@ -2,13 +2,14 @@ services:
   cecc_order.order_event_subscriber:
     class: \Drupal\cecc_order\EventSubscriber\OrderEventSubscriber
     arguments:
-      - '@cecc_order.cart_merge'
+      - '@cecc_order.reconcile_cart'
     tags:
       - { name: event_subscriber }
 
-  cecc_order.cart_merge:
-    class: Drupal\cecc_order\Service\CartMerge
+  cecc_order.reconcile_cart:
+    class: Drupal\cecc_order\Service\ReconcileCart
     arguments:
       - '@commerce_cart.cart_provider'
       - '@commerce_cart.cart_manager'
       - '@current_route_match'
+      - '@entity_type.manager'

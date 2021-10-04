@@ -118,14 +118,3 @@ function cecc_get_current_environment() {
 
   return isset($environments[$host]) ? $environments[$host] . '-' : '';
 }
-
-/**
- * Implements hook_link_alter.
- */
-function cecc_link_alter(&$variables) {
-  if ($variables['text'] == 'My account') {
-    $variables['text'] = t('Welcome :username', [
-      ':username' => \Drupal::currentUser()->getAccountName(),
-    ]);
-  }
-}

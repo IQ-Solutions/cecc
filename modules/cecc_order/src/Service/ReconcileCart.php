@@ -7,14 +7,14 @@ use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_product\Entity\ProductVariationInterface;
-use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
 
 /**
- * Cart merge class.
+ * Reconcile commerce carts on user login.
  */
-class CartMerge {
+class ReconcileCart {
 
   /**
    * The cart provider service.
@@ -38,6 +38,13 @@ class CartMerge {
   protected $routeMatch;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * CartMerge constructor.
    *
    * @param \Drupal\commerce_cart\CartProviderInterface $cart_provider
@@ -46,33 +53,18 @@ class CartMerge {
    *   The cart manager.
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The route match.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
    */
-  public function __construct(CartProviderInterface $cart_provider, CartManagerInterface $cart_manager, RouteMatchInterface $route_match) {
+  public function __construct(
+    CartProviderInterface $cart_provider,
+    CartManagerInterface $cart_manager,
+    RouteMatchInterface $route_match,
+    EntityTypeManagerInterface $entity_type_manager) {
     $this->cartProvider = $cart_provider;
     $this->cartManager = $cart_manager;
     $this->routeMatch = $route_match;
-  }
-
-  /**
-   * Returns main carts, one per order type.
-   *
-   * @param \Drupal\user\UserInterface $user
-   *   The user.
-   *
-   * @return \Drupal\commerce_order\Entity\OrderInterface[]|null
-   *   The main carts for the user, or NULL if there is no cart.
-   */
-  public function getUserCarts(UserInterface $user) {
-    // Clear cart cache so that newly assigned carts are available.
-    $this->cartProvider->clearCaches();
-
-    $carts = $this->cartProvider->getCarts($user);
-
-    if (empty($carts)) {
-      return NULL;
-    }
-
-    return $carts;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -86,7 +78,7 @@ class CartMerge {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function assignCart(OrderInterface $cart, UserInterface $user) {
-    $userCarts = $this->getUserCarts($user);
+    $userCarts = $this->cartProvider->getCarts($user);
 
     if ($userCarts) {
       foreach ($userCarts as $userCart) {
@@ -94,76 +86,54 @@ class CartMerge {
           continue;
         }
 
-        if ($this->isCartRequestedForCheckout($cart)) {
-          $this->combineCarts($cart, $userCart, FALSE);
-        }
-        else {
-          $this->combineCarts($userCart, $cart, FALSE);
-        }
+        $this->removeCart($userCart);
       }
     }
   }
 
   /**
-   * Combines all of a user's carts into their main cart.
+   * Removes cart.
    *
-   * @param \Drupal\user\UserInterface $user
-   *   The user.
-   *
-   * @throws \Drupal\Core\Entity\EntityStorageException
+   * @param \Drupal\commerce_order\Entity\OrderInterface $cart
+   *   The cart to delete.
    */
-  public function combineUserCarts(UserInterface $user) {
-    $loggedInCarts = $this->getUserCarts($user);
+  private function removeCart(OrderInterface $cart) {
+    $cartItems = $cart->getItems();
 
-    if ($loggedInCarts) {
-      foreach ($loggedInCarts as $mainCart) {
-        foreach ($this->cartProvider->getCarts($user) as $cart) {
-          if ($cart->bundle() != $mainCart->bundle()) {
-            continue;
-          }
-
-          $this->combineCarts($mainCart, $cart, TRUE);
-        }
-      }
+    foreach ($cartItems as $cartItem) {
+      $cart->removeItem($cartItem);
+      $cartItem->delete();
     }
+
+    $cart->delete();
   }
 
   /**
    * Merges cart into the main cart and optionally deletes the other cart.
    *
-   * @param \Drupal\commerce_order\Entity\OrderInterface $main_cart
-   *   The main cart.
-   * @param \Drupal\commerce_order\Entity\OrderInterface $other_cart
-   *   The other cart.
+   * @param \Drupal\commerce_order\Entity\OrderInterface $anonymous_cart
+   *   The anonymous cart.
+   * @param \Drupal\commerce_order\Entity\OrderInterface $loggedin_cart
+   *   The logged in cart cart.
    * @param bool $delete
    *   TRUE to delete the other cart when finished, FALSE to save it as empty.
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function combineCarts(OrderInterface $main_cart, OrderInterface $other_cart, $delete = FALSE) {
-    if ($main_cart->id() === $other_cart->id()) {
+  public function mergeCarts(OrderInterface $anonymous_cart, OrderInterface $loggedin_cart, $delete = FALSE) {
+    if ($anonymous_cart->id() === $loggedin_cart->id()) {
       return;
     }
 
-    if ($this->isCartRequestedForCheckout($other_cart)) {
-      return $this->combineCarts($other_cart, $main_cart, $delete);
-    }
-
-    foreach ($other_cart->getItems() as $item) {
-      $other_cart->removeItem($item);
-      $item->get('order_id')->entity = $main_cart;
+    foreach ($loggedin_cart->getItems() as $item) {
+      $loggedin_cart->removeItem($item);
+      $item->get('order_id')->entity = $anonymous_cart;
       $combine = $this->shouldCombineItem($item);
-      $this->cartManager->addOrderItem($main_cart, $item, $combine);
+      $this->cartManager->addOrderItem($anonymous_cart, $item, $combine);
     }
+    $loggedin_cart->delete();
 
-    $main_cart->save();
-
-    if ($delete) {
-      $other_cart->delete();
-    }
-    else {
-      $other_cart->save();
-    }
+    $anonymous_cart->save();
   }
 
   /**
@@ -185,10 +155,12 @@ class CartMerge {
     }
 
     $product = $purchased_entity->getProduct();
-    $entity_display = EntityViewDisplay::load($product->getEntityTypeId() . '.' . $product->bundle() . '.default');
+    /** @var \Drupal\Core\Entity\Entity\EntityViewDisplay $entityDisplay */
+    $entityDisplay = $this->entityTypeManager->getStorage('entity_view_display')
+      ->load($product->getEntityTypeId() . '.' . $product->bundle() . '.default');
     $combine = TRUE;
 
-    if ($component = $entity_display->getComponent('variations')) {
+    if ($component = $entityDisplay->getComponent('variations')) {
       $combine = !empty($component['settings']['combine']);
     }
 
