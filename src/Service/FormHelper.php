@@ -226,7 +226,7 @@ class FormHelper implements FormHelperInterface {
       if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
         $form['captcha'] = [
           '#type' => 'captcha',
-          '#captcha_type' => 'recaptcha_v3/default'
+          '#captcha_type' => 'recaptcha/reCAPTCHA'
         ];
       }
     }
