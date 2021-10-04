@@ -56,7 +56,7 @@ class RegisterMenuLink extends MenuLinkDefault {
    * {@inheritdoc}
    */
   public function getTitle() {
-    return $this->t('Create new account');
+    return $this->t('Create New Account');
   }
 
   /**

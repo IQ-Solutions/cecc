@@ -5,6 +5,17 @@ cecc.config:
   route_name: cecc.settings
 
 cecc.register:
-  weight: 10
+  weight: 3
   menu_name: account
   class: Drupal\cecc\Plugin\Menu\RegisterMenuLink
+
+cecc.loginlogout:
+  weight: 1
+  menu_name: account
+  class: Drupal\cecc\Plugin\Menu\CeccLoginLogoutMenuLink
+
+cecc.user_page:
+  title: 'My Account'
+  weight: 2
+  route_name: user.page
+  menu_name: account
