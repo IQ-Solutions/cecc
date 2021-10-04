@@ -39,10 +39,16 @@ class PublicationAccess implements AccessInterface {
    */
   public function access(Route $route, AccountInterface $account) {
     $product = $this->getRouteEntity($route);
+
+    if (!$product) {
+      return AccessResult::allowed();
+    }
+
     $productVariation = $product->getDefaultVariation();
-    $notAvailable = $productVariation->get('field_not_available')->value;
+    $notAvailable = $productVariation->get('field_not_available')->isEmpty()
+    ? 0 : (int) $productVariation->get('field_not_available')->value;
     $hasPermission = $notAvailable === 0 ?
-    $account->hasPermission('view products') : $account->hasPermission('view unavailable publications');
+    $account->hasPermission('view commerce_product') : $account->hasPermission('view unavailable publications');
 
     return $hasPermission ? AccessResult::allowed() : AccessResult::forbidden();
   }
