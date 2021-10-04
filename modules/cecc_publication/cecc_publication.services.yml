@@ -1,0 +1,12 @@
+services:
+  cecc_publication.publication_access:
+    class: \Drupal\cecc_publication\Routing\Access\PublicationAccess
+    arguments:
+      - '@current_route_match'
+    tags:
+      - { name: access_check, applies_to: _cecc_access }
+
+  cecc_publication.publication_route_subscriber:
+    class: \Drupal\cecc_publication\Routing\PublicationRouteSubscriber
+    tags:
+      - { name: event_subscriber }
