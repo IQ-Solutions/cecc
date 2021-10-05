@@ -137,10 +137,9 @@ class Order implements EventSubscriberInterface {
   public function onOrderPlace(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
+    $orderState = $order->getState();
 
-    $completed = $order->getState()->getId() == 'completed';
-
-    if ($completed) {
+    if ($orderState->getId() == 'fulfillment') {
       $this->queueOrderSend($order);
 
       foreach ($order->getItems() as $item) {
@@ -165,10 +164,9 @@ class Order implements EventSubscriberInterface {
    */
   public function onOrderUpdate(OrderEvent $event) {
     $order = $event->getOrder();
+    $orderState = $order->getState();
 
-    $completed = $order->getState()->getId() == 'completed';
-
-    if ($completed) {
+    if ($orderState->getId() == 'fulfillment') {
       $originalOrder = $this->getOriginalEntity($order);
 
       foreach ($order->getItems() as $item) {
