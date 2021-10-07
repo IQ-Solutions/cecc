@@ -16,6 +16,7 @@ use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\cecc_stock\Service\StockValidation;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
+use Drupal\state_machine\Plugin\Field\FieldType\StateItemInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -129,6 +130,24 @@ class Order implements EventSubscriberInterface {
   }
 
   /**
+   * Gets the send order state for a workflow.
+   *
+   * @param Drupal\commerce_order\entity\OrderInterface $order
+   *   The order.
+   *
+   * @return bool
+   *   True if is a valid send order state.
+   */
+  private function shouldSendOrder(OrderInterface $order) {
+    $orderState = $order->getState();
+    $workflow = $orderState->getWorkflow();
+    $sendOrderState = $workflow->getId() == 'cecc_order_default' ?
+    'fulfillment' : 'completed';
+
+    return $orderState->getId() == $sendOrderState;
+  }
+
+  /**
    * Runs when after an order is placed.
    *
    * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
@@ -137,9 +156,8 @@ class Order implements EventSubscriberInterface {
   public function onOrderPlace(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
-    $orderState = $order->getState();
 
-    if ($orderState->getId() == 'fulfillment') {
+    if ($this->shouldSendOrder($order)) {
       $this->queueOrderSend($order);
 
       foreach ($order->getItems() as $item) {
@@ -160,13 +178,12 @@ class Order implements EventSubscriberInterface {
    * Order update event.
    *
    * @param \Drupal\commerce_order\Event\OrderEvent $event
-   *   The order event
+   *   The order event.
    */
   public function onOrderUpdate(OrderEvent $event) {
     $order = $event->getOrder();
-    $orderState = $order->getState();
 
-    if ($orderState->getId() == 'fulfillment') {
+    if ($this->shouldSendOrder($order)) {
       $originalOrder = $this->getOriginalEntity($order);
 
       foreach ($order->getItems() as $item) {
