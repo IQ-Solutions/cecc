@@ -118,3 +118,10 @@ function cecc_get_current_environment() {
 
   return isset($environments[$host]) ? $environments[$host] . '-' : '';
 }
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+function cecc_local_tasks_alter(&$local_tasks) {
+  $local_tasks['entity.user.canonical']['title'] = 'Dashboard';
+}
