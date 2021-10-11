@@ -183,7 +183,7 @@ class StockHelper {
       }
 
       if ($hasOverLimitItems) {
-        $this->messenger()->addWarning($this->t('Your cart has publications that are over the max order limit. You will need to complete an order limit request form at checkout.'));
+        $this->messenger()->addWarning($this->t('Your cart has publications that are over the max order limit. When you checkout, please complete an order limit request form.'));
       }
 
       // Force a check to display the stock state to the user.
