@@ -132,10 +132,11 @@ class FormHelper implements FormHelperInterface {
     $this->formState = $formState;
 
     if (!method_exists($this->formObject, 'getBaseFormId')) {
-      return;
+      $this->baseFormId = $formId;
     }
-
-    $this->baseFormId = $this->formObject->getBaseFormId();
+    else {
+      $this->baseFormId = $this->formObject->getBaseFormId();
+    }
 
     $this->alterFormElements($form);
     $this->negotiateForms($form);
@@ -174,6 +175,10 @@ class FormHelper implements FormHelperInterface {
 
       case 'user_form':
         $this->alterUserRegistrationForm($form);
+        break;
+
+      case 'user_login_form':
+        $this->alterUserLoginForm($form);
         break;
     }
   }
@@ -276,6 +281,16 @@ class FormHelper implements FormHelperInterface {
     $form['account']['name']['#access'] = FALSE;
     array_unshift($form['#validate'], '\Drupal\cecc\Service\FormHelper::prepareRegistrationFormValues');
     $form['#validate'][] = '\Drupal\cecc\Service\FormHelper::registerPostValidate';
+  }
+
+  /**
+   * Alters the user registration form.
+   *
+   * @param array $form
+   *   The form array.
+   */
+  private function alterUserLoginForm(array &$form) {
+    $form['pass']['#description'] = $this->t('Enter the password that accompanies your account.');
   }
 
   /**
