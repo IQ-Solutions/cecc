@@ -174,7 +174,7 @@ class OverLimit extends CheckoutPaneBase {
 
     $pane_form['field_event_name'] = [
       '#type' => 'textfield',
-      '#title' => 'Event name',
+      '#title' => 'Event Name',
       '#default_value' => $this->order->get('field_event_name')->isEmpty() ?
       NULL : $this->order->get('field_event_name')->value,
       '#required' => TRUE,
@@ -183,7 +183,7 @@ class OverLimit extends CheckoutPaneBase {
 
     $pane_form['field_event_location'] = [
       '#type' => 'textfield',
-      '#title' => 'Event location (state)',
+      '#title' => 'Event Location (State)',
       '#default_value' => $this->order->get('field_event_location')->isEmpty() ?
       NULL : $this->order->get('field_event_location')->value,
       '#required' => TRUE,
@@ -244,19 +244,13 @@ class OverLimit extends CheckoutPaneBase {
 
       $build['summary_display']['field_event_name'] = [
         '#type' => 'item',
-        '#title' => 'Event name',
-        '#markup' => '<p>' . $this->order->get('field_event_name')->value . '</p>',
-      ];
-
-      $build['summary_display']['field_event_name'] = [
-        '#type' => 'item',
-        '#title' => 'Event name',
+        '#title' => 'Event Name',
         '#markup' => '<p>' . $this->order->get('field_event_name')->value . '</p>',
       ];
 
       $build['summary_display']['field_event_location'] = [
         '#type' => 'item',
-        '#title' => 'Event location (state)',
+        '#title' => 'Event Location (State)',
         '#markup' => '<p>' . $this->order->get('field_event_location')->value . '</p>',
       ];
 
@@ -265,6 +259,7 @@ class OverLimit extends CheckoutPaneBase {
         '#title' => $this->order->get('field_cecc_over_limit_desc')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_cecc_over_limit_desc')->value . '</p>',
       ];
+
       $build['summary_display']['after_form_message'] = [
         '#type' => 'markup',
         '#markup' => $afterFormMessage,

@@ -223,7 +223,9 @@ class FormHelper implements FormHelperInterface {
     $stepId = $form['#step_id'];
 
     if ($stepId == 'order_information') {
+      $form['#title'] = $this->t('Order Information');
       $form['shipping_information']['#title'] = $this->t('Shipping Information');
+      $form['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
       $form['payment_information']['#title'] = $this->t('Billing Information');
 
       $form['actions']['next']['#value'] = $this->t('Review Your Order');
@@ -237,6 +239,19 @@ class FormHelper implements FormHelperInterface {
     }
 
     if ($stepId == 'review') {
+      $order = $this->formObject->getOrder();
+      $edit = Link::createFromRoute('Edit', 'commerce_checkout.form', [
+        'commerce_order' => $order->id(),
+        'step' => 'order_information',
+      ]);
+      $form['review']['contact_information']['#title'] = $this->t('Contact Information');
+      $form['review']['shipping_information']['#title'] = $this->t('Shipping Information (@edit)', [
+        '@edit' => $edit->toString(),
+      ]);
+      $form['review']['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
+      $form['review']['payment_information']['#title'] = $this->t('Billing Information (@edit)', [
+        '@edit' => $edit->toString(),
+      ]);
       $form['actions']['next']['#value'] = $this->t('Complete Checkout');
     }
 
@@ -281,6 +296,8 @@ class FormHelper implements FormHelperInterface {
     $form['account']['name']['#access'] = FALSE;
     array_unshift($form['#validate'], '\Drupal\cecc\Service\FormHelper::prepareRegistrationFormValues');
     $form['#validate'][] = '\Drupal\cecc\Service\FormHelper::registerPostValidate';
+    $form['account']['email']['#title'] = $this->t('Email Address');
+    $form['actions']['submit']['#value'] = $this->t('Create New Account');
   }
 
   /**
@@ -291,6 +308,7 @@ class FormHelper implements FormHelperInterface {
    */
   private function alterUserLoginForm(array &$form) {
     $form['pass']['#description'] = $this->t('Enter the password that accompanies your account.');
+    $form['actions']['submit']['#value'] = $this->t('Log In');
   }
 
   /**

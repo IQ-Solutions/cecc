@@ -128,4 +128,7 @@ function cecc_local_tasks_alter(&$local_tasks) {
   $local_tasks['entity.user.edit_form']['title'] = t('Account Info');
   $local_tasks['entity.user.edit_form']['weight'] = -9;
   $local_tasks['commerce_order.address_book.overview']['title'] = t('Profiles');
+  $local_tasks['user.register']['title'] = t('Create New Account');
+  $local_tasks['user.pass']['title'] = t('Reset Your Password');
+  $local_tasks['user.login']['title'] = t('Log In');
 }
