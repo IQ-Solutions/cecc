@@ -37,28 +37,6 @@ content:
     third_party_settings: {  }
     region: content
     type: boolean_checkbox
-  field_cecc_order_limit:
-    type: number
-    weight: 6
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  field_cecc_stock:
-    type: number
-    weight: 5
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  field_cecc_warehouse_item_id:
-    type: string_textfield
-    weight: 9
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
   field_not_available:
     weight: 10
     settings:
@@ -99,7 +77,6 @@ content:
     region: content
 hidden:
   created: true
-  field_awaiting_stock_refresh: true
   list_price: true
   price: true
   status: true

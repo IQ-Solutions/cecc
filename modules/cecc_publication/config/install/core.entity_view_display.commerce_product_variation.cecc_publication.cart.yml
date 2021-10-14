@@ -25,18 +25,11 @@ content:
       link: false
     third_party_settings: {  }
 hidden:
-  cecc_check_stock_threshold: true
-  cecc_stock_stop_threshold: true
-  field_awaiting_stock_refresh: true
   field_cecc_different_physical_ve: true
-  field_cecc_order_limit: true
-  field_cecc_stock: true
-  field_cecc_warehouse_item_id: true
   field_not_available: true
   langcode: true
   list_price: true
   price: true
-  search_api_excerpt: true
   sku: true
   title: true
   weight: true

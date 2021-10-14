@@ -26,15 +26,6 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-  field_cecc_stock:
-    type: number_integer
-    weight: 3
-    region: content
-    label: hidden
-    settings:
-      thousand_separator: ''
-      prefix_suffix: true
-    third_party_settings: {  }
   product_id:
     type: entity_reference_entity_view
     weight: 0
@@ -62,15 +53,9 @@ content:
       trim_options: {  }
     third_party_settings: {  }
 hidden:
-  cecc_check_stock_threshold: true
-  cecc_stock_stop_threshold: true
-  field_awaiting_stock_refresh: true
-  field_cecc_order_limit: true
-  field_cecc_warehouse_item_id: true
   field_not_available: true
   langcode: true
   list_price: true
   price: true
-  search_api_excerpt: true
   title: true
   weight: true
