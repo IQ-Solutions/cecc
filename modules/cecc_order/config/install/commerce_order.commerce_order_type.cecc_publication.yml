@@ -7,7 +7,8 @@ dependencies:
   module:
     - commerce_cart
     - commerce_checkout
-    - commerce_shippingthird_party_settings:
+    - commerce_shipping
+third_party_settings:
   commerce_cart:
     cart_form_view: cecc_cart_form
     cart_block_view: commerce_cart_block
