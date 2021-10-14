@@ -2,7 +2,7 @@ status: 1
 dependencies:
   enforced:
     module:
-      - cecc
+      - cecc_publication
 pattern: '[commerce_product:display_title]'
 escape: false
 preserve_titles: false
