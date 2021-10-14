@@ -41,6 +41,15 @@ function cecc_element_info_alter(array &$types) {
   if (isset($types['tel'])) {
     $types['tel']['#attached']['library'][] = 'cecc/telephone_formatter';
   }
+
+  if (isset($types['password_confirm'])) {
+    $types['password_confirm']['#process'][] = 'cecc_change_title';
+  }
+}
+
+function cecc_change_title(&$element) {
+  $element['pass2']['#title'] = t('Confirm Password');
+  return $element;
 }
 
 /**
