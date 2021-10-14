@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_stock
   config:
     - commerce_order.commerce_order_type.cecc_publication
     - field.storage.commerce_order.field_event_name

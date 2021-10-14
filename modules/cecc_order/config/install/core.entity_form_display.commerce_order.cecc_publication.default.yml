@@ -1,11 +1,11 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_order
   config:
     - commerce_order.commerce_order_type.cecc_publication
-    - field.field.commerce_order.cecc_publication.field_cecc_over_limit_desc
-    - field.field.commerce_order.cecc_publication.field_event_location
-    - field.field.commerce_order.cecc_publication.field_event_name
     - field.field.commerce_order.cecc_publication.field_setting
     - field.field.commerce_order.cecc_publication.field_shipping_account_number
     - field.field.commerce_order.cecc_publication.field_shipping_vendor
@@ -37,30 +37,6 @@ content:
     weight: 20
     region: content
     third_party_settings: {  }
-  field_cecc_over_limit_desc:
-    weight: 21
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textarea
-    region: content
-  field_event_location:
-    weight: 24
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_event_name:
-    weight: 23
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_setting:
     weight: 22
     settings: {  }

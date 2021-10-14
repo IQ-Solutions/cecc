@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+id: commerce_product_variation__cecc_publication
+label: 'Product variation: Publication'
+tags:
+  title: '[current-page:title] | [site:name]'
+  description: '[commerce_product:body:summary]'
+  og_url: '[current-page:url:absolute]'
+  og_title: '[current-page:title]'
+  og_description: '[commerce_product:body:summary]'
+  twitter_cards_page_url: '[current-page:url:absolute]'
+  twitter_cards_description: '[commerce_product:body:summary]'
+  twitter_cards_title: '[current-page:title]'
+  twitter_cards_site: '@NINDSnews'

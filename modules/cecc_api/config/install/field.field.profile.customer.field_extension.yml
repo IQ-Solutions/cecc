@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_api
   config:
     - field.storage.profile.field_extension
     - profile.type.customer

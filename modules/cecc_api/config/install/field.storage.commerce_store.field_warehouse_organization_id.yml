@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_api
   module:
     - commerce_store
 id: commerce_store.field_warehouse_organization_id

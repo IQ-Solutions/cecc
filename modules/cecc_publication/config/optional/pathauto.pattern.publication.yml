@@ -1,0 +1,24 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+    - ctools
+id: publication
+label: Publication
+type: 'canonical_entities:commerce_product'
+pattern: 'publications/[commerce_product:title]'
+selection_criteria:
+  c56ea13e-e27b-4564-be67-e3c769e07db4:
+    id: 'entity_bundle:commerce_product'
+    bundles:
+      cecc_publication: cecc_publication
+    negate: false
+    context_mapping:
+      commerce_product: commerce_product
+    selection_logic: and
+weight: -5
+relationships: {  }

@@ -1,3 +1,7 @@
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
 product_bundles:
   cecc_publication: cecc_publication
   default: 0

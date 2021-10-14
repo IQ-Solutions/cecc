@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_publication
   module:
     - commerce_product
 id: featured_publications

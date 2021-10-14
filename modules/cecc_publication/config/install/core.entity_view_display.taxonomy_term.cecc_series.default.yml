@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_publication
   config:
     - field.field.taxonomy_term.cecc_series.field_series_image
     - taxonomy.vocabulary.cecc_series

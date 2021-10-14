@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_publication
   config:
     - field.storage.taxonomy_term.field_series_image
     - media.type.image

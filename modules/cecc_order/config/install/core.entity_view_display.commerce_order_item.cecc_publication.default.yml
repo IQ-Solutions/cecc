@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_order
   config:
     - commerce_order.commerce_order_item_type.cecc_publication
 id: commerce_order_item.cecc_publication.default

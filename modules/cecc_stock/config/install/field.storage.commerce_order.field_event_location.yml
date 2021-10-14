@@ -6,11 +6,13 @@ dependencies:
       - cecc_stock
   module:
     - commerce_order
-id: commerce_order.field_cecc_over_limit_desc
-field_name: field_cecc_over_limit_desc
+id: commerce_order.field_event_location
+field_name: field_event_location
 entity_type: commerce_order
-type: string_long
+type: string
 settings:
+  max_length: 255
+  is_ascii: false
   case_sensitive: false
 module: core
 locked: false

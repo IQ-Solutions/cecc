@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc_checkout\Plugin\Commerce\CheckoutPane;
+namespace Drupal\cecc_stock\Plugin\Commerce\CheckoutPane;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowInterface;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneBase;

@@ -1,0 +1,16 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_api
+id: rest
+label: Rest
+weight: 3
+is_admin: null
+permissions:
+  - 'restful get cecc_order_resource'
+  - 'restful get cecc_order_state_resource'
+  - 'restful get publication_resource'
+  - 'restful post cecc_order_resource'
+  - 'use key authentication'

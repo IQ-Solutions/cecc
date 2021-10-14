@@ -25,6 +25,6 @@ numberPattern: null
 refresh_mode: customer
 refresh_frequency: 300
 sendReceipt: true
-receiptBcc: 'PubRequests4@mail.nih.gov,rpanzer@iqsolutions.com,krice@iqsolutions.com,ndeeds@iqsolutions.com'
+receiptBcc: ''
 traits: {  }
 locked: false

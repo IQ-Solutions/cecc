@@ -4,12 +4,7 @@ dependencies:
   config:
     - commerce_product.commerce_product_variation_type.cecc_publication
     - core.entity_view_mode.commerce_product_variation.cart
-    - field.field.commerce_product_variation.cecc_publication.cecc_check_stock_threshold
-    - field.field.commerce_product_variation.cecc_publication.cecc_stock_stop_threshold
-    - field.field.commerce_product_variation.cecc_publication.field_awaiting_stock_refresh
     - field.field.commerce_product_variation.cecc_publication.field_cecc_different_physical_ve
-    - field.field.commerce_product_variation.cecc_publication.field_cecc_order_limit
-    - field.field.commerce_product_variation.cecc_publication.field_cecc_stock
     - field.field.commerce_product_variation.cecc_publication.field_cecc_warehouse_item_id
     - field.field.commerce_product_variation.cecc_publication.field_not_available
     - field.field.commerce_product_variation.cecc_publication.weight

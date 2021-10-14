@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_migrate
   module:
     - profile
 id: profile.field_customer_id_legacy

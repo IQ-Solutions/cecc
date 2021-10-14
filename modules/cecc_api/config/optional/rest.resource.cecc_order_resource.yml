@@ -1,0 +1,20 @@
+langcode: en
+status: false
+dependencies:
+  enforced:
+    module:
+      - cecc_api
+  module:
+    - key_auth
+    - serialization
+id: cecc_order_resource
+plugin_id: cecc_order_resource
+granularity: resource
+configuration:
+  methods:
+    - GET
+    - POST
+  formats:
+    - json
+  authentication:
+    - key_auth

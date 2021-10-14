@@ -1,6 +1,9 @@
 langcode: en
 status: true
 dependencies:
+  enforced:
+    module:
+      - cecc_publication
   config:
     - commerce_product.commerce_product_variation_type.cecc_publication
     - field.storage.commerce_product_variation.weight
