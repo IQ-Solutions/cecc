@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_customer_id_legacy
+  module:
+    - user
+id: user.user.field_customer_id_legacy
+field_name: field_customer_id_legacy
+entity_type: user
+bundle: user
+label: 'Customer ID (Legacy)'
+description: 'Customer ID from the previous system'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

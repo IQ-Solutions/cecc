@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - field.storage.commerce_product.field_additional_resources
+  module:
+    - link
+id: commerce_product.cecc_publication.field_additional_resources
+field_name: field_additional_resources
+entity_type: commerce_product
+bundle: cecc_publication
+label: 'Additional resources'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 17
+  title: 2
+field_type: link

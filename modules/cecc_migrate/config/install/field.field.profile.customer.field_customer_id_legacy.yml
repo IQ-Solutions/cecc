@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_customer_id_legacy
+    - profile.type.customer
+id: profile.customer.field_customer_id_legacy
+field_name: field_customer_id_legacy
+entity_type: profile
+bundle: customer
+label: 'Customer ID (Legacy)'
+description: 'Customer ID from previous system. Previous systems hand multiple profiles attached to the same email so customer ID is attached to the profile and not the user account.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -1,0 +1,77 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - profile
+id: profile.field_occupation
+field_name: field_occupation
+entity_type: profile
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: 'Congressional staff and members of Congress'
+      label: 'Congressional staff and members of Congress'
+    -
+      value: 'Family member/friend of patient'
+      label: 'Family member/friend of patient'
+    -
+      value: 'Federal agency staff (other than NINDS or NIH)'
+      label: 'Federal agency staff (other than NINDS or NIH)'
+    -
+      value: 'General public'
+      label: 'General public'
+    -
+      value: 'Health educator'
+      label: 'Health educator'
+    -
+      value: 'Health professional'
+      label: 'Health professional'
+    -
+      value: 'Media professional/reporter/writer'
+      label: 'Media professional/reporter/writer'
+    -
+      value: 'NIH staff (except for NINDS)'
+      label: 'NIH staff (except for NINDS)'
+    -
+      value: 'NINDS staff'
+      label: 'NINDS staff'
+    -
+      value: Patient
+      label: Patient
+    -
+      value: 'Professional association or society'
+      label: 'Professional association or society'
+    -
+      value: 'Professional (attorney/social worker)'
+      label: 'Professional (attorney/social worker)'
+    -
+      value: Researcher/scientist
+      label: Researcher/scientist
+    -
+      value: 'State/local government staff'
+      label: 'State/local government staff'
+    -
+      value: 'Stroke champion'
+      label: 'Stroke champion'
+    -
+      value: 'Stroke partner'
+      label: 'Stroke partner'
+    -
+      value: Student
+      label: Student
+    -
+      value: Teacher/librarian
+      label: Teacher/librarian
+    -
+      value: 'Voluntary health agency staff'
+      label: 'Voluntary health agency staff'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

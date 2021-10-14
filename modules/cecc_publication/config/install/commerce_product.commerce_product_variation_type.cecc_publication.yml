@@ -8,5 +8,6 @@ id: cecc_publication
 label: Publication
 orderItemType: cecc_publication
 generateTitle: false
-traits: {  }
+traits:
+  - purchasable_entity_shippable
 locked: false

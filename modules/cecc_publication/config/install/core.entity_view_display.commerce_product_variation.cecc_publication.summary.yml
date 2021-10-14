@@ -1,0 +1,48 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_variation_type.cecc_publication
+    - core.entity_view_mode.commerce_product_variation.summary
+    - field.field.commerce_product_variation.cecc_publication.cecc_check_stock_threshold
+    - field.field.commerce_product_variation.cecc_publication.cecc_stock_stop_threshold
+    - field.field.commerce_product_variation.cecc_publication.field_awaiting_stock_refresh
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_different_physical_ve
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_order_limit
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_stock
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_warehouse_item_id
+    - field.field.commerce_product_variation.cecc_publication.field_not_available
+    - field.field.commerce_product_variation.cecc_publication.weight
+  enforced:
+    module:
+      - cecc_publication
+id: commerce_product_variation.cecc_publication.summary
+targetEntityType: commerce_product_variation
+bundle: cecc_publication
+mode: summary
+content:
+  product_id:
+    type: entity_reference_entity_view
+    weight: 0
+    region: content
+    label: hidden
+    settings:
+      view_mode: summary
+      link: false
+    third_party_settings: {  }
+hidden:
+  cecc_check_stock_threshold: true
+  cecc_stock_stop_threshold: true
+  field_awaiting_stock_refresh: true
+  field_cecc_different_physical_ve: true
+  field_cecc_order_limit: true
+  field_cecc_stock: true
+  field_cecc_warehouse_item_id: true
+  field_not_available: true
+  langcode: true
+  list_price: true
+  price: true
+  search_api_excerpt: true
+  sku: true
+  title: true
+  weight: true

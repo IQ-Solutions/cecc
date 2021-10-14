@@ -7,23 +7,24 @@ dependencies:
   module:
     - commerce_cart
     - commerce_checkout
-    - commerce_shipping
-third_party_settings:
+    - commerce_shippingthird_party_settings:
   commerce_cart:
-    cart_form_view: commerce_cart_form
+    cart_form_view: cecc_cart_form
     cart_block_view: commerce_cart_block
-    cart_expiration: {  }
+    cart_expiration:
+      unit: day
+      number: 2
   commerce_checkout:
     checkout_flow: default
   commerce_shipping:
-    shipment_type: ''
+    shipment_type: default
 label: Publication
 id: cecc_publication
-workflow: order_default
+workflow: cecc_order_default
 numberPattern: null
 refresh_mode: customer
 refresh_frequency: 300
 sendReceipt: true
-receiptBcc: ''
+receiptBcc: 'PubRequests4@mail.nih.gov,rpanzer@iqsolutions.com,krice@iqsolutions.com,ndeeds@iqsolutions.com'
 traits: {  }
 locked: false

@@ -1,0 +1,32 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_product
+id: favorites
+label: Favorites
+bundles:
+  - cecc_publication
+entity_type: commerce_product
+global: false
+weight: 0
+flag_short: 'Add to Favorites'
+flag_long: 'Add to Favorites'
+flag_message: 'The Publication has been added to your Favorites'
+unflag_short: 'Remove from Favorites'
+unflag_long: 'Remove from Favorites'
+unflag_message: 'The Publication has been removed from your Favorites'
+unflag_denied_text: ''
+flag_type: 'entity:commerce_product'
+link_type: reload
+flagTypeConfig:
+  show_in_links:
+    cecc_list: cecc_list
+    popular: popular
+    teaser: teaser
+  show_as_field: true
+  show_on_form: false
+  show_contextual_link: false
+  extra_permissions:
+    owner: '0'
+linkTypeConfig: {  }

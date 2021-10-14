@@ -1,0 +1,62 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_order
+    - options
+id: commerce_order.field_setting
+field_name: field_setting
+entity_type: commerce_order
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: Classroom/library/training
+      label: Classroom/library/training
+    -
+      value: Conference
+      label: Conference
+    -
+      value: 'Doctor''s office'
+      label: 'Doctor''s office'
+    -
+      value: 'Health fair'
+      label: 'Health fair'
+    -
+      value: 'Hospital/medical center'
+      label: 'Hospital/medical center'
+    -
+      value: Other
+      label: Other
+    -
+      value: 'Personal use'
+      label: 'Personal use'
+    -
+      value: Pharmacy
+      label: Pharmacy
+    -
+      value: Research
+      label: Research
+    -
+      value: 'Support group'
+      label: 'Support group'
+    -
+      value: 'For congressional constituent'
+      label: 'For congressional constituent'
+    -
+      value: 'For NINDS use'
+      label: 'For NINDS use'
+    -
+      value: Meeting
+      label: Meeting
+    -
+      value: 'Test call'
+      label: 'Test call'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

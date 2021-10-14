@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_order.commerce_order_type.cecc_publication
+    - field.storage.commerce_order.field_setting
+  module:
+    - options
+id: commerce_order.cecc_publication.field_setting
+field_name: field_setting
+entity_type: commerce_order
+bundle: cecc_publication
+label: 'How will you use these publications?'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

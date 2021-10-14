@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_variation_type.cecc_publication
+    - field.storage.commerce_product_variation.cecc_check_stock_threshold
+  enforced:
+    module:
+      - cecc_stock
+id: commerce_product_variation.cecc_publication.cecc_check_stock_threshold
+field_name: cecc_check_stock_threshold
+entity_type: commerce_product_variation
+bundle: cecc_publication
+label: 'Stock Check Threshold'
+description: 'The stock amount to verify stock levels'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

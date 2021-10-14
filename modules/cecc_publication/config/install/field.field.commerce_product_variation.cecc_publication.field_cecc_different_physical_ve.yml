@@ -1,12 +1,12 @@
 langcode: en
 status: true
 dependencies:
-  enforced:
-    module:
-      - cecc_publication
   config:
     - commerce_product.commerce_product_variation_type.cecc_publication
     - field.storage.commerce_product_variation.field_cecc_different_physical_ve
+  enforced:
+    module:
+      - cecc_publication
 id: commerce_product_variation.cecc_publication.field_cecc_different_physical_ve
 field_name: field_cecc_different_physical_ve
 entity_type: commerce_product_variation

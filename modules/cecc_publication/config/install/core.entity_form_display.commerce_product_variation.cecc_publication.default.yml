@@ -3,14 +3,82 @@ status: true
 dependencies:
   config:
     - commerce_product.commerce_product_variation_type.cecc_publication
+    - field.field.commerce_product_variation.cecc_publication.cecc_check_stock_threshold
+    - field.field.commerce_product_variation.cecc_publication.cecc_stock_stop_threshold
+    - field.field.commerce_product_variation.cecc_publication.field_awaiting_stock_refresh
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_different_physical_ve
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_order_limit
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_stock
+    - field.field.commerce_product_variation.cecc_publication.field_cecc_warehouse_item_id
+    - field.field.commerce_product_variation.cecc_publication.field_not_available
+    - field.field.commerce_product_variation.cecc_publication.weight
   enforced:
     module:
       - cecc_publication
+  module:
+    - physical
 id: commerce_product_variation.cecc_publication.default
 targetEntityType: commerce_product_variation
 bundle: cecc_publication
 mode: default
 content:
+  cecc_check_stock_threshold:
+    type: number
+    weight: 8
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  cecc_stock_stop_threshold:
+    type: number
+    weight: 7
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_cecc_different_physical_ve:
+    weight: 3
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    region: content
+    type: boolean_checkbox
+  field_cecc_order_limit:
+    type: number
+    weight: 6
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_cecc_stock:
+    type: number
+    weight: 5
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_cecc_warehouse_item_id:
+    type: string_textfield
+    weight: 9
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_not_available:
+    weight: 10
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  langcode:
+    type: language_select
+    weight: 2
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
   sku:
     type: string_textfield
     weight: 1
@@ -18,13 +86,6 @@ content:
     settings:
       size: 60
       placeholder: ''
-    third_party_settings: {  }
-  status:
-    type: boolean_checkbox
-    settings:
-      display_label: true
-    weight: 2
-    region: content
     third_party_settings: {  }
   title:
     type: string_textfield
@@ -34,8 +95,18 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  weight:
+    type: physical_measurement_default
+    weight: 4
+    settings:
+      default_unit: ''
+      allow_unit_change: true
+    third_party_settings: {  }
+    region: content
 hidden:
   created: true
+  field_awaiting_stock_refresh: true
   list_price: true
   price: true
+  status: true
   uid: true

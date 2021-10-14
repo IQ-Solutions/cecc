@@ -1,0 +1,128 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - core.entity_view_mode.commerce_product.popular
+    - field.field.commerce_product.cecc_publication.body
+    - field.field.commerce_product.cecc_publication.field_additional_resources
+    - field.field.commerce_product.cecc_publication.field_alternate_language_link
+    - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_de
+    - field.field.commerce_product.cecc_publication.field_cecc_audience
+    - field.field.commerce_product.cecc_publication.field_cecc_campaign
+    - field.field.commerce_product.cecc_publication.field_cecc_cover
+    - field.field.commerce_product.cecc_publication.field_cecc_display_title
+    - field.field.commerce_product.cecc_publication.field_cecc_downloadable_media
+    - field.field.commerce_product.cecc_publication.field_cecc_format
+    - field.field.commerce_product.cecc_publication.field_cecc_language
+    - field.field.commerce_product.cecc_publication.field_cecc_main_title
+    - field.field.commerce_product.cecc_publication.field_cecc_number_of_pages
+    - field.field.commerce_product.cecc_publication.field_cecc_publication_date
+    - field.field.commerce_product.cecc_publication.field_cecc_related_publication
+    - field.field.commerce_product.cecc_publication.field_cecc_series
+    - field.field.commerce_product.cecc_publication.field_download_only
+    - field.field.commerce_product.cecc_publication.field_meta_tags
+    - field.field.commerce_product.cecc_publication.field_topic
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - datetime
+    - text
+id: commerce_product.cecc_publication.popular
+targetEntityType: commerce_product
+bundle: cecc_publication
+mode: popular
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: 2
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+    region: content
+  field_cecc_cover:
+    type: entity_reference_entity_view
+    weight: 0
+    label: hidden
+    settings:
+      view_mode: square_300x300
+      link: false
+    third_party_settings: {  }
+    region: content
+  field_cecc_display_title:
+    weight: 1
+    label: hidden
+    settings:
+      link_to_entity: true
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_cecc_format:
+    type: entity_reference_label
+    weight: 5
+    region: content
+    label: hidden
+    settings:
+      link: false
+    third_party_settings:
+      field_delimiter:
+        delimiter: ''
+  field_cecc_main_title:
+    type: string
+    weight: 4
+    region: content
+    label: hidden
+    settings:
+      link_to_entity: true
+    third_party_settings: {  }
+  field_cecc_publication_date:
+    type: datetime_default
+    weight: 8
+    region: content
+    label: hidden
+    settings:
+      timezone_override: ''
+      format_type: short
+    third_party_settings: {  }
+  flag_favorites:
+    weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  title:
+    type: string
+    weight: 6
+    region: content
+    label: hidden
+    settings:
+      link_to_entity: true
+    third_party_settings: {  }
+  variations:
+    type: entity_reference_label
+    weight: 7
+    region: content
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_additional_resources: true
+  field_alternate_language_link: true
+  field_cecc_alternate_language_de: true
+  field_cecc_audience: true
+  field_cecc_campaign: true
+  field_cecc_downloadable_media: true
+  field_cecc_language: true
+  field_cecc_number_of_pages: true
+  field_cecc_related_publication: true
+  field_cecc_series: true
+  field_download_only: true
+  field_meta_tags: true
+  field_topic: true
+  langcode: true
+  search_api_excerpt: true
+  stores: true
+  uid: true

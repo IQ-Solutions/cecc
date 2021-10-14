@@ -1,0 +1,27 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_order.commerce_order_item_type.cecc_publication
+id: commerce_order_item.cecc_publication.default
+targetEntityType: commerce_order_item
+bundle: cecc_publication
+mode: default
+content:
+  created:
+    label: hidden
+    type: timestamp
+    weight: 0
+    region: content
+    settings:
+      date_format: medium
+      custom_date_format: ''
+      timezone: ''
+    third_party_settings: {  }
+hidden:
+  adjustments: true
+  purchased_entity: true
+  quantity: true
+  search_api_excerpt: true
+  total_price: true
+  unit_price: true

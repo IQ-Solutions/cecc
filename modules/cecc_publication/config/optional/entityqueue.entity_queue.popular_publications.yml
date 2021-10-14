@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_product
+id: popular_publications
+label: 'Popular Publications'
+handler: simple
+handler_configuration: {  }
+entity_settings:
+  target_type: commerce_product
+  handler: 'default:commerce_product'
+  handler_settings:
+    target_bundles:
+      cecc_publication: cecc_publication
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+queue_settings:
+  min_size: 0
+  max_size: 10
+  act_as_queue: true
+  reverse: false

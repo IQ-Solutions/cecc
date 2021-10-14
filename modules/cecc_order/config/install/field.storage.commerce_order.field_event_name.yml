@@ -1,15 +1,11 @@
-uuid: bffb94aa-54f0-4d93-88f0-0cc41a143c6e
 langcode: en
 status: true
 dependencies:
-  enforced:
-    module:
-      - cecc_api
   module:
-    - commerce_product
-id: commerce_product_variation.field_cecc_warehouse_item_id
-field_name: field_cecc_warehouse_item_id
-entity_type: commerce_product_variation
+    - commerce_order
+id: commerce_order.field_event_name
+field_name: field_event_name
+entity_type: commerce_order
 type: string
 settings:
   max_length: 255

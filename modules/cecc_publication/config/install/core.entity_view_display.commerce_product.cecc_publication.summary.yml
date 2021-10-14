@@ -1,0 +1,68 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.cecc_publication
+    - core.entity_view_mode.commerce_product.summary
+    - field.field.commerce_product.cecc_publication.body
+    - field.field.commerce_product.cecc_publication.field_additional_resources
+    - field.field.commerce_product.cecc_publication.field_alternate_language_link
+    - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_de
+    - field.field.commerce_product.cecc_publication.field_cecc_audience
+    - field.field.commerce_product.cecc_publication.field_cecc_campaign
+    - field.field.commerce_product.cecc_publication.field_cecc_cover
+    - field.field.commerce_product.cecc_publication.field_cecc_display_title
+    - field.field.commerce_product.cecc_publication.field_cecc_downloadable_media
+    - field.field.commerce_product.cecc_publication.field_cecc_format
+    - field.field.commerce_product.cecc_publication.field_cecc_language
+    - field.field.commerce_product.cecc_publication.field_cecc_main_title
+    - field.field.commerce_product.cecc_publication.field_cecc_number_of_pages
+    - field.field.commerce_product.cecc_publication.field_cecc_publication_date
+    - field.field.commerce_product.cecc_publication.field_cecc_related_publication
+    - field.field.commerce_product.cecc_publication.field_cecc_series
+    - field.field.commerce_product.cecc_publication.field_download_only
+    - field.field.commerce_product.cecc_publication.field_meta_tags
+    - field.field.commerce_product.cecc_publication.field_topic
+  enforced:
+    module:
+      - cecc_publication
+id: commerce_product.cecc_publication.summary
+targetEntityType: commerce_product
+bundle: cecc_publication
+mode: summary
+content:
+  field_cecc_main_title:
+    type: string
+    weight: 0
+    region: content
+    label: hidden
+    settings:
+      link_to_entity: true
+    third_party_settings: {  }
+hidden:
+  body: true
+  created: true
+  field_additional_resources: true
+  field_alternate_language_link: true
+  field_cecc_alternate_language_de: true
+  field_cecc_audience: true
+  field_cecc_campaign: true
+  field_cecc_cover: true
+  field_cecc_display_title: true
+  field_cecc_downloadable_media: true
+  field_cecc_format: true
+  field_cecc_language: true
+  field_cecc_number_of_pages: true
+  field_cecc_publication_date: true
+  field_cecc_related_publication: true
+  field_cecc_series: true
+  field_download_only: true
+  field_meta_tags: true
+  field_topic: true
+  flag_favorites: true
+  langcode: true
+  search_api_excerpt: true
+  stores: true
+  title: true
+  uid: true
+  variations: true

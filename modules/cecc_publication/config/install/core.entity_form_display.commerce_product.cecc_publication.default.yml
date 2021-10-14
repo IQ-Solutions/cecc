@@ -4,6 +4,8 @@ dependencies:
   config:
     - commerce_product.commerce_product_type.cecc_publication
     - field.field.commerce_product.cecc_publication.body
+    - field.field.commerce_product.cecc_publication.field_additional_resources
+    - field.field.commerce_product.cecc_publication.field_alternate_language_link
     - field.field.commerce_product.cecc_publication.field_cecc_alternate_language_de
     - field.field.commerce_product.cecc_publication.field_cecc_audience
     - field.field.commerce_product.cecc_publication.field_cecc_campaign
@@ -12,10 +14,14 @@ dependencies:
     - field.field.commerce_product.cecc_publication.field_cecc_downloadable_media
     - field.field.commerce_product.cecc_publication.field_cecc_format
     - field.field.commerce_product.cecc_publication.field_cecc_language
+    - field.field.commerce_product.cecc_publication.field_cecc_main_title
     - field.field.commerce_product.cecc_publication.field_cecc_number_of_pages
     - field.field.commerce_product.cecc_publication.field_cecc_publication_date
-    - field.field.commerce_product.cecc_publication.field_cecc_series
     - field.field.commerce_product.cecc_publication.field_cecc_related_publication
+    - field.field.commerce_product.cecc_publication.field_cecc_series
+    - field.field.commerce_product.cecc_publication.field_download_only
+    - field.field.commerce_product.cecc_publication.field_meta_tags
+    - field.field.commerce_product.cecc_publication.field_topic
   enforced:
     module:
       - cecc_publication
@@ -23,8 +29,45 @@ dependencies:
     - commerce
     - commerce_product
     - datetime
+    - field_group
+    - link
+    - media_library
+    - metatag
     - path
     - text
+third_party_settings:
+  field_group:
+    group_product_information:
+      children:
+        - variations
+      parent_name: ''
+      weight: 10
+      format_type: details_sidebar
+      region: content
+      format_settings:
+        description: ''
+        open: true
+        weight: 0
+        required_fields: true
+        id: ''
+        classes: ''
+      label: 'Variation Information'
+    group_alternate_language:
+      children:
+        - field_cecc_alternate_language_de
+        - field_alternate_language_link
+      parent_name: ''
+      weight: 6
+      format_type: details_sidebar
+      region: content
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+        open: false
+        required_fields: true
+        weight: 0
+      label: 'Alternate Language'
 id: commerce_product.cecc_publication.default
 targetEntityType: commerce_product
 bundle: cecc_publication
@@ -32,20 +75,36 @@ mode: default
 content:
   body:
     type: text_textarea_with_summary
-    weight: 4
+    weight: 5
     settings:
       rows: 9
-      summary_rows: 3
       placeholder: ''
-      show_summary: false
+      summary_rows: 3
+      show_summary: true
     third_party_settings: {  }
     region: content
   created:
     type: datetime_timestamp
-    weight: 10
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_additional_resources:
+    weight: 7
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+    type: link_default
+    region: content
+  field_alternate_language_link:
+    weight: 6
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+    type: link_default
+    region: content
   field_cecc_alternate_language_de:
     weight: 5
     settings:
@@ -55,17 +114,7 @@ content:
     type: text_textarea
     region: content
   field_cecc_audience:
-    weight: 14
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
-  field_cecc_campaign:
-    weight: 15
+    weight: 17
     settings:
       match_operator: CONTAINS
       match_limit: 10
@@ -76,38 +125,28 @@ content:
     region: content
   field_cecc_cover:
     type: media_library_widget
-    weight: 17
-    settings:
-      media_types: {  }
-    third_party_settings: {  }
-    region: content
-  field_cecc_downloadable_media:
-    type: media_library_widget
     weight: 19
     settings:
       media_types: {  }
     third_party_settings: {  }
     region: content
-  field_cecc_related_publication:
-    weight: 18
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   field_cecc_display_title:
-    weight: 2
+    weight: 3
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
     type: string_textfield
     region: content
+  field_cecc_downloadable_media:
+    type: media_library_widget
+    weight: 21
+    settings:
+      media_types: {  }
+    third_party_settings: {  }
+    region: content
   field_cecc_format:
-    weight: 13
+    weight: 15
     settings:
       match_operator: CONTAINS
       match_limit: 10
@@ -117,26 +156,34 @@ content:
     type: entity_reference_autocomplete
     region: content
   field_cecc_language:
-    weight: 3
+    weight: 4
     settings: {  }
     third_party_settings: {  }
     type: options_select
     region: content
+  field_cecc_main_title:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
   field_cecc_number_of_pages:
-    weight: 6
+    weight: 8
     settings:
       placeholder: ''
     third_party_settings: {  }
     type: number
     region: content
   field_cecc_publication_date:
-    weight: 7
+    weight: 9
     settings: {  }
     third_party_settings: {  }
     type: datetime_default
     region: content
-  field_cecc_series:
-    weight: 16
+  field_cecc_related_publication:
+    weight: 20
     settings:
       match_operator: CONTAINS
       match_limit: 10
@@ -145,9 +192,46 @@ content:
     third_party_settings: {  }
     type: entity_reference_autocomplete
     region: content
+  field_cecc_series:
+    weight: 18
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  field_download_only:
+    weight: 22
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_meta_tags:
+    weight: 23
+    settings:
+      sidebar: true
+    third_party_settings: {  }
+    type: metatag_firehose
+    region: content
+  field_topic:
+    weight: 16
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+  langcode:
+    type: language_select
+    weight: 2
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
   path:
     type: path
-    weight: 11
+    weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -155,7 +239,7 @@ content:
     type: boolean_checkbox
     settings:
       display_label: true
-    weight: 12
+    weight: 14
     region: content
     third_party_settings: {  }
   stores:
@@ -168,17 +252,9 @@ content:
       autocomplete_size: 60
       autocomplete_placeholder: ''
     third_party_settings: {  }
-  title:
-    type: string_textfield
-    weight: 1
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 9
+    weight: 11
     region: content
     settings:
       match_operator: CONTAINS
@@ -192,4 +268,6 @@ content:
     settings: {  }
     third_party_settings: {  }
     region: content
-hidden: {  }
+hidden:
+  field_cecc_campaign: true
+  title: true
