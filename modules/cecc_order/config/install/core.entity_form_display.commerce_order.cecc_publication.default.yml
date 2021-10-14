@@ -7,9 +7,6 @@ dependencies:
   config:
     - commerce_order.commerce_order_type.cecc_publication
     - field.field.commerce_order.cecc_publication.field_setting
-    - field.field.commerce_order.cecc_publication.field_shipping_account_number
-    - field.field.commerce_order.cecc_publication.field_shipping_vendor
-    - field.field.commerce_order.cecc_publication.shipments
   module:
     - commerce_order
     - inline_entity_form
@@ -39,20 +36,6 @@ content:
     third_party_settings: {  }
   field_setting:
     weight: 22
-    settings: {  }
-    third_party_settings: {  }
-    type: options_select
-    region: content
-  field_shipping_account_number:
-    weight: 26
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_shipping_vendor:
-    weight: 25
     settings: {  }
     third_party_settings: {  }
     type: options_select
