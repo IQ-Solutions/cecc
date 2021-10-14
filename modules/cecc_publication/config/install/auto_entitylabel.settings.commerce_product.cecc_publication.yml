@@ -1,13 +1,12 @@
 status: 1
-dependencies:
-  enforced:
-    module:
-      - cecc_publication
 pattern: '[commerce_product:display_title]'
 escape: false
 preserve_titles: false
 save: 0
 chunk: '50'
 dependencies:
+  enforced:
+    module:
+      - cecc_publication
   config:
     - commerce_product.commerce_product_type.cecc_publication
