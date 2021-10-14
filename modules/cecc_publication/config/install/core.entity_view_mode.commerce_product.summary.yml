@@ -1,0 +1,13 @@
+uuid: 3469691e-e49b-4caa-aa73-63e99b90d423
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.summary
+label: Summary
+targetEntityType: commerce_product
+cache: true

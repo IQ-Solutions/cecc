@@ -1,0 +1,13 @@
+uuid: ba1c73dc-56d9-442c-a2a5-d33950ef6ef9
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.popular
+label: Popular
+targetEntityType: commerce_product
+cache: true

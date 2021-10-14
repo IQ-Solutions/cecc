@@ -1,0 +1,13 @@
+uuid: bdd44487-5814-41c8-8ace-a4b188f69d5a
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.search_result
+label: 'Search Result'
+targetEntityType: commerce_product
+cache: true

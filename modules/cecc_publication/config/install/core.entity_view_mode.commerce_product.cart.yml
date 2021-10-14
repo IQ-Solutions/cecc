@@ -1,0 +1,13 @@
+uuid: 61c4c004-da80-4b01-9ab7-ecc1167065c9
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.cart
+label: Cart
+targetEntityType: commerce_product
+cache: true

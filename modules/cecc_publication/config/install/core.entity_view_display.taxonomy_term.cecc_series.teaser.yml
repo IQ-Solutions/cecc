@@ -5,7 +5,6 @@ dependencies:
     module:
       - cecc_publication
   config:
-    - core.entity_view_mode.taxonomy_term.teaser
     - field.field.taxonomy_term.cecc_series.field_series_image
     - taxonomy.vocabulary.cecc_series
   module:

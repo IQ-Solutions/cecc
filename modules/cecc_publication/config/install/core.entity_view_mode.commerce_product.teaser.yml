@@ -1,0 +1,13 @@
+uuid: 12b9cec9-54d9-4c56-8336-dba15d8e68c2
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.teaser
+label: Teaser
+targetEntityType: commerce_product
+cache: true

@@ -1,0 +1,13 @@
+uuid: af5300df-ad9a-4e89-9569-7f05b28f622c
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_publication
+  module:
+    - commerce_product
+id: commerce_product.cecc_list
+label: List
+targetEntityType: commerce_product
+cache: true
