@@ -1,0 +1,13 @@
+<?php
+
+function cecc_cart_install($is_syncing) {
+  if ($is_syncing) {
+    return;
+  }
+
+  $configFactory = \Drupal::configFactory();
+
+  $orderTypePublication = $configFactory->getEditable('commerce_order.commerce_order_type.cecc_publication');
+  $orderTypePublication->set('third_party_settings.commerce_cart.cart_form_view', 'cecc_cart_form');
+  $orderTypePublication->save();
+}

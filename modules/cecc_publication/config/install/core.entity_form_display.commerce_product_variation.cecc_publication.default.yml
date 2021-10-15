@@ -16,20 +16,6 @@ targetEntityType: commerce_product_variation
 bundle: cecc_publication
 mode: default
 content:
-  cecc_check_stock_threshold:
-    type: number
-    weight: 8
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  cecc_stock_stop_threshold:
-    type: number
-    weight: 7
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
   field_cecc_different_physical_ve:
     weight: 3
     settings:
