@@ -1,16 +1,134 @@
 <?php
 
-use Drupal\Core\Config\FileStorage;
 
-/**
- * Helper function to import single config file.
- *
- * @param string $config_name
- *   The name of the config item to import from the config sync folder.
- */
-function cecc_import_single_config($config_name) {
-  $config_path = drupal_get_path('module', 'cecc') . '/config/install';
-  $source = new FileStorage($config_path);
-  $config_storage = \Drupal::service('config.storage');
-  $config_storage->write($config_name, $source->read($config_name));
+function cecc_install($is_syncing) {
+  if ($is_syncing) {
+    return;
+  }
+
+  $entityViewDisplayStorage = \Drupal::entityTypeManager()
+  ->getStorage('entity_view_display');
+  $entityFormDisplayStorage = \Drupal::entityTypeManager()
+  ->getStorage('entity_form_display');
+
+  /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $customerProfileDefaultFormDisplay */
+  $customerProfileDefaultFormDisplay = $entityFormDisplayStorage
+  ->load('profile.customer.default');
+
+  if ($customerProfileDefaultFormDisplay) {
+    $customerProfileDefaultFormDisplay->setComponent('field_extension', [
+      'type' => 'string_textfield',
+      'weight' => 5,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $customerProfileDefaultFormDisplay->setComponent('field_first_name', [
+      'type' => 'string_textfield',
+      'weight' => 0,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $customerProfileDefaultFormDisplay->setComponent('field_last_name', [
+      'type' => 'string_textfield',
+      'weight' => 1,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $customerProfileDefaultFormDisplay->setComponent('field_organization', [
+      'type' => 'string_textfield',
+      'weight' => 2,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $customerProfileDefaultFormDisplay->setComponent('field_phone_number', [
+      'type' => 'telephone_default',
+      'weight' => 4,
+      'region' => 'content',
+      'settings' => [
+        'placeholder' => '',
+      ],
+    ]);
+    $customerProfileDefaultFormDisplay->setComponent('field_occupation', [
+      'type' => 'options_select',
+      'weight' => 6,
+      'region' => 'content',
+      'settings' => [],
+    ]);
+    $customerProfileDefaultFormDisplay->save();
+  }
+
+  /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $customerProfileDefaultViewDisplay */
+  $customerProfileDefaultViewDisplay = $entityViewDisplayStorage
+  ->load('profile.customer.default');
+
+  if ($customerProfileDefaultViewDisplay) {
+    $customerProfileDefaultViewDisplay->setComponent('field_extension', [
+      'type' => 'string',
+      'weight' => 6,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ]);
+    $customerProfileDefaultViewDisplay->setComponent('field_first_name', [
+      'type' => 'string',
+      'weight' => 1,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ]);
+    $customerProfileDefaultViewDisplay->setComponent('field_last_name', [
+      'type' => 'string',
+      'weight' => 2,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ]);
+    $customerProfileDefaultViewDisplay->setComponent('field_occupation', [
+      'type' => 'list_default',
+      'weight' => 7,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [],
+    ]);
+    $customerProfileDefaultViewDisplay->setComponent('field_organization', [
+      'type' => 'string',
+      'weight' => 3,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ]);
+    $customerProfileDefaultViewDisplay->setComponent('field_phone_number', [
+      'type' => 'telephone_formatter',
+      'weight' => 5,
+      'region' => 'content',
+      'label' => 'above',
+      'settings' => [
+        'format' => 1,
+        'link' => TRUE,
+        'default_country' => NULL
+      ],
+    ]);
+    $customerProfileDefaultViewDisplay->save();
+  }
 }
+
