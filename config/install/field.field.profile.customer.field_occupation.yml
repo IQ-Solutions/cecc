@@ -3,7 +3,7 @@ status: true
 dependencies:
   enforced:
     module:
-      - cecc_api
+      - cecc
   config:
     - field.storage.profile.field_occupation
     - profile.type.customer

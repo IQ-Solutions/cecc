@@ -3,7 +3,7 @@ status: true
 dependencies:
   enforced:
     module:
-      - cecc_api
+      - cecc
   module:
     - profile
 id: profile.field_first_name
