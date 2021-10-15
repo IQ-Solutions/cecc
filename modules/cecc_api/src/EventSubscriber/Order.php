@@ -44,7 +44,7 @@ class Order implements EventSubscriberInterface {
   /**
    * Stock Validation Service.
    *
-   * @var \Drupal\po_stock\Service\StockValidation
+   * @var \Drupal\cecc_stock\Service\StockValidation
    */
   protected $stockValidation;
 

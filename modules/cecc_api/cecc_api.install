@@ -1,0 +1,61 @@
+<?php
+
+function cecc_api_install($is_syncing) {
+  if ($is_syncing) {
+    return;
+  }
+
+  $entityViewDisplayStorage = \Drupal::entityTypeManager()
+  ->getStorage('entity_view_display');
+  $entityFormDisplayStorage = \Drupal::entityTypeManager()
+  ->getStorage('entity_form_display');
+
+  /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $productVariationDefaultFormDisplay */
+  $productVariationDefaultFormDisplay = $entityFormDisplayStorage
+  ->load('commerce_product_variation.cecc_publication.default');
+
+  if ($productVariationDefaultFormDisplay) {
+    $productVariationDefaultFormDisplay->setComponent('field_cecc_warehouse_item_id', [
+      'type' => 'string_textfield',
+      'weight' => 9,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $productVariationDefaultFormDisplay->save();
+  }
+
+  /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $storeOnlineDefaultFormDisplay */
+  $storeOnlineDefaultFormDisplay = $entityFormDisplayStorage
+  ->load('commerce_store.online.default.yml');
+
+  if ($storeOnlineDefaultFormDisplay) {
+    $storeOnlineDefaultFormDisplay->setComponent('field_project_id', [
+      'type' => 'string_textfield',
+      'weight' => 11,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $storeOnlineDefaultFormDisplay->setComponent('field_warehouse_organization_id', [
+      'type' => 'string_textfield',
+      'weight' => 10,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+    $storeOnlineDefaultFormDisplay->save();
+
+    $configFactory = \Drupal::configFactory();
+
+    $orderTypePublication = $configFactory->getEditable('commerce_order.commerce_order_type.cecc_publication');
+    $orderTypePublication->set('third_party_settings.commerce_cart.cart_form_view', 'cecc_cart_form');
+    $orderTypePublication->save();
+  }
+}

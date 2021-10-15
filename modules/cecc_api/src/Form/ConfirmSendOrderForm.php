@@ -32,7 +32,7 @@ class ConfirmSendOrderForm extends ContentEntityConfirmFormBase {
    *   The entity type bundle service.
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   The time service.
-   * @param \Drupal\cecc_api\Service\order $order_api
+   * @param \Drupal\cecc_api\Service\Order $order_api
    *   The order service.
    */
   public function __construct(

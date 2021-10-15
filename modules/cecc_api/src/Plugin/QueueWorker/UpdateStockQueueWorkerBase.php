@@ -110,7 +110,7 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
       $productVariation->save();
       $this->logger->info('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
-        '%level' => $productVariation->get('field_po_stock')->value,
+        '%level' => $productVariation->get('field_cecc_stock')->value,
       ]);
     }
     catch (EntityStorageException $error) {

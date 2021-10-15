@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @CommerceCheckoutPane(
  *   id = "cecc_overlimit",
  *   label = @Translation("Over Limit Order Request"),
- *   default_step = "order_notes",
+ *   default_step = "order_information",
  *   wrapper_element = "fieldset",
  * )
  */
