@@ -36,6 +36,7 @@ function cecc_element_info_alter(array &$types) {
   if (isset($types['email'])) {
     // Add custom email validation for domains.
     $types['email']['#element_validate'][] = [FormHelper::class, 'validateEmail'];
+    $types['email']['#process'][] = 'cecc_change_mail_title';
   }
 
   if (isset($types['tel'])) {
@@ -45,10 +46,33 @@ function cecc_element_info_alter(array &$types) {
   if (isset($types['password_confirm'])) {
     $types['password_confirm']['#process'][] = 'cecc_change_title';
   }
+
+  if (isset($types['password'])) {
+    $types['password']['#process'][] = 'cecc_change_current_password_title';
+  }
 }
 
 function cecc_change_title(&$element) {
-  $element['pass2']['#title'] = t('Confirm Password');
+  if (isset($element['pass2'])) {
+    $element['pass2']['#title'] = t('Confirm Password');
+  }
+  return $element;
+}
+
+function cecc_change_current_password_title(&$element) {
+  if ($element['#name'] == 'current_pass') {
+    $element['#title'] = t('Current Password');
+  }
+  return $element;
+}
+
+function cecc_change_mail_title(&$element) {
+  if (isset($element['#title'])) {
+    /** @var Drupal\Core\StringTranslation\TranslatableMarkup $title */
+    $title = $element['#title'];
+    $element['#title'] = $title->__toString() == 'Email address' ?
+    t('Email Address') : $title ;
+  }
   return $element;
 }
 

@@ -1,426 +1,167 @@
 <?php
 
-namespace Drupal\cecc\Service;
-
-use Drupal\Component\Utility\Number;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Url;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Site\Settings;
+use Drupal\cecc\Service\FormHelper;
 
 /**
- * Form alterations and validators.
+ * Implements hook_theme().
  */
-class FormHelper implements FormHelperInterface {
-  use StringTranslationTrait;
+function cecc_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
 
-  /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
+  $themeArray['catalog_admin_general'] = [
+    'variables' => [],
+  ];
 
-  /**
-   * Drupal config service.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  private $configFactory;
+  $themeArray['cec_limit_display'] = [
+    'variables' => [
+      'quantity_limit' => NULL,
+    ],
+  ];
 
-  /**
-   * The form object.
-   *
-   * @var \Drupal\core\Form\FormInterface
-   */
-  protected $formObject;
+  return $themeArray;
+}
 
-  /**
-   * The form state object.
-   *
-   * @var \Drupal\Core\Form\FormStateInterface
-   */
-  protected $formState;
+function cecc_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $formHelper = \Drupal::service('cecc.form_helper');
+  $formHelper->alterForms($form, $form_state, $form_id);
+}
 
-  /**
-   * The form Id.
-   *
-   * @var string
-   */
-  protected $formId;
-
-  /**
-   * The base form id.
-   *
-   * @var string
-   */
-  protected $baseFormId;
-
-  /**
-   * The request stack service.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  protected $requestStack;
-
-  /**
-   * The module handler service.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
-   * Constructor method.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager service.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory service.
-   * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
-   *   The request stack service.
-   */
-  public function __construct(
-    EntityTypeManagerInterface $entity_type_manager,
-    ConfigFactoryInterface $config_factory,
-    RequestStack $requestStack,
-    ModuleHandlerInterface $moduleHandler
-  ) {
-    $this->entityTypeManager = $entity_type_manager;
-    $this->configFactory = $config_factory;
-    $this->requestStack = $requestStack;
-    $this->moduleHandler = $moduleHandler;
+/**
+ * Implements hook_element_info_alter().
+ */
+function cecc_element_info_alter(array &$types) {
+  if (isset($types['email'])) {
+    // Add custom email validation for domains.
+    $types['email']['#element_validate'][] = [FormHelper::class, 'validateEmail'];
+    $types['email']['#process'][] = 'cecc_change_mail_title';
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public static function getSelectedVariation(FormStateInterface $formState) {
-    $selected_variation_id = $formState->get('selected_variation');
-
-    if (!empty($selected_variation_id)) {
-      /** @var \Drupal\commerce_product\Entity\ProductVariationInterface $selected_variation */
-      $selected_variation = \Drupal::entityTypeManager()->getStorage('product_variation')
-        ->load($selected_variation_id);
-    }
-    else {
-      /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
-      $product = self::getSelectedProduct($formState);
-      $selected_variation = $product->getDefaultVariation();
-    }
-
-    return $selected_variation;
+  if (isset($types['tel'])) {
+    $types['tel']['#attached']['library'][] = 'cecc/telephone_formatter';
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public static function getSelectedProduct(FormStateInterface $formState) {
-    return $formState->get('product');
+  if (isset($types['password_confirm'])) {
+    $types['password_confirm']['#process'][] = 'cecc_change_title';
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public function alterForms(array &$form, FormStateInterface $formState, $formId) {
-    $this->formObject = $formState->getFormObject();
-    $this->formId = $formId;
-    $this->formState = $formState;
-
-    if (!method_exists($this->formObject, 'getBaseFormId')) {
-      $this->baseFormId = $formId;
-    }
-    else {
-      $this->baseFormId = $this->formObject->getBaseFormId();
-    }
-
-    $this->alterFormElements($form);
-    $this->negotiateForms($form);
+  if (isset($types['password'])) {
+    $types['password']['#process'][] = 'cecc_change_current_password_title';
   }
+}
 
-  /**
-   * Make global form edits if element exist.
-   *
-   * @param array $form
-   *   The referenced form array.
-   */
-  public function alterFormElements(array &$form) {
-    if (isset($form['quantity'])) {
-      $form['quantity']['widget'][0]['value']['#element_validate'] = [
-        '\Drupal\publication_ordering\Service\FormHelper::validateNumber',
-      ];
-    }
+function cecc_change_title(&$element) {
+  if (isset($element['pass2'])) {
+    $element['pass2']['#title'] = t('Confirm Password');
   }
+  return $element;
+}
 
-  /**
-   * {@inheritDoc}
-   */
-  public function negotiateForms(array &$form) {
-    switch ($this->baseFormId) {
-      case 'views_form_cecc_cart_form_default':
-        $this->alterCartPage($form);
-        break;
-
-      case 'commerce_checkout_flow':
-        $this->alterCheckout($form);
-        break;
-
-      case 'commerce_order_item_add_to_cart_form':
-        $this->alterCartForm($form);
-        break;
-
-      case 'user_form':
-        $this->alterUserRegistrationForm($form);
-        break;
-
-      case 'user_login_form':
-        $this->alterUserLoginForm($form);
-        break;
-    }
+function cecc_change_current_password_title(&$element) {
+  if ($element['#name'] == 'current_pass') {
+    $element['#title'] = t('Current Password');
   }
+  return $element;
+}
 
-  /**
-   * Alter cart page form.
-   *
-   * @param array $form
-   *   The form array.
-   */
-  private function alterCartPage(array &$form): void {
-    /** @var \Drupal\views\ViewExecutable $view */
-    $view = reset($this->formState->getBuildInfo()['args']);
+function cecc_change_mail_title(&$element) {
+  if (isset($element['#title'])) {
+    /** @var Drupal\Core\StringTranslation\TranslatableMarkup $title */
+    $title = $element['#title'];
+    $element['#title'] = $title->__toString() == 'Email address' ?
+    t('Email Address') : $title ;
+  }
+  return $element;
+}
 
-    if ($view->storage->get('tag') == 'commerce_cart_form' && !empty($view->result)) {
+/**
+ * Implements hook_mail_alter().
+ */
+function cecc_mail_alter(array &$message) {
+  // Order receipt.
+  if ($message['id'] === 'commerce_order_receipt') {
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    $order = $message['params']['order'];
+    $config = \Drupal::config('cecc.settings');
+    $siteConfig = \Drupal::config('system.site');
 
-      $form['actions']['continue_shopping'] = [
-        '#type' => 'link',
-        '#title' => $this->t('Continue Shopping'),
-        '#url' => Url::fromRoute('view.publication_search.page_1'),
-        '#weight' => 0,
-        '#attributes' => [
-          'class' => [
-            'usa-button',
-            'usa-button--outline',
-          ],
-        ],
-      ];
+    $fromName = empty($config->get('email_from_name')) ? $siteConfig->get('name') :
+    $config->get('email_from_name');
 
-      $form['actions']['submit']['#weight'] = 1;
-      $form['actions']['checkout']['#weight'] = 2;
+    $email = empty($config->get('email_from')) ? $siteConfig->get('mail') :
+    $config->get('email_from');
+
+    $message['from'] = $email;
+    $message['headers']['Sender'] = $message['headers']['Return-Path'] = $message['from'];
+    $message['headers']['From'] = t("@subject <@email>", [
+      '@subject' => $fromName,
+      '@email' => $email,
+    ])->__toString();
+
+    if (!empty($config->get('email_subject'))) {
+      // Change the email subject.
+      // @todo Remove this if/when it becomes configurable.
+      //   https://www.drupal.org/project/commerce/issues/2924159
+      $message['subject'] = t($config->get('email_subject'), [
+        '@number' => $order->getOrderNumber(),
+      ])->__toString();
     }
   }
+}
 
-  /**
-   * Alter cart form.
-   *
-   * @param array $form
-   *   The form array.
-   */
-  public function alterCheckout(array &$form) {
-    $stepId = $form['#step_id'];
+function cecc_token_info() {
+  $info = [];
+  $info['tokens']['pattern']['environment'] = [
+    'name' => t('Environment'),
+    'description' => t('The current site environment'),
+  ];
 
-    if ($stepId == 'order_information') {
-      $form['#title'] = $this->t('Order Information');
-      $form['shipping_information']['#title'] = $this->t('Shipping Information');
-      $form['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
-      $form['payment_information']['#title'] = $this->t('Billing Information');
+  return $info;
+}
 
-      $form['actions']['next']['#value'] = $this->t('Review Your Order');
+function cecc_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleableMetadata) {
+  $replacements = [];
 
-      if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
-        $form['captcha'] = [
-          '#type' => 'captcha',
-          '#captcha_type' => 'recaptcha/reCAPTCHA'
-        ];
-      }
-    }
-
-    if ($stepId == 'review') {
-      $order = $this->formObject->getOrder();
-      $edit = Link::createFromRoute('Edit', 'commerce_checkout.form', [
-        'commerce_order' => $order->id(),
-        'step' => 'order_information',
-      ]);
-      $form['review']['contact_information']['#title'] = $this->t('Contact Information');
-      $form['review']['shipping_information']['#title'] = $this->t('Shipping Information (@edit)', [
-        '@edit' => $edit->toString(),
-      ]);
-      $form['review']['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
-      $form['review']['payment_information']['#title'] = $this->t('Billing Information (@edit)', [
-        '@edit' => $edit->toString(),
-      ]);
-      $form['actions']['next']['#value'] = $this->t('Complete Checkout');
-    }
-
-    $form['actions']['next']['#weight'] = 1;
-
-    $form['actions']['back_to_cart'] = [
-      '#type' => 'link',
-      '#title' => $this->t('Back to Cart'),
-      '#url' => Url::fromRoute('commerce_cart.page'),
-      '#weight' => 0,
-      '#attributes' => [
-        'class' => [
-          'usa-button',
-          'usa-button--outline',
-        ],
-      ],
-    ];
-  }
-
-  /**
-   * Alter cart form.
-   *
-   * @param array $form
-   *   The form array.
-   */
-  private function alterCartForm(array &$form) {
-    $ceccSettings = $this->configFactory->get('cecc.settings');
-
-    if ($ceccSettings->get('add_to_cart_dest') == 'cart') {
-      $this->formState->setRedirect('commerce_cart.page');
-    }
-  }
-
-  /**
-   * Alters the user registration form.
-   *
-   * @param array $form
-   *   The form array.
-   */
-  private function alterUserRegistrationForm(array &$form) {
-    $form['account']['name']['#required'] = FALSE;
-    $form['account']['name']['#access'] = FALSE;
-    array_unshift($form['#validate'], '\Drupal\cecc\Service\FormHelper::prepareRegistrationFormValues');
-    $form['#validate'][] = '\Drupal\cecc\Service\FormHelper::registerPostValidate';
-    $form['account']['email']['#title'] = $this->t('Email Address');
-    $form['actions']['submit']['#value'] = $this->t('Create New Account');
-  }
-
-  /**
-   * Alters the user registration form.
-   *
-   * @param array $form
-   *   The form array.
-   */
-  private function alterUserLoginForm(array &$form) {
-    $form['pass']['#description'] = $this->t('Enter the password that accompanies your account.');
-    $form['actions']['submit']['#value'] = $this->t('Log In');
-  }
-
-  /**
-   * Number Validation override.
-   *
-   * @param mixed $element
-   *   The form element.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   */
-  public static function validateNumber(&$element, FormStateInterface $form_state) {
-
-    $value = $element['#value'];
-    if ($value === '') {
-      return;
-    }
-
-    $selectedVariation = self::getSelectedVariation($form_state);
-
-    $name = empty($element['#title']) ? $element['#parents'][0] : $element['#title'];
-
-    // Ensure the input is numeric.
-    if (!is_numeric($value)) {
-      $form_state->setError($element, t('%name must be a number.', ['%name' => $name]));
-      return;
-    }
-
-    // Ensure that the input is greater than the #min property, if set.
-    if (isset($element['#min']) && $value < $element['#min']) {
-      $form_state->setError($element, t('%name%product_title must be higher than or equal to %min.', [
-        '%name' => $name,
-        '%min' => $element['#min'],
-        '%product_title' => !empty($selectedVariation) ?
-        ' for ' . $selectedVariation->getTitle() : '',
-      ]));
-    }
-
-    // Ensure that the input is less than the #max property, if set.
-    if (isset($element['#max']) && $value > $element['#max']) {
-      $form_state->setError($element, t('%name%product_title must be lower than or equal to %max.', [
-        '%name' => $name,
-        '%max' => $element['#max'],
-        '%product_title' => !empty($selectedVariation) ?
-        ' for ' . $selectedVariation->getTitle() : '',
-      ]));
-    }
-
-    if (isset($element['#step']) && strtolower($element['#step']) != 'any') {
-      // Check that the input is an allowed multiple of #step (offset by #min if
-      // #min is set).
-      $offset = isset($element['#min']) ? $element['#min'] : 0.0;
-
-      if (!Number::validStep($value, $element['#step'], $offset)) {
-        $form_state->setError($element, t('%name is not a valid number.', ['%name' => $name]));
+  if ($type == 'pattern') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'environment':
+          $replacements[$original] = cecc_get_current_environment();
+          break;
       }
     }
   }
 
-  /**
-   * Email validation override.
-   *
-   * @param array $element
-   *   The element array.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   * @param array $complete_form
-   *   The complete form array.
-   */
-  public static function validateEmail(array &$element, FormStateInterface $form_state, array &$complete_form) {
-    $value = trim($element['#value']);
+  return $replacements;
+}
 
-    if (empty($value)) {
-      return;
-    }
+function cecc_get_current_environment() {
+  $environments = Settings::get('cecc_commerce_environments');
+  /** @var \Symfony\Component\HttpFoundation\RequestStack $requestStack */
+  $requestStack = \Drupal::service('request_stack');
+  $request = $requestStack->getCurrentRequest();
 
-    $form_state->setValueForElement($element, $value);
+  $host = $request->getSchemeAndHttpHost();
 
-    if (!\Drupal::service('email.validator')->isValid($value)
-    || !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-      $form_state->setError($element, t('The email address %mail is not valid.', ['%mail' => $value]));
-    }
+  if (empty($environments)) {
+    return '';
   }
 
-  /**
-   * Copy the 'mail' field to the 'name' field before form validation.
-   *
-   * @param array $form
-   *   The form array.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   */
-  public static function prepareRegistrationFormValues(array &$form, FormStateInterface $form_state) {
-    $email = $form_state->getValue('mail');
-    $form_state->setValue('name', $email);
-  }
+  return isset($environments[$host]) ? $environments[$host] . '-' : '';
+}
 
-  /**
-   * Removes errors related to the name field on the registration form.
-   *
-   * @param array $form
-   *   The form array.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   */
-  public static function registerPostValidate(array &$form, FormStateInterface $form_state) {
-    $errors = $form_state->getErrors();
-    unset($errors['name']);
-    $form_state->clearErrors();
-
-    foreach ($errors as $field => $value) {
-      $form_state->setErrorByName($field, $value);
-    }
-  }
-
+/**
+ * Implements hook_local_tasks_alter().
+ */
+function cecc_local_tasks_alter(&$local_tasks) {
+  $local_tasks['entity.user.canonical']['title'] = t('My Account');
+  $local_tasks['entity.user.canonical']['weight'] = -10;
+  $local_tasks['entity.user.edit_form']['title'] = t('Account Info');
+  $local_tasks['entity.user.edit_form']['weight'] = -9;
+  $local_tasks['commerce_order.address_book.overview']['title'] = t('Profiles');
+  $local_tasks['user.register']['title'] = t('Create New Account');
+  $local_tasks['user.pass']['title'] = t('Reset Your Password');
+  $local_tasks['user.login']['title'] = t('Log In');
 }
