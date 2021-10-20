@@ -158,7 +158,7 @@ function cecc_get_current_environment() {
 function cecc_local_tasks_alter(&$local_tasks) {
   $local_tasks['entity.user.canonical']['title'] = t('My Account');
   $local_tasks['entity.user.canonical']['weight'] = -10;
-  $local_tasks['entity.user.edit_form']['title'] = t('Account Info');
+  $local_tasks['entity.user.edit_form']['title'] = t('Login Information');
   $local_tasks['entity.user.edit_form']['weight'] = -9;
   $local_tasks['commerce_order.address_book.overview']['title'] = t('Profiles');
   $local_tasks['user.register']['title'] = t('Create New Account');

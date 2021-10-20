@@ -180,6 +180,10 @@ class FormHelper implements FormHelperInterface {
       case 'user_login_form':
         $this->alterUserLoginForm($form);
         break;
+
+      case 'user_pass':
+        $this->alterUserPassForm($form);
+        break;
     }
   }
 
@@ -312,6 +316,17 @@ class FormHelper implements FormHelperInterface {
     $form['#title'] = $this->t('Log In');
     $form['pass']['#description'] = $this->t('Enter the password that accompanies your account.');
     $form['actions']['submit']['#value'] = $this->t('Log In');
+  }
+
+  /**
+   * Alters the user password form.
+   *
+   * @param array $form
+   *   The form array.
+   */
+  private function alterUserPassForm(array &$form) {
+    $form['#title'] = $this->t('Reset Your Password');
+    $form['name']['#title'] = $this->t('Email Address');
   }
 
   /**
