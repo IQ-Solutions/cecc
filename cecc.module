@@ -67,7 +67,7 @@ function cecc_change_current_password_title(&$element) {
 }
 
 function cecc_change_mail_title(&$element) {
-  if (isset($element['#title'])) {
+  if (isset($element['#title']) && !isset($element['#webform'])) {
     /** @var Drupal\Core\StringTranslation\TranslatableMarkup $title */
     $title = $element['#title'];
     $element['#title'] = $title->__toString() == 'Email address' ?
