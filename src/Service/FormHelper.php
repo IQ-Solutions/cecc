@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc\Service;
 
+use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowBase;
 use Drupal\Component\Utility\Number;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityForm;
@@ -132,7 +133,7 @@ class FormHelper implements FormHelperInterface {
     $this->formId = $formId;
     $this->formState = $formState;
 
-    if ($this->formObject instanceof EntityForm) {
+    if ($this->formObject instanceof EntityForm || $this->formObject instanceof CheckoutFlowBase) {
       $this->baseFormId = $this->formObject->getBaseFormId();
     }
     else {
@@ -167,6 +168,7 @@ class FormHelper implements FormHelperInterface {
         break;
 
       case 'commerce_checkout_flow':
+      case 'commerce_checkout_flow_multistep_default':
         $this->alterCheckout($form);
         break;
 
