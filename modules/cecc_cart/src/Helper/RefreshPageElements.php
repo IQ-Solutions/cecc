@@ -19,6 +19,7 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\cecc_cart\Ajax\PopoverCommand;
+use Drupal\Core\Entity\EntityForm;
 
 /**
  * Provides methods that would help in refreshing certain page elements.
@@ -102,6 +103,8 @@ class RefreshPageElements {
    *   The block manager.
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer service.
+   * @param \Drupal\commerce_cart\CartProviderInterface $cart_provider
+   *   The cart provider service.
    */
   public function __construct(
     ThemeManagerInterface $theme_manager,
@@ -189,8 +192,21 @@ class RefreshPageElements {
     return $this;
   }
 
+  /**
+   * Set the order item, product and form state properties.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
   public function getPurchasedEntity(array $form, FormStateInterface $form_state) {
-    $this->orderItem = $form_state->getFormObject()->getEntity();
+    /** @var \Drupal\Core\Entity\EntityForm $formObj */
+    $formObj = $form_state->getFormObject() instanceof EntityForm ?
+      $form_state->getFormObject() : NULL;
+
+    /** @var \Drupal\commerce_order\Entity\OrderItemInterface */
+    $this->orderItem = $formObj->getEntity() ?: NULL;
 
     $this->purchasedEntity = $this->orderItem ? $this->orderItem->getPurchasedEntity() : NULL;
     $this->formState = $form_state;
@@ -201,6 +217,10 @@ class RefreshPageElements {
    *
    * @param array $form
    *   Drupal form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param string $error_container
+   *   The error HTML container.
    *
    * @return $this
    */

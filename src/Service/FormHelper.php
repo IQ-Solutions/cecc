@@ -4,6 +4,7 @@ namespace Drupal\cecc\Service;
 
 use Drupal\Component\Utility\Number;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -131,11 +132,11 @@ class FormHelper implements FormHelperInterface {
     $this->formId = $formId;
     $this->formState = $formState;
 
-    if (!method_exists($this->formObject, 'getBaseFormId')) {
-      $this->baseFormId = $formId;
+    if ($this->formObject instanceof EntityForm) {
+      $this->baseFormId = $this->formObject->getBaseFormId();
     }
     else {
-      $this->baseFormId = $this->formObject->getBaseFormId();
+      $this->baseFormId = $formId;
     }
 
     $this->alterFormElements($form);
@@ -234,13 +235,6 @@ class FormHelper implements FormHelperInterface {
       $form['payment_information']['#title'] = $this->t('Billing Information');
 
       $form['actions']['next']['#value'] = $this->t('Review Your Order');
-
-      if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
-        $form['captcha'] = [
-          '#type' => 'captcha',
-          '#captcha_type' => 'recaptcha/reCAPTCHA'
-        ];
-      }
     }
 
     if ($stepId == 'review') {
@@ -258,6 +252,13 @@ class FormHelper implements FormHelperInterface {
         '@edit' => $edit->toString(),
       ]);
       $form['actions']['next']['#value'] = $this->t('Complete Checkout');
+
+      if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
+        $form['captcha'] = [
+          '#type' => 'captcha',
+          '#captcha_type' => 'recaptcha/reCAPTCHA',
+        ];
+      }
     }
 
     $form['actions']['next']['#weight'] = 1;
