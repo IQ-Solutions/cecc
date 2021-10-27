@@ -213,6 +213,11 @@ class MigrateOrdersForm extends FormBase {
     $title = $data[27];
     $quantity = (int) $data[18];
     $sku = $data[26];
+    $orderNumber = $data[1];
+
+    if (empty($orderNumber)) {
+      return;
+    }
 
     $user = self::getUser($data);
 
@@ -372,36 +377,7 @@ class MigrateOrdersForm extends FormBase {
       'mail' => $data[17],
     ]);
 
-    if (empty($users)) {
-      $user = User::create();
-      /** @var Drupal\Core\Password\PasswordGeneratorInterface $passwordGenerator */
-      $passwordGenerator = \Drupal::service('password_generator');
-      $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
-
-      $user->set('field_customer_id_legacy', $data[4]);
-      $user->set('name', $data[17]);
-      $user->setEmail($data[17]);
-      $user->setUsername($data[17]);
-      $user->setPassword($passwordGenerator->generate(12));
-      $user->set('init', $data[17]);
-      $user->set('langcode', $lang);
-      $user->set("preferred_langcode", $lang);
-      $user->set("preferred_admin_langcode", $lang);
-      $user->set('status', 1);
-      $user->enforceIsNew();
-
-      try {
-        $user->save();
-        \Drupal::logger('cecc_migrate')->info('Created user @user', [
-          '@user' => $user->getAccountName(),
-        ]);
-      }
-      catch (EntityStorageException $e) {
-        \Drupal::logger('cecc_migrate')->warning($e->getMessage());
-        return NULL;
-      }
-    }
-    else {
+    if (!empty($users)) {
       $user = reset($users);
       \Drupal::logger('cecc_migrate')->info('Loaded user @user', [
         '@user' => $user->getAccountName(),

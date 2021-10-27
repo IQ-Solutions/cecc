@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Migrates orders from IQ Legacy systems.
  */
-class RemoveGuestUsersForm extends FormBase {
+class ImportUsersForm extends FormBase {
   /**
    * EntityTypeManager service.
    *
@@ -86,7 +86,7 @@ class RemoveGuestUsersForm extends FormBase {
    * {@inheritDoc}
    */
   public function getFormId() {
-    return 'cecc_remove_guest_users_form';
+    return 'cecc_import_users_form';
   }
 
   /**
@@ -131,19 +131,19 @@ class RemoveGuestUsersForm extends FormBase {
     $sourceFile = $this->fileSystem->realpath($file->getFileUri());
 
     $batch = [
-      'title' => $this->t('Remove Guest Users'),
+      'title' => $this->t('Import Users'),
       'operations' => [
         [
-          '\Drupal\cecc_migrate\Form\RemoveGuestUsersForm::processCsv',
+          '\Drupal\cecc_migrate\Form\ImportUsersForm::processCsv',
           [
             $skipFirstLine,
             $sourceFile,
           ],
         ],
       ],
-      'finished' => '\Drupal\cecc_migrate\Form\RemoveGuestUsersForm::finishedImporting',
+      'finished' => '\Drupal\cecc_migrate\Form\ImportUsersForm::finishedImporting',
       'init_message' => $this->t('Loading CSV'),
-      'progress_message' => $this->t('Processing users and orders. Time remaining: @estimate'),
+      'progress_message' => $this->t('Processing users. Time remaining: @estimate'),
       'error_message' => $this->t('The process has encountered an error.'),
     ];
 
@@ -177,12 +177,11 @@ class RemoveGuestUsersForm extends FormBase {
 
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::removeGuestsUsers($line);
+      self::importUser($line);
 
-      $context['message'] = t('Processing customer @order (@username). Total order items: @orderItems | Processed: @current', [
+      $context['message'] = t('Processing customer (@username). Total users: @users | Processed: @current', [
         '@username' => $line[0],
-        '@type' => $line[2],
-        '@orderItems' => $context['sandbox']['max'],
+        '@users' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
       ]);
 
@@ -200,100 +199,59 @@ class RemoveGuestUsersForm extends FormBase {
    * @param array $data
    *   The csv line data.
    */
-  public static function removeGuestsUsers(array $data) {
+  public static function importUser(array $data) {
     $entityTypeManager = \Drupal::entityTypeManager();
 
     $customerId = $data[0];
     $username = $data[2];
     $email = $data[11];
 
-    if (!empty($username) && $username != 'guest') {
+    if (empty($username) || $username == 'guest') {
       return;
     }
 
-    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
-    $profileQuery->condition('field_customer_id_legacy', $customerId);
-    $profileQuery->condition('uid', 0, '<>');
-    $profileIds = $profileQuery->execute();
-
-    $profiles = Profile::loadMultiple($profileIds);
-
-    foreach ($profiles as $profile) {
-      $profileOwner = $profile->getOwner();
-
-      if (empty($profileOwner)) {
-        continue;
-      }
-
-      if (is_a($profileOwner, 'Drupal\user\Entity\User')) {
-        self::removeUserOrders($profileOwner);
-
-        $profile->delete();
-        $profileOwner->delete();
-      }
-    }
-
-    $userQuery = $entityTypeManager->getStorage('user')->getQuery();
-    $userQuery->condition('field_customer_id_legacy', $customerId);
-    $userIds = $userQuery->execute();
-
-    $users = User::loadMultiple($userIds);
-
-    foreach ($users as $user) {
-      self::removeUserOrders($user);
-
-      user_cancel([], $user->id(), 'user_cancel_delete');
-    }
-
+    /** @var \Drupal\user\Entity\User[] $users */
     $users = $entityTypeManager->getStorage('user')->loadByProperties([
       'mail' => $email,
     ]);
 
-    $users = User::loadMultiple($userIds);
+    if (empty($users)) {
+      $user = User::create();
+      /** @var Drupal\Core\Password\PasswordGeneratorInterface $passwordGenerator */
+      $passwordGenerator = \Drupal::service('password_generator');
+      $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
-    foreach ($users as $user) {
-      self::removeUserOrders($user);
-      $user->delete();
-    }
+      $user->set('field_customer_id_legacy', $customerId);
+      $user->set('name', $email);
+      $user->setEmail($email);
+      $user->setUsername($email);
+      $user->setPassword($passwordGenerator->generate(12));
+      $user->set('init', $email);
+      $user->set('langcode', $lang);
+      $user->set("preferred_langcode", $lang);
+      $user->set("preferred_admin_langcode", $lang);
+      $user->set('status', 1);
+      $user->enforceIsNew();
 
-  }
-
-  /**
-   * Removes orders for a user.
-   *
-   * @param \Drupal\user\Entity\User $user
-   *   The order user.
-   */
-  public static function removeUserOrders(User $user) {
-    $entityTypeManager = \Drupal::entityTypeManager();
-
-    /** @var \Drupal\commerce_order\Entity\OrderInterface[] $orders */
-    $orders = $entityTypeManager->getStorage('commerce_order')->loadByProperties([
-      'uid' => $user->id(),
-    ]);
-
-    foreach ($orders as $order) {
-      if ($order) {
-        $orderProfile = $order->getBillingProfile();
-
-        try {
-          $order->delete();
-        }
-        catch (EntityStorageException $e) {
-          \Drupal::logger('cecc_migrate')->error($e->getMessage());
-        }
-
-        if ($orderProfile) {
-
-          try {
-            $orderProfile->delete();
-          }
-          catch (EntityStorageException $e) {
-            \Drupal::logger('cecc_migrate')->error($e->getMessage());
-          }
-        }
+      try {
+        $user->save();
+        \Drupal::logger('cecc_migrate')->info('Created user @user', [
+          '@user' => $user->getAccountName(),
+        ]);
+      }
+      catch (EntityStorageException $e) {
+        \Drupal::logger('cecc_migrate')->warning($e->getMessage());
+        return NULL;
       }
     }
+    else {
+      $user = reset($users);
+      \Drupal::logger('cecc_migrate')->info('Loaded user @user', [
+        '@user' => $user->getAccountName(),
+      ]);
+    }
+
+    return $user;
   }
 
   /**

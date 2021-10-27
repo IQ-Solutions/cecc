@@ -33,3 +33,12 @@ cecc_migrate.remove_users:
   requirements:
     _permission:
       'administer site configuration'
+
+cecc_migrate.import_users:
+  path: '/admin/commerce/cecc/import-users'
+  defaults:
+   _form: '\Drupal\cecc_migrate\Form\ImportUsersForm'
+   _title: 'Import CEC Users'
+  requirements:
+    _permission:
+      'administer site configuration'

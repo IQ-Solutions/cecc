@@ -21,3 +21,9 @@ cecc_migrate.remove_users:
   parent: cecc.config
   description: 'Customer Engagement Center Catalog Remove Migration Guest Users'
   route_name: cecc_migrate.remove_users
+
+cecc_migrate.import_users:
+  title: 'Import CEC Users'
+  parent: cecc.config
+  description: 'Customer Engagement Center Catalog Import CEC Users'
+  route_name: cecc_migrate.import_users
