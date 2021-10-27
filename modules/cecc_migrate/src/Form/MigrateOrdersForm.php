@@ -335,10 +335,18 @@ class MigrateOrdersForm extends FormBase {
       'order_number' => $data[1],
     ]);
 
+    $orderStates = [
+      'InProcess' => 'fulfillment',
+      'Closed' => 'completed',
+      'OnHold' => 'fulfillment',
+      'Submitted' => 'fulfillment',
+      'Cancelled' => 'canceled',
+    ];
+
     if (empty($orderIds)) {
       $order = Order::create([
         'type' => 'cecc_publication',
-        'state' => 'Completed',
+        'state' => $orderStates[$data[31]],
         'mail' => $user->getEmail(),
         'uid' => $user->id(),
         'order_number' => $data[1],
