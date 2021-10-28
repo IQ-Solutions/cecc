@@ -384,6 +384,7 @@ class MigrateOrdersForm extends FormBase {
     $users = $entityTypeManager->getStorage('user')->loadByProperties([
       'mail' => $data[17],
     ]);
+    $user = NULL;
 
     if (!empty($users)) {
       $user = reset($users);
