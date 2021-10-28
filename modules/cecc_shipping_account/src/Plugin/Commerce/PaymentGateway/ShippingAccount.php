@@ -17,7 +17,7 @@ use Drupal\Core\Form\FormStateInterface;
  * @CommercePaymentGateway(
  *   id = "cecc_shipping_account",
  *   label = @Translation("Shipping Account Gateway"),
- *   display_label = @Translation("Shipping Account"),
+ *   display_label = @Translation("Shipping account"),
  *   modes = {
  *     "n/a" = @Translation("N/A"),
  *   },

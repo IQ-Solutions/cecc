@@ -12,7 +12,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
  *
  * @CommercePaymentMethodType(
  *   id = "shipping_account",
- *   label = @Translation("Shipping Account"),
+ *   label = @Translation("Shipping account"),
  * )
  */
 class ShippingAccount extends PaymentMethodTypeBase {
@@ -26,7 +26,7 @@ class ShippingAccount extends PaymentMethodTypeBase {
       ':shipping_vendor' => $payment_method->cecc_shipping_vendor->value,
       ':shipping_account' => $payment_method->cecc_shipping_account->value,
     ];
-    return $this->t(':shipping_vendor Account (:shipping_account)', $args);
+    return $this->t(':shipping_vendor account (:shipping_account)', $args);
   }
 
   /**

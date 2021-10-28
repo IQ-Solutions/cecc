@@ -253,6 +253,7 @@ class FormHelper implements FormHelperInterface {
       $form['review']['payment_information']['#title'] = $this->t('Billing Information (@edit)', [
         '@edit' => $edit->toString(),
       ]);
+      $form['review']['payment_information']['payment_method']['#title'] = $this->t('Payment Method');
       $form['actions']['next']['#value'] = $this->t('Complete Checkout');
 
       if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {
