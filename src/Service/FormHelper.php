@@ -9,7 +9,6 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -229,31 +228,8 @@ class FormHelper implements FormHelperInterface {
   public function alterCheckout(array &$form) {
     $stepId = $form['#step_id'];
 
-    if ($stepId == 'order_information') {
-      $form['#title'] = $this->t('Order Information');
-      $form['contact_information']['#title'] = $this->t('Contact Information');
-      $form['shipping_information']['#title'] = $this->t('Shipping Information');
-      $form['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
-      $form['payment_information']['#title'] = $this->t('Billing Information');
-
-      $form['actions']['next']['#value'] = $this->t('Review Your Order');
-    }
-
     if ($stepId == 'review') {
-      $order = $this->formObject->getOrder();
-      $edit = Link::createFromRoute('Edit', 'commerce_checkout.form', [
-        'commerce_order' => $order->id(),
-        'step' => 'order_information',
-      ]);
-      $form['review']['contact_information']['#title'] = $this->t('Contact Information');
-      $form['review']['shipping_information']['#title'] = $this->t('Shipping Information (@edit)', [
-        '@edit' => $edit->toString(),
-      ]);
-      $form['review']['shipping_information']['shipments'][0]['shipping_method']['widget'][0]['#title'] = $this->t('Shipping Method');
-      $form['review']['payment_information']['#title'] = $this->t('Billing Information (@edit)', [
-        '@edit' => $edit->toString(),
-      ]);
-      $form['review']['payment_information']['payment_method']['#title'] = $this->t('Payment Method');
+
       $form['actions']['next']['#value'] = $this->t('Complete Checkout');
 
       if ($this->moduleHandler->moduleExists('captcha') && $this->moduleHandler->moduleExists('recaptcha')) {

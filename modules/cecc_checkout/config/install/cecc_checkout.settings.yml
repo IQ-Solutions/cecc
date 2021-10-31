@@ -1,0 +1,14 @@
+log_in_label: 'Log In'
+log_in_previous: 'Log In'
+shipping_information_label: 'Shipping Information'
+shipping_information_previous: 'Shipping Information'
+shipping_information_next: 'Shipping Information'
+misc_information_label: 'Additional Information'
+misc_information_previous: 'Additional Information'
+misc_information_next: 'Additional Information'
+payment_information_label: 'Billing and Payment'
+payment_information_previous: 'Billing and Payment'
+payment_information_next: 'Billing and Payment'
+review_label: Review
+review_previous: Review
+review_next: Review

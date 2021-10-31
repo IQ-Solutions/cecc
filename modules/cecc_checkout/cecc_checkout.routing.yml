@@ -1,0 +1,8 @@
+cecc_checkout.settings:
+  path: '/admin/commerce/cecc/checkout'
+  defaults:
+   _form: '\Drupal\cecc_checkout\Form\CeccCheckoutConfig'
+   _title: 'Checkout'
+  requirements:
+    _permission:
+      'administer site configuration'
