@@ -94,17 +94,17 @@ class CeccCheckoutFlow extends CheckoutFlowWithPanesBase {
         'previous_label' => $config->get('shipping_information_previous'),
         'next_label' => $config->get('shipping_information_next'),
       ],
-      'misc_information' => [
-        'label' => $config->get('misc_information_label'),
-        'has_sidebar' => TRUE,
-        'previous_label' => $config->get('misc_information_previous'),
-        'next_label' => $config->get('misc_information_next'),
-      ],
       'payment_information' => [
         'label' => $config->get('payment_information_label'),
         'has_sidebar' => TRUE,
         'previous_label' => $config->get('payment_information_previous'),
         'next_label' => $config->get('payment_information_next'),
+      ],
+      'misc_information' => [
+        'label' => $config->get('misc_information_label'),
+        'has_sidebar' => TRUE,
+        'previous_label' => $config->get('misc_information_previous'),
+        'next_label' => $config->get('misc_information_next'),
       ],
       'review' => [
         'label' => $config->get('review_label'),
