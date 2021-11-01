@@ -126,7 +126,7 @@ class RefreshPageElements {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('theme.manager'),
-      $container->get('entity.query'),
+      $container->get('entity_type.manager'),
       $container->get('plugin.manager.block'),
       $container->get('renderer'),
       $container->get('commerce_cart.cart_provider')
