@@ -228,7 +228,7 @@ class Login extends CheckoutPaneBase implements CheckoutPaneInterface, Container
 
     $pane_form['returning_customer']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Log in'),
+      '#value' => $this->t('Log In'),
       '#op' => 'login',
       '#attributes' => [
         'formnovalidate' => 'formnovalidate',

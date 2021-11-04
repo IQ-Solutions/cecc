@@ -104,7 +104,7 @@ class OverLimit extends CheckoutPaneBase {
       '#format' => $this->configuration['after_form_message']['format'],
       '#element_validate' => ['token_element_validate'],
       '#token_types' => ['commerce_order'],
-      '#required' => TRUE,
+      '#required' => FALSE,
     ];
 
     $form['token_help'] = [
