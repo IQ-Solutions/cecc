@@ -120,17 +120,6 @@ class CeccCheckoutFlow extends CheckoutFlowWithPanesBase {
   /**
    * {@inheritDoc}
    */
-  protected function isStepVisible($step_id) {
-    if ($step_id == 'payment_information') {
-      return parent::isStepVisible($step_id) && !$this->order->getTotalPrice()->isZero();
-    }
-
-    return parent::isStepVisible($step_id);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   protected function actions(array $form, FormStateInterface $form_state) {
     $config = $this->configFactory->get('cecc_checkout.settings');
     $steps = $this->getSteps();
