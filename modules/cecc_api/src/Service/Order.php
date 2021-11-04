@@ -176,21 +176,6 @@ class Order implements ContainerInjectionInterface {
 
     $shippingMethod = $shipments->getShippingMethod();
     $price = $shipments->getAmount();
-    /** @var \Drupal\commerce_payment\Entity\PaymentInterface[] $payments */
-    $payments = $this->entityTypeManager->getStorage('commerce_payment')
-      ->loadMultipleByOrder($order);
-    $payment = !empty($payments) ? reset($payments) : '';
-    $paymentGateway = $payment->getPaymentGateway()->getPluginId();
-    $paymentMethod = $payment->getPaymentMethod();
-    $shippingAccount = '';
-    $paymentId = '';
-
-    if ($paymentGateway == 'stripe') {
-      $paymentId = $paymentMethod->getRemoteId();
-    }
-    elseif ($paymentGateway == 'cecc_shipping_account') {
-      $shippingAccount = $paymentMethod->label();
-    }
 
     $this->orderData = [
       'source_order_id' => $order->getOrderNumber(),
@@ -206,9 +191,9 @@ class Order implements ContainerInjectionInterface {
       'overlimit_comments' => $order->get('field_cecc_over_limit_desc')->isEmpty() ? NULL : $order->get('field_cecc_over_limit_desc')->value,
       'shipping_method' => $shippingMethod->label(),
       'estimated_shipping_cost' => $this->currencyFormatter->format($price->getNumber(), $price->getCurrencyCode()),
-      'stripe_confirmation_code' => $paymentId,
-      'use_shipping_account' => !empty($shippingAccount) ? 'true' : 'false',
-      'shipping account_no' => $shippingAccount,
+      'stripe_confirmation_code' => '',
+      'use_shipping_account' => 'false',
+      'shipping_account_no' => '',
       'cart' => $cart,
       'shipping_address' => $profile['shipping_address'],
       'billing_address' => $profile['billing_address'],
@@ -217,6 +202,8 @@ class Order implements ContainerInjectionInterface {
         'setting' => $setting,
       ],
     ];
+
+    $this->setPaymentInfo($order);
 
     if ($this->config->get('debug') == 0) {
       try {
@@ -263,6 +250,37 @@ class Order implements ContainerInjectionInterface {
     }
 
     return self::ORDER_SENT;
+  }
+
+  /**
+   * Sets the order payment information.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order object.
+   */
+  private function setPaymentInfo(OrderInterface $order) {
+    /** @var \Drupal\commerce_payment\PaymentStorageInterface $commercePaymentStorage */
+    $commercePaymentStorage = $this->entityTypeManager->getStorage('commerce_payment');
+    /** @var \Drupal\commerce_payment\Entity\PaymentInterface[] $payments */
+    $payments = $commercePaymentStorage->loadMultipleByOrder($order);
+
+    foreach ($payments as $payment) {
+      if (empty($payment)) {
+        continue;
+      }
+
+      $paymentGateway = $payment->getPaymentGateway()->getPluginId();
+      $paymentMethod = $payment->getPaymentMethod();
+
+      if ($paymentGateway == 'stripe') {
+        $this->orderData['stripe_confirmation_code'] = $paymentMethod->getRemoteId();
+      }
+      elseif ($paymentGateway == 'cecc_shipping_account') {
+        $this->orderData['use_shipping_account'] = 'true';
+        $this->orderData['shipping_account_no'] = $paymentMethod->label();
+      }
+
+    }
   }
 
   /**

@@ -32,6 +32,20 @@ class CeccCheckoutConfig extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('cecc_checkout.settings');
 
+    $form['checkout_flow_buttons'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Checkout Buttons'),
+    ];
+
+    $form['checkout_flow_buttons']['back_to_cart'] = [
+      '#name' => 'back_to_cart',
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show "Back to Cart" button'),
+      '#description' => $this->t('Show or hide the back to cart button'),
+      '#default_value' => !empty($config->get('back_to_cart')) ?
+      $config->get('back_to_cart') : 0,
+    ];
+
     $form['checkout_flow_labels'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Checkout Flow Labels'),
@@ -220,6 +234,7 @@ class CeccCheckoutConfig extends ConfigFormBase {
       ->set('review_label', $form_state->getValue('review_label'))
       ->set('review_previous', $form_state->getValue('review_previous'))
       ->set('review_next', $form_state->getValue('review_next'))
+      ->set('back_to_cart', $form_state->getValue('back_to_cart'))
       ->save();
 
     parent::submitForm($form, $form_state);

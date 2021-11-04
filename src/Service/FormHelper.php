@@ -239,21 +239,6 @@ class FormHelper implements FormHelperInterface {
         ];
       }
     }
-
-    $form['actions']['next']['#weight'] = 1;
-
-    $form['actions']['back_to_cart'] = [
-      '#type' => 'link',
-      '#title' => $this->t('Back to Cart'),
-      '#url' => Url::fromRoute('commerce_cart.page'),
-      '#weight' => 0,
-      '#attributes' => [
-        'class' => [
-          'usa-button',
-          'usa-button--outline',
-        ],
-      ],
-    ];
   }
 
   /**
