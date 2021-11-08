@@ -171,6 +171,7 @@ class CompletionRegister extends CheckoutPaneBase implements CheckoutPaneInterfa
    */
   public function buildPaneForm(array $pane_form, FormStateInterface $form_state, array &$complete_form) {
     $pane_form['#theme'] = 'commerce_checkout_completion_register';
+    $pane_form['#title'] = $this->t('Create Your Account');
 
     $pane_form['pass'] = [
       '#type' => 'password_confirm',
@@ -183,7 +184,7 @@ class CompletionRegister extends CheckoutPaneBase implements CheckoutPaneInterfa
     ];
     $pane_form['actions']['register'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Create account'),
+      '#value' => $this->t('Create Account'),
       '#name' => 'checkout_completion_register',
     ];
 
