@@ -22,6 +22,15 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
    * {@inheritDoc}
    */
   public function buildPaneForm(array $pane_form, FormStateInterface $form_state, array &$complete_form) {
+    $pane_form['order_occupation'] = [
+      '#type' => 'select',
+      '#title' => $this->order->get('field_order_occupation')->getFieldDefinition()->getLabel(),
+      '#options' => $this->order->get('field_order_occupation')->getSetting('allowed_values'),
+      '#empty_option' => '- Select a value -',
+      '#default_value' => $this->order->get('field_order_occupation')->isEmpty() ?
+      NULL : $this->order->get('field_order_occupation')->value,
+      '#required' => TRUE,
+    ];
     $pane_form['setting'] = [
       '#type' => 'select',
       '#title' => $this->order->get('field_setting')->getFieldDefinition()->getLabel(),
@@ -40,6 +49,7 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
    */
   public function submitPaneForm(array &$pane_form, FormStateInterface $form_state, array &$complete_form) {
     $value = $form_state->getValue($pane_form['#parents']);
+    $this->order->set('field_order_occupation', $value['order_occupation']);
     $this->order->set('field_setting', $value['setting']);
   }
 
@@ -60,6 +70,15 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
         '#type' => 'item',
         '#title' => $this->order->get('field_setting')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_setting')->value . '</p>',
+      ];
+    }
+
+    if (!$this->order->get('field_order_occupation')->isEmpty()) {
+
+      $build['summary_display']['pub_setting'] = [
+        '#type' => 'item',
+        '#title' => $this->order->get('field_order_occupation')->getFieldDefinition()->getLabel(),
+        '#markup' => '<p>' . $this->order->get('field_order_occupation')->value . '</p>',
       ];
     }
 
