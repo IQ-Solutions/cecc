@@ -157,17 +157,26 @@ class Order implements ContainerInjectionInterface {
       return self::ORDER_DOES_NOT_EXIST;
     }
 
-    /** @var \Drupal\commerce_store\Entity\StoreInterface $store */
-    $store = $this->entityTypeManager->getStorage('commerce_store')
-      ->loadDefault();
+    /** @var \Drupal\commerce_store\StoreStorageInterface $storeStorage */
+    $storeStorage = $this->entityTypeManager->getStorage('commerce_store');
 
-    //$profession = $order->get('field_profession')->value;
+    /** @var \Drupal\commerce_store\Entity\StoreInterface $store */
+    $store = $storeStorage->loadDefault();
+
     $setting = $order->get('field_setting')->value;
 
     $cart = $this->getOrderItems($order);
     $customerProfiles = $order->collectProfiles();
     $profile = $this->getCustomerInformation($customerProfiles);
-    $profession = $profile['shipping_address']['profession'];
+
+    try {
+      $professionObj = $order->get('field_order_occupation');
+
+      $profession = $professionObj->value;
+    }
+    catch (\InvalidArgumentException $e) {
+      $profession = $profile['shipping_address']['profession'];
+    }
 
     unset($profile['shipping_address']['profession'], $profile['billing_address']['profession']);
 
@@ -207,9 +216,6 @@ class Order implements ContainerInjectionInterface {
 
     if ($this->config->get('debug') == 0) {
       try {
-        /**
-         * @todo Add a config value for the agency abbreviation.
-         */
         $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
           'headers' => [
             'IQ_Client_Key' => $apiKey,
