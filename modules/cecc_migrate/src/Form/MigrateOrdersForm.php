@@ -216,7 +216,7 @@ class MigrateOrdersForm extends FormBase {
 
     $title = $data[27];
     $quantity = (int) $data[18];
-    $sku = 'NINDS-' . $data[26];
+    $sku = 'NINDS-' . trim($data[26]);
 
     $user = self::getUser($data);
 
@@ -356,12 +356,6 @@ class MigrateOrdersForm extends FormBase {
     else {
       /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
       $order = reset($orderIds);
-
-      foreach ($order->getItems() as $orderItem) {
-        $order->removeItem($orderItem);
-        $orderItem->delete();
-      }
-      $order->save();
     }
 
     return $order;
