@@ -45,8 +45,13 @@ class PublicationAccess implements AccessInterface {
     }
 
     $productVariation = $product->getDefaultVariation();
-    $notAvailable = $productVariation->get('field_not_available')->isEmpty()
-    ? 0 : (int) $productVariation->get('field_not_available')->value;
+    $notAvailable = 0;
+
+    if ($productVariation) {
+      $notAvailable = $productVariation->get('field_not_available')->isEmpty()
+        ? 0 : (int) $productVariation->get('field_not_available')->value;
+    }
+
     $hasPermission = $notAvailable === 0 ?
     $account->hasPermission('view commerce_product') : $account->hasPermission('view unavailable publications');
 
