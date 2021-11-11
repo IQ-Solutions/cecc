@@ -5,8 +5,6 @@ namespace Drupal\cecc_migrate\Form;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\commerce_shipping\Entity\Shipment;
-use Drupal\commerce_shipping\ShipmentItem;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -16,8 +14,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
-use Drupal\physical\Weight;
-use Drupal\physical\WeightUnit;
 use Drupal\profile\Entity\Profile;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
@@ -150,7 +146,7 @@ class MigrateOrdersForm extends FormBase {
           ],
         ],
       ],
-      'finished' => '\Drupal\cecc_migrate\Form\MigrateOrdersForm::finishedImportingOrders',
+      'finished' => '\Drupal\cecc_migrate\Form\MigrateOrdersForm::finishedImporting',
       'init_message' => $this->t('Importing Orders'),
       'progress_message' => $this->t('Processing order items. Time remaining: @estimate'),
       'error_message' => $this->t('The import process has encountered an error.'),
@@ -176,6 +172,7 @@ class MigrateOrdersForm extends FormBase {
     $fileObj->setFlags($fileObj::READ_CSV);
 
     if (empty($context['sandbox'])) {
+      $context['results']['processed'] = 0;
       $context['sandbox']['progress'] = $skipFirstLine ? 1 : 0;
       $fileObj->seek(PHP_INT_MAX);
       $context['sandbox']['max'] = $fileObj->key();
@@ -186,12 +183,19 @@ class MigrateOrdersForm extends FormBase {
 
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::migrateOrders($line);
+      if (!empty($line[1])) {
+        $status = self::migrateOrders($line);
 
-      $context['message'] = t('Processing order item for order @order. Total order items: @orderItems | Processed: @current', [
+        if ($status) {
+          $context['results']['processed']++;
+        }
+      }
+
+      $context['message'] = t('Processing order item for order @order. @current/@orderItems | Updated: @updated', [
         '@order' => $line[1],
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
+        '@updated' => $context['results']['processed'],
       ]);
 
       $context['sandbox']['progress']++;
@@ -212,24 +216,19 @@ class MigrateOrdersForm extends FormBase {
 
     $title = $data[27];
     $quantity = (int) $data[18];
-    $sku = $data[26];
-    $orderNumber = $data[1];
-
-    if (empty($orderNumber)) {
-      return;
-    }
+    $sku = 'NINDS-' . $data[26];
 
     $user = self::getUser($data);
 
     if (!$user) {
-      return;
+      return FALSE;
     }
 
     /** @var \Drupal\profile\Entity\ProfileInterface $profile */
     $profile = self::getProfile($data, $user);
 
     if (empty($profile)) {
-      return;
+      return FALSE;
     }
 
     $order = self::getOrder($data, $user, $profile);
@@ -240,6 +239,8 @@ class MigrateOrdersForm extends FormBase {
     }
 
     $order->save();
+
+    return TRUE;
   }
 
   /**
@@ -305,11 +306,6 @@ class MigrateOrdersForm extends FormBase {
     }
     else {
       $orderItem = reset($orderItems);
-
-      if (!$orderItem->hasPurchasedEntity() && !empty($productVariation)) {
-        $orderItem->set('purchased_entity', $productVariation->id());
-        $orderItem->save();
-      }
     }
 
     return $orderItem;
@@ -351,6 +347,7 @@ class MigrateOrdersForm extends FormBase {
         'uid' => $user->id(),
         'order_number' => $data[1],
         'billing_profile' => $profile->createDuplicate(),
+        'shipping_profile' => $profile->createDuplicate(),
         'store_id' => 1,
         'placed' => strtotime($data[3]),
       ]);
@@ -359,6 +356,12 @@ class MigrateOrdersForm extends FormBase {
     else {
       /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
       $order = reset($orderIds);
+
+      foreach ($order->getItems() as $orderItem) {
+        $order->removeItem($orderItem);
+        $orderItem->delete();
+      }
+      $order->save();
     }
 
     return $order;
@@ -388,9 +391,6 @@ class MigrateOrdersForm extends FormBase {
 
     if (!empty($users)) {
       $user = reset($users);
-      \Drupal::logger('cecc_migrate')->info('Loaded user @user', [
-        '@user' => $user->getAccountName(),
-      ]);
     }
 
     return $user;
@@ -437,9 +437,6 @@ class MigrateOrdersForm extends FormBase {
 
       try {
         $profile->save();
-        \Drupal::logger('cecc_migrate')->info('Created customer profile for @profile', [
-          '@profile' => $user->getAccountName(),
-        ]);
       }
       catch (EntityStorageException $e) {
         \Drupal::logger('cecc_migrate')->warning($e->getMessage());
@@ -448,9 +445,6 @@ class MigrateOrdersForm extends FormBase {
     }
     else {
       $profile = Profile::load(reset($profileIds));
-      \Drupal::logger('cecc_migrate')->info('Loaded customer profile for @profile', [
-        '@profile' => $user->getAccountName(),
-      ]);
     }
 
     return $profile;
@@ -466,11 +460,13 @@ class MigrateOrdersForm extends FormBase {
    * @param array $operations
    *   Array that contains batch operations.
    */
-  public static function finishedImportingOrders(bool $success, array $results, array $operations) {
+  public static function finishedImporting(bool $success, array $results, array $operations) {
     $status = Messenger::TYPE_STATUS;
 
     if ($success) {
-      $message = t('Orders imported.');
+      $message = t('@count orders imported.', [
+        'results' => $results['processed'],
+      ]);
 
       \Drupal::logger('cecc_migrate')->info($message);
     }

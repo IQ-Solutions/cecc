@@ -10,7 +10,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
-use Drupal\profile\Entity\Profile;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -167,6 +166,7 @@ class ImportUsersForm extends FormBase {
     $fileObj->setFlags($fileObj::READ_CSV);
 
     if (empty($context['sandbox'])) {
+      $context['results']['processed'] = 0;
       $context['sandbox']['progress'] = $skipFirstLine ? 1 : 0;
       $fileObj->seek(PHP_INT_MAX);
       $context['sandbox']['max'] = $fileObj->key();
@@ -177,7 +177,11 @@ class ImportUsersForm extends FormBase {
 
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::importUser($line);
+      $status = self::importUser($line);
+
+      if ($status) {
+        $context['results']['processed']++;
+      }
 
       $context['message'] = t('Processing customer (@username). Total users: @users | Processed: @current', [
         '@username' => $line[0],
@@ -207,7 +211,7 @@ class ImportUsersForm extends FormBase {
     $email = $data[11];
 
     if (empty($username) || $username == 'guest') {
-      return;
+      return FALSE;
     }
 
     /** @var \Drupal\user\Entity\User[] $users */
@@ -235,23 +239,18 @@ class ImportUsersForm extends FormBase {
 
       try {
         $user->save();
-        \Drupal::logger('cecc_migrate')->info('Created user @user', [
-          '@user' => $user->getAccountName(),
-        ]);
+        return TRUE;
       }
       catch (EntityStorageException $e) {
         \Drupal::logger('cecc_migrate')->warning($e->getMessage());
-        return NULL;
+        return FALSE;
       }
     }
     else {
       $user = reset($users);
-      \Drupal::logger('cecc_migrate')->info('Loaded user @user', [
-        '@user' => $user->getAccountName(),
-      ]);
+      $user->set('field_customer_id_legacy', $customerId);
+      $user->save();
     }
-
-    return $user;
   }
 
   /**
@@ -268,7 +267,9 @@ class ImportUsersForm extends FormBase {
     $status = Messenger::TYPE_STATUS;
 
     if ($success) {
-      $message = t('Orders imported.');
+      $message = t('@count users imported.', [
+        '@count' => $results['processed'],
+      ]);
 
       \Drupal::logger('cecc_migrate')->info($message);
     }

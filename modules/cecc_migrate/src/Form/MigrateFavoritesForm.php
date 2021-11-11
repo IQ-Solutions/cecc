@@ -2,13 +2,6 @@
 
 namespace Drupal\cecc_migrate\Form;
 
-use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\commerce_shipping\Entity\Shipment;
-use Drupal\commerce_shipping\ShipmentItem;
-use Drupal\Component\Utility\Xss;
-use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
@@ -17,10 +10,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Password\PasswordGeneratorInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\physical\Weight;
-use Drupal\physical\WeightUnit;
-use Drupal\profile\Entity\Profile;
-use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -189,6 +178,7 @@ class MigrateFavoritesForm extends FormBase {
     $fileObj->setFlags($fileObj::READ_CSV);
 
     if (empty($context['sandbox'])) {
+      $context['results']['processed'] = 0;
       $context['sandbox']['progress'] = $skipFirstLine ? 1 : 0;
       $fileObj->seek(PHP_INT_MAX);
       $context['sandbox']['max'] = $fileObj->key();
@@ -197,19 +187,29 @@ class MigrateFavoritesForm extends FormBase {
 
     $fileObj->seek($context['sandbox']['progress']);
 
-    $context['finished'] = !$fileObj->valid();
-
     if ($fileObj->valid()) {
       $line = $fileObj->current();
-      self::migrateFavorites($line);
+      if (!empty($line[1])) {
+        $status = self::migrateFavorites($line);
 
-      $context['message'] = t('Processing favorites. Total items: @orderItems | Processed: @current', [
+        if ($status) {
+          $context['results']['processed']++;
+        }
+      }
+
+      $context['message'] = t('Processing favorites. @current/@orderItems | Updated: @updated', [
+        '@order' => $line[1],
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
+        '@updated' => $context['results']['processed'],
       ]);
-    }
 
-    $context['sandbox']['progress']++;
+      $context['sandbox']['progress']++;
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    else {
+      $context['finished'] = !$fileObj->valid();
+    }
   }
 
   /**
@@ -227,30 +227,19 @@ class MigrateFavoritesForm extends FormBase {
     $customerId = $data[0];
     $sku = $data[3];
 
-    $profileIds = $entityTypeManager->getStorage('profile')->getQuery()
+    $users = $entityTypeManager->getStorage('user')->getQuery()
       ->condition('field_customer_id_legacy', $customerId)
-      ->condition('uid', 0, '<>')
       ->execute();
 
-    if (empty($profileIds)) {
-      return;
+    if (empty($users)) {
+      return FALSE;
     }
 
-    $profile = Profile::load(reset($profileIds));
-
-    if (empty($profile)) {
-      return;
-    }
-
-    $user = $profile->getOwner();
+    $user = User::load(reset($users));
 
     if (empty($user)) {
-      return;
+      return FALSE;
     }
-
-    \Drupal::logger('cecc_migrate')->info('Checking favorites for @user', [
-      '@user' => $user->getEmail(),
-    ]);
 
     /** @var  \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
     $productVariations = $entityTypeManager->getStorage('commerce_product_variation')->loadByProperties([
@@ -266,9 +255,13 @@ class MigrateFavoritesForm extends FormBase {
 
         if (!$flagging) {
           $flagService->flag($flag, $product, $user);
+
+          return TRUE;
         }
       }
     }
+
+    return FALSE;
 
   }
 
