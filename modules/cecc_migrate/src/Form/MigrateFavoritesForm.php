@@ -225,7 +225,7 @@ class MigrateFavoritesForm extends FormBase {
     $flag = $flagService->getFlagById('favorites');
 
     $customerId = $data[0];
-    $sku = $data[3];
+    $sku = 'NINDS-' . trim($data[3]);
 
     $users = $entityTypeManager->getStorage('user')->getQuery()
       ->condition('field_customer_id_legacy', $customerId)

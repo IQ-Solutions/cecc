@@ -459,7 +459,7 @@ class MigrateOrdersForm extends FormBase {
 
     if ($success) {
       $message = t('@count orders imported.', [
-        'results' => $results['processed'],
+        '@count' => $results['processed'],
       ]);
 
       \Drupal::logger('cecc_migrate')->info($message);
