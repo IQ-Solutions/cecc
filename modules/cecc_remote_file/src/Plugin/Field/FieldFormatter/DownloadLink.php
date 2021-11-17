@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Plugin\Field\FieldFormatter;
+namespace Drupal\cecc_remote_file\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FormatterBase;
@@ -81,7 +81,7 @@ class DownloadLink extends FormatterBase {
 
       }
       catch (\InvalidArgumentException $e) {
-        \Drupal::logger('publication_ordering')->error($e->getMessage());
+        \Drupal::logger('cecc_remote_file')->error($e->getMessage());
       }
     }
 

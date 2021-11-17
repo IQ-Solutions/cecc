@@ -152,7 +152,7 @@ class FormHelper implements FormHelperInterface {
   public function alterFormElements(array &$form) {
     if (isset($form['quantity'])) {
       $form['quantity']['widget'][0]['value']['#element_validate'] = [
-        '\Drupal\publication_ordering\Service\FormHelper::validateNumber',
+        '\Drupal\cecc\Service\FormHelper::validateNumber',
       ];
     }
   }

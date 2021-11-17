@@ -20,7 +20,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\cecc_cart\Helper\RefreshPageElements;
-use Drupal\po_stock\Service\StockValidation;
+use Drupal\cecc_stock\Service\StockValidation;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -83,7 +83,7 @@ class AjaxAddToCartForm extends AddToCartForm implements AddToCartFormInterface 
    *   The RefreshPageElementsHelper service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Used to display the rendered product_variation entity.
-   * @param \Drupal\po_stock\Service\StockValidation $stockValidation
+   * @param \Drupal\cecc_stock\Service\StockValidation $stockValidation
    *   Stock validation service.
    */
   public function __construct(
@@ -162,7 +162,7 @@ class AjaxAddToCartForm extends AddToCartForm implements AddToCartFormInterface 
     $orderItem = $this->getEntity();
 
     $purchasedEntity = $orderItem->getPurchasedEntity();
-    $commerceConfig = $this->configFactory->get('publication_ordering.settings');
+    $commerceConfig = $this->configFactory->get('cecc.settings');
     $addToCartType = $commerceConfig->get('quantity_update_type');
 
     if ($addToCartType == 'cart') {
@@ -182,7 +182,7 @@ class AjaxAddToCartForm extends AddToCartForm implements AddToCartFormInterface 
     $orderItem = $this->getEntity();
 
     $purchasedEntity = $orderItem->getPurchasedEntity();
-    $commerceConfig = $this->configFactory->get('publication_ordering.settings');
+    $commerceConfig = $this->configFactory->get('cecc.settings');
     $addToCartType = $commerceConfig->get('quantity_update_type');
     $buttonText = $this->t('Add');
 
