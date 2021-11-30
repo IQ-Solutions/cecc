@@ -1,0 +1,48 @@
+<?php
+
+use Drupal\cecc\Service\FormHelper;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+
+function cecc_restocked_form_alter(
+  &$form,
+  FormStateInterface $formState, $form_id
+) {
+  if (FormHelper::getFormId($formState, $form_id) == 'commerce_order_item_add_to_cart_form') {
+    // Get the product variation.
+    $selected_variation = FormHelper::getSelectedVariation($formState);
+    /** @var \Drupal\cecc_stock\Service\StockValidation $stockValidation */
+    $stockValidation = \Drupal::service('cecc_stock.stock_validation');
+    /** @var \Drupal\flag\FlagLinkBuilderInterface $flagLinkBuilder */
+    $flagLinkBuilder = \Drupal::service('flag.link_builder');
+
+    // Check if in stock.
+    $inStock = $stockValidation->checkProductStock($selected_variation);
+
+    if (!$inStock) {
+      $product = FormHelper::getSelectedProduct($formState);
+      $isAnonymous = \Drupal::currentUser()->isAnonymous();
+
+      if (!$isAnonymous) {
+        $form['actions']['restocked'] =
+          $flagLinkBuilder->build('commerce_product', $product->id(), 'subscribe_restocked');
+      }
+      else {
+        $form['actions']['restocked'] = [
+          '#weight' => 1,
+          '#type' => 'link',
+          '#title' => t('Request Restock'),
+          '#attributes' => [
+            'class' => [
+              'usa-button',
+              'usa-button--outline',
+            ],
+          ],
+          '#url' => Url::fromRoute('user.register'),
+          '#suffix' => '<div>You must be registered to request restock notifications.</div>'
+        ];
+      }
+      $form['actions']['submit']['#weight'] = 0;
+    }
+  }
+}

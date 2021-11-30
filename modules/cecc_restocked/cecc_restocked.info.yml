@@ -1,0 +1,7 @@
+type: module
+name: CEC Catalog Restocked
+description: 'Notifies user when an item is restocked.'
+package: 'Customer Engagement Center'
+core_version_requirement: ^8.8 || ^9
+dependencies:
+  - cecc_stock
