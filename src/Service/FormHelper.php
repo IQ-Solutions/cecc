@@ -125,19 +125,35 @@ class FormHelper implements FormHelperInterface {
   }
 
   /**
+   * Gets the form id from the base form id or the form id.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $formState
+   *   The form state object.
+   * @param string $formId
+   *   The form id.
+   *
+   * @return string
+   *   The form id.
+   */
+  public static function getFormId(FormStateInterface $formState, $formId) {
+    $formObject = $formState->getFormObject();
+    $baseFormId = $formId;
+
+    if ($formObject instanceof EntityForm || $formObject instanceof CheckoutFlowBase) {
+      $baseFormId = $formObject->getBaseFormId();
+    }
+
+    return $baseFormId;
+  }
+
+  /**
    * {@inheritDoc}
    */
   public function alterForms(array &$form, FormStateInterface $formState, $formId) {
     $this->formObject = $formState->getFormObject();
     $this->formId = $formId;
     $this->formState = $formState;
-
-    if ($this->formObject instanceof EntityForm || $this->formObject instanceof CheckoutFlowBase) {
-      $this->baseFormId = $this->formObject->getBaseFormId();
-    }
-    else {
-      $this->baseFormId = $formId;
-    }
+    $this->baseFormId = self::getFormId($formState, $formId);
 
     $this->alterFormElements($form);
     $this->negotiateForms($form);

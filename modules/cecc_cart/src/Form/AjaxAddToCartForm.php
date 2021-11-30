@@ -133,7 +133,7 @@ class AjaxAddToCartForm extends AddToCartForm implements AddToCartFormInterface 
       $container->get('current_user'),
       $container->get('cecc_cart.refresh_page_elements_helper'),
       $container->get('entity_type.manager'),
-      $container->get('po_stock.stock_validation'),
+      $container->get('cecc_stock.stock_validation'),
       $container->get('config.factory')
     );
   }
