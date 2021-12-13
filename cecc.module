@@ -21,6 +21,12 @@ function cecc_theme($existing, $type, $theme, $path) {
     ],
   ];
 
+  $themeArray['cecc_browse_publications_button'] = [
+    'variables' => [
+      'view_url' => NULL,
+    ],
+  ];
+
   return $themeArray;
 }
 
