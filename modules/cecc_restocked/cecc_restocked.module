@@ -25,7 +25,7 @@ function cecc_restocked_form_alter(
 
       if (!$isAnonymous) {
         $form['actions']['restocked'] =
-          $flagLinkBuilder->build('commerce_product', $product->id(), 'subscribe_restocked');
+          $flagLinkBuilder->build('commerce_product', $product->id(), 'cecc_request_restock');
       }
       else {
         $form['actions']['restocked'] = [

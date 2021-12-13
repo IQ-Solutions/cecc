@@ -5,3 +5,5 @@ package: 'Customer Engagement Center'
 core_version_requirement: ^8.8 || ^9
 dependencies:
   - cecc_stock
+  - drupal:flag
+  - drupal:views

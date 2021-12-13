@@ -1,0 +1,39 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - cecc_restocked
+  module:
+    - commerce_product
+id: cecc_request_restock
+label: 'Request Restock'
+bundles:
+  - cecc_publication
+entity_type: commerce_product
+global: false
+weight: 0
+flag_short: 'Request Restock'
+flag_long: ''
+flag_message: 'You will be notified when this publication is restocked.'
+unflag_short: 'Clear Restock Request'
+unflag_long: ''
+unflag_message: 'You will no longer be notified when this publication is restocked.'
+unflag_denied_text: ''
+flag_type: 'entity:commerce_product'
+link_type: ajax_link
+flagTypeConfig:
+  show_in_links: {  }
+  show_as_field: false
+  show_on_form: false
+  show_contextual_link: false
+  extra_permissions:
+    owner: '0'
+linkTypeConfig:
+  flag_confirmation: 'Request Restock Notification'
+  unflag_confirmation: 'Are you sure you want remove your restock notification?'
+  flag_create_button: 'Get Restock Notification'
+  flag_delete_button: 'Remove Restock Notification'
+  form_behavior: modal
+  edit_flagging: 'Edit flagging details'
+  flag_update_button: 'Update flagging'
