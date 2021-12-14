@@ -21,6 +21,11 @@ class StockHelper {
   use MessengerTrait;
 
   /**
+   * Prefix used for product variation stock state keys.
+   */
+  const PVS_PREFIX = 'cecc_pvs_';
+
+  /**
    * Stock Validation Service.
    *
    * @var \Drupal\cecc_stock\Service\StockValidation

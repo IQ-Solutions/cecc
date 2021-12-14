@@ -6,10 +6,10 @@ use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\Component\EventDispatcher\Event;
 
 /**
- * Event thats fires when a product is restocked.
+ * Event thats fires when a product is out of stock.
  */
-class RestockEvent extends Event {
-  const CECC_PRODUCT_VARIATION_RESTOCK = 'cecc_stock_restock';
+class OutStockEvent extends Event {
+  const CECC_PRODUCT_VARIATION_OUT_STOCK = 'cecc_stock_out_stock';
 
   /**
    * The product variation being restocked.

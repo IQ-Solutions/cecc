@@ -1,0 +1,11 @@
+services:
+  cecc_restocked.restock_subscriber:
+    class: Drupal\cecc_restocked\EventSubscriber\RestockSubscriber
+    arguments:
+      - '@logger.factory'
+      - '@cecc_stock.stock_validation'
+      - '@state'
+      - '@flag'
+      - '@queue'
+    tags:
+      - { name: 'event_subscriber' }

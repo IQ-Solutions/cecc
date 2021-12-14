@@ -8,6 +8,16 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  cecc_stock.product_variation_event_subscriber:
+    class: Drupal\cecc_stock\EventSubscriber\ProductVariation
+    arguments:
+      - '@logger.factory'
+      - '@cecc_stock.stock_validation'
+      - '@event_dispatcher'
+      - '@state'
+    tags:
+      - { name: 'event_subscriber' }
+
   cecc_stock.stock_validation:
     class: Drupal\cecc_stock\Service\StockValidation
     arguments:
