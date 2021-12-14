@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_stock\EventSubscriber;
 
+use Drupal\cecc_stock\Event\LowStockEvent;
 use Drupal\cecc_stock\Event\OutStockEvent;
 use Drupal\cecc_stock\Event\RestockEvent;
 use Drupal\cecc_stock\Service\StockHelper;
@@ -83,6 +84,10 @@ class ProductVariation implements EventSubscriberInterface {
         'onOutOfStock',
         -50,
       ],
+      LowStockEvent::CECC_PRODUCT_VARIATION_LOW_STOCK => [
+        'onLowStock',
+        -50,
+      ],
       RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK => [
         'onRestock',
         -100,
@@ -101,6 +106,7 @@ class ProductVariation implements EventSubscriberInterface {
   public function onProductVariationUpdate(ProductVariationEvent $event) {
     $productVariation = $event->getProductVariation();
     $inStock = $this->stockValidation->checkProductStock($productVariation);
+    $lowStock = $this->stockValidation->isStockBelowThreshold($productVariation);
     $productVariationStockState = $this->state->get(StockHelper::PVS_PREFIX . $productVariation->id());
 
     if (!$inStock && is_null($productVariationStockState)) {
@@ -111,7 +117,24 @@ class ProductVariation implements EventSubscriberInterface {
       $restockEvent = new RestockEvent($productVariation);
       $this->eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
     }
+    elseif ($lowStock && is_null($productVariationStockState)) {
+      $lowStockEvent = new LowStockEvent($productVariation);
+      $this->eventDispatcher->dispatch($lowStockEvent, LowStockEvent::CECC_PRODUCT_VARIATION_LOW_STOCK);
+    }
 
+  }
+
+  /**
+   * Fires when a product variation is low stock.
+   *
+   * @param Drupal\cecc_stock\Event\LowStockEvent $event
+   *   The event.
+   */
+  public function onLowStock(LowStockEvent $event) {
+    $productVariation = $event->productVariation;
+    $stateId = StockHelper::PVS_PREFIX . $productVariation->id();
+
+    $this->state->set($stateId, (int) $productVariation->field_cecc_stock->value);
   }
 
   /**

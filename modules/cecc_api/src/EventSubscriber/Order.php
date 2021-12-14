@@ -16,7 +16,6 @@ use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\cecc_stock\Service\StockValidation;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
-use Drupal\state_machine\Plugin\Field\FieldType\StateItemInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -80,41 +79,6 @@ class Order implements EventSubscriberInterface {
   }
 
   /**
-   * Queues a product for a stock update.
-   *
-   * @param \Drupal\commerce\PurchasableEntityInterface $entity
-   *   The product variation.
-   */
-  private function queueItemStockUpdate(PurchasableEntityInterface $entity) {
-    if ($this->stockValidation->isStockBelowThreshold($entity)
-      && !$entity->get('field_awaiting_stock_refresh')->value
-    ) {
-      $entity->set('field_awaiting_stock_refresh', TRUE);
-
-      try {
-        $entity->save();
-
-        $item = [
-          'id' => $entity->id(),
-          'sku' => $entity->get('sku')->value,
-          'warehouse_item_id' => $entity->get('field_cecc_warehouse_item_id')->value,
-        ];
-
-        $queue = $this->queueFactory->get('cecc_update_stock');
-        $queue->createItem($item);
-
-        $this->logger->notice($this->t('Stock for %label has been fallen below %stockLevel. It has been queued for a stock refresh.', [
-          '%label' => $entity->getOrderItemTitle(),
-          '%stockLevel' => $entity->get('cecc_check_stock_threshold')->value,
-        ]));
-      }
-      catch (EntityStorageException $error) {
-        $this->logger->error($error->getMessage());
-      }
-    }
-  }
-
-  /**
    * Queue order to be sent.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
@@ -167,8 +131,6 @@ class Order implements EventSubscriberInterface {
         if (!$entity) {
           continue;
         }
-
-        $this->queueItemStockUpdate($entity);
       }
     }
 
@@ -184,6 +146,7 @@ class Order implements EventSubscriberInterface {
     $order = $event->getOrder();
 
     if ($this->shouldSendOrder($order)) {
+      /** @var \Drupal\commerce_order\Entity\OrderInterface $originalOrder */
       $originalOrder = $this->getOriginalEntity($order);
 
       foreach ($order->getItems() as $item) {
@@ -198,8 +161,6 @@ class Order implements EventSubscriberInterface {
             if (!$entity) {
               continue;
             }
-
-            $this->queueItemStockUpdate($entity);
           }
         }
       }
@@ -215,7 +176,9 @@ class Order implements EventSubscriberInterface {
    *   The order workflow event.
    */
   public function onOrderCancel(WorkflowTransitionEvent $event) {
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $original_order */
     $original_order = $this->getOriginalEntity($order);
 
     if ($original_order && $original_order->getState()->value === 'draft') {
@@ -227,8 +190,6 @@ class Order implements EventSubscriberInterface {
       if (!$entity) {
         continue;
       }
-
-      $this->queueItemStockUpdate($entity);
     }
   }
 
@@ -258,6 +219,7 @@ class Order implements EventSubscriberInterface {
     $order = $item->getOrder();
 
     if ($order && !in_array($order->getState()->value, ['draft', 'canceled'])) {
+      /** @var \Drupal\commerce_order\Entity\OrderItemInterface $original */
       $original = $this->getOriginalEntity($item);
       $diff = $original->getQuantity() - $item->getQuantity();
       if ($diff) {
@@ -266,8 +228,6 @@ class Order implements EventSubscriberInterface {
         if (!$entity) {
           return;
         }
-
-        $this->queueItemStockUpdate($entity);
       }
     }
   }
@@ -288,8 +248,6 @@ class Order implements EventSubscriberInterface {
       if (!$entity) {
         return;
       }
-
-      $this->queueItemStockUpdate($entity);
     }
   }
 
@@ -313,9 +271,11 @@ class Order implements EventSubscriberInterface {
   }
 
   /**
-   * Returns the entity from an updated entity object. In certain
-   * cases the $entity->original property is empty for updated entities. In such
-   * a situation we try to load the unchanged entity from storage.
+   * Returns the entity from an updated entity object.
+   *
+   * The $entity->original property can be empty for updated entities.
+   *
+   * In such a situation we try to load the unchanged entity from storage.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The changed/updated entity object.

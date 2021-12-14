@@ -9,6 +9,14 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  cecc_api.stock_event_subscriber:
+    class: Drupal\cecc_api\EventSubscriber\Stock
+    arguments:
+      - '@logger.factory'
+      - '@queue'
+    tags:
+      - { name: 'event_subscriber' }
+
   cecc_api.http_client.contents:
     parent: http_client_manager.client_base
     arguments: ['cecc_api.contents']
