@@ -160,16 +160,18 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    $query = $this->connection->select('commerce_product_variation_field_data', 'cpv')
-      ->fields('cpv', ['id', 'field_cecc_warehouse_item_id'])
+    $query = $this->entityTypeManager->getStorage('commerce_product_variation')
+      ->getQuery()
       ->condition('field_awaiting_stock_refresh', TRUE);
 
-    $count = $query->countQuery()->execute()->fetchField();
+    $ids = $query->execute();
 
-    if ($count < 1) {
+    if (empty($ids)) {
       $this->logger->info('There are no products that need a stock refresh.');
       return FALSE;
     }
+
+    $count = count($ids);
 
     $response = $this->inventoryApi->getAllInventory();
 
@@ -178,15 +180,16 @@ class Stock implements ContainerInjectionInterface {
       return FALSE;
     }
 
-    $ids = $query->execute()->fetchAll();
-
     $queue = $this->queueFactory->get('cecc_update_stock');
 
     foreach ($ids as $id) {
-      $warehouse_record = array_search($id->field_cecc_warehouse_item_id, array_column($response, 'warehouse_item_id'));
+      /** @var \Drupal\commerce_product\Entity\ProductVariation $productVariation */
+      $productVariation = $this->entityTypeManager->getStorage('commerce_product_variation')
+        ->load($id);
+      $warehouse_record = array_search($productVariation->field_cecc_warehouse_item_id->value, array_column($response, 'warehouse_item_id'));
       $item = [
-        'id' => $id->id,
-        'new_stock_value' => $warehouse_record['warehouse_stock_on_hand'],
+        'id' => $id,
+        'new_stock_value' => $response[$warehouse_record]['warehouse_stock_on_hand'],
       ];
 
       $queue->createItem($item);
