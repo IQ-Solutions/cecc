@@ -162,7 +162,7 @@ class Stock implements ContainerInjectionInterface {
 
     $query = $this->connection->select('commerce_product_variation_field_data', 'cpv')
       ->fields('cpv', ['id', 'field_cecc_warehouse_item_id'])
-      ->where('cpv.cecc_check_stock_threshold >= cpv.field_cecc_stock');
+      ->condition('field_awaiting_stock_refresh', TRUE);
 
     $count = $query->countQuery()->execute()->fetchField();
 

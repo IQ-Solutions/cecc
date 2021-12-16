@@ -8,13 +8,30 @@ use Drupal\cecc_api\Form\ConfirmSendOrderForm;
 /**
  * Implements hook_cron().
  */
-function cecc_api_cron() { }
+function cecc_api_cron() {
+  cecc_api_inventory_update();
+}
 
 function cecc_api_inventory_update() {
-  /** @var \Drupal\cecc_api\Service\StockApi $stockApi */
-  $stockApi = \Drupal::service('cecc_api.stock');
 
-  $stockApi->updateAllInventory();
+  $state = \Drupal::state();
+  $stateId = 'cecc_api.next_stock_refresh';
+  $currentTime = \Drupal::time()->getRequestTime();
+  $nextRefreshTime = strtotime('tomorrow 01:00');
+
+  $stockRefresh = $state->get($stateId);
+
+  if ($stockRefresh === NULL) {
+    $state->set($stateId, $nextRefreshTime);
+  }
+  elseif ($currentTime < $stockRefresh) {
+    return;
+  }
+
+  /** @var \Drupal\cecc_api\Service\Stock $stockApi */
+  $stockApi = \Drupal::service('cecc_api.stock');
+  $stockApi->refreshAllInventory();
+  $state->set($stateId, $nextRefreshTime);
 }
 
 function cecc_api_entity_type_build(array &$entity_types) {

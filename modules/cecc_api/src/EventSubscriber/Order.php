@@ -94,16 +94,7 @@ class Order implements EventSubscriberInterface {
       try {
         $entity->save();
 
-        $item = [
-          'id' => $entity->id(),
-          'sku' => $entity->get('sku')->value,
-          'warehouse_item_id' => $entity->get('field_cecc_warehouse_item_id')->value,
-        ];
-
-        $queue = $this->queueFactory->get('cecc_update_stock');
-        $queue->createItem($item);
-
-        $this->logger->notice($this->t('Stock for %label has been fallen below %stockLevel. It has been queued for a stock refresh.', [
+        $this->logger->notice($this->t('Stock for %label has been fallen below %stockLevel. It has been flagged for a stock refresh.', [
           '%label' => $entity->getOrderItemTitle(),
           '%stockLevel' => $entity->get('cecc_check_stock_threshold')->value,
         ]));
