@@ -158,8 +158,6 @@ class Order implements EventSubscriberInterface {
         if (!$entity) {
           continue;
         }
-
-        $this->queueItemStockUpdate($entity);
       }
     }
 
@@ -189,8 +187,6 @@ class Order implements EventSubscriberInterface {
             if (!$entity) {
               continue;
             }
-
-            $this->queueItemStockUpdate($entity);
           }
         }
       }
@@ -218,8 +214,6 @@ class Order implements EventSubscriberInterface {
       if (!$entity) {
         continue;
       }
-
-      $this->queueItemStockUpdate($entity);
     }
   }
 
@@ -257,8 +251,6 @@ class Order implements EventSubscriberInterface {
         if (!$entity) {
           return;
         }
-
-        $this->queueItemStockUpdate($entity);
       }
     }
   }
