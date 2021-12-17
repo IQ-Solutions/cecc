@@ -39,6 +39,47 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('enable_api') ?: 1,
     ];
 
+    $form['stock_refresh_type'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Stock Refresh Type'),
+      '#description' => $this->t('Choose stock refresh type.'),
+      '#default_value' => $config->get('stock_refresh_type') ?: 'interval',
+      '#options' => [
+        'interval' => $this->t('Refresh all stock at specific intervals.'),
+        'on_demand' => $this->t('Refresh product stock when criteria met.'),
+      ],
+    ];
+
+    $form['stock_refresh_interval'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Stock Refresh Interval'),
+      '#description' => $this->t('How often should the stock refresh happen if interval refresh is used.'),
+      '#default_value' => $config->get('stock_refresh_interval') ?: 'daily',
+      '#options' => [
+        'hourly' => $this->t('Hourly'),
+        'daily' => $this->t('Daily'),
+      ],
+      '#states' => [
+        'visible' => [
+          ':input[name="stock_refresh_type"]' => ['value' => 'interval'],
+        ],
+      ],
+    ];
+
+    $form['stock_refresh_time'] = [
+      '#type' => 'datetime',
+      '#title' => $this->t('Stock Refresh Time'),
+      '#size' => 20,
+      '#date_date_element' => 'none',
+      '#date_time_element' => 'time',
+      '#date_time_format' => 'H:i',
+      '#states' => [
+        'visible' => [
+          ':input[name="stock_refresh_interval"]' => ['value' => 'Daily'],
+        ],
+      ],
+    ];
+
     $form['debug'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Debug API'),

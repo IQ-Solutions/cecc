@@ -160,14 +160,11 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    $query = $this->connection->select('commerce_product_variation_field_data', 'cpv')
-      ->fields('cpv', ['id', 'field_cecc_warehouse_item_id'])
-      ->where('cpv.cecc_check_stock_threshold >= cpv.field_cecc_stock');
+    /** @var \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
+    $productVariations = $this->entityTypeManager->getStorage('commerce_product_variation')->loadMultiple();
 
-    $count = $query->countQuery()->execute()->fetchField();
-
-    if ($count < 1) {
-      $this->logger->info('There are no products that need a stock refresh.');
+    if (empty($productVariations)) {
+      $this->logger->warning('A publication refresh was attempted but found no publications.');
       return FALSE;
     }
 
@@ -178,23 +175,19 @@ class Stock implements ContainerInjectionInterface {
       return FALSE;
     }
 
-    $ids = $query->execute()->fetchAll();
-
     $queue = $this->queueFactory->get('cecc_update_stock');
 
-    foreach ($ids as $id) {
-      $warehouse_record = array_search($id->field_cecc_warehouse_item_id, array_column($response, 'warehouse_item_id'));
+    foreach ($productVariations as $productVariation) {
+      $warehouse_record = array_search($productVariation->field_cecc_warehouse_item_id->value, array_column($response, 'warehouse_item_id'));
       $item = [
-        'id' => $id->id,
-        'new_stock_value' => $warehouse_record['warehouse_stock_on_hand'],
+        'id' => $productVariation->id(),
+        'new_stock_value' => $response[$warehouse_record]['warehouse_stock_on_hand'],
       ];
 
       $queue->createItem($item);
     }
 
-    $this->logger->info('Products queued for stock update: %count', [
-      '%count' => $count,
-    ]);
+    $this->logger->info('All publications have been queued for a stock update');
   }
 
   /**
@@ -227,7 +220,6 @@ class Stock implements ContainerInjectionInterface {
     }
 
     $productVariation->set('field_cecc_stock', $response['warehouse_stock_on_hand']);
-    $productVariation->set('field_awaiting_stock_refresh', FALSE);
 
     try {
       $productVariation->save();
