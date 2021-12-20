@@ -48,18 +48,35 @@ function cecc_restocked_form_alter(
 }
 
 function cecc_restocked_mail($key, &$message, $params) {
+  $siteMail = \Drupal::config('system.site')->get('mail');
+  $siteName = \Drupal::config('system.site')->get('name');
   $options = [
     'langcode' => $message['langcode'],
   ];
 
   switch ($key) {
     case 'restock_notification':
-      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['headers']['Content-Type'] = 'text/html';
+      $message['from'] = $siteMail;
       $message['subject'] = t('@site_name Restock Notification for @product_title', [
         '@product_title' => $params['product_title'],
-        '@site_name' => \Drupal:: config('system.site')->get('name')
+        '@site_name' => $siteName,
       ], $options);
       $message['body'][] = $params['message'];
       break;
   }
+}
+
+function cecc_restocked_theme($existing, $type, $theme, $path) {
+  $themeArray = [];
+
+  $themeArray['cecc_restocked_notification'] = [
+    'variables' => [
+      'order_entity' => NULL,
+      'billing_information' => NULL,
+      'shipping_information' => NULL,
+      'payment_method' => NULL,
+      'totals' => NULL,
+    ],
+  ];
 }

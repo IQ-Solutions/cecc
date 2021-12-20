@@ -39,7 +39,14 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('enable_api') ?: 1,
     ];
 
-    $form['stock_refresh_type'] = [
+    $form['stock_refresh'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Stock Refresh Configuration'),
+      '#open' => TRUE,
+    ];
+
+    $form['stock_refresh']['stock_refresh_type'] = [
+      '#name' => 'stock_refresh_type',
       '#type' => 'radios',
       '#title' => $this->t('Stock Refresh Type'),
       '#description' => $this->t('Choose stock refresh type.'),
@@ -50,7 +57,18 @@ class CeccApiConfig extends ConfigFormBase {
       ],
     ];
 
-    $form['stock_refresh_interval'] = [
+    $form['stock_refresh']['timing'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Stock Refresh Configuration'),
+      '#states' => [
+        'visible' => [
+          ':input[name="stock_refresh_type"]' => ['value' => 'interval'],
+        ],
+      ],
+    ];
+
+    $form['stock_refresh']['timing']['stock_refresh_interval'] = [
+      '#name' => 'stock_refresh_interval',
       '#type' => 'select',
       '#title' => $this->t('Stock Refresh Interval'),
       '#description' => $this->t('How often should the stock refresh happen if interval refresh is used.'),
@@ -62,20 +80,6 @@ class CeccApiConfig extends ConfigFormBase {
       '#states' => [
         'visible' => [
           ':input[name="stock_refresh_type"]' => ['value' => 'interval'],
-        ],
-      ],
-    ];
-
-    $form['stock_refresh_time'] = [
-      '#type' => 'datetime',
-      '#title' => $this->t('Stock Refresh Time'),
-      '#size' => 20,
-      '#date_date_element' => 'none',
-      '#date_time_element' => 'time',
-      '#date_time_format' => 'H:i',
-      '#states' => [
-        'visible' => [
-          ':input[name="stock_refresh_interval"]' => ['value' => 'Daily'],
         ],
       ],
     ];
@@ -122,6 +126,8 @@ class CeccApiConfig extends ConfigFormBase {
       ->set('agency', $form_state->getValue('agency'))
       ->set('api_key', $form_state->getValue('api_key'))
       ->set('base_api_url', $form_state->getValue('base_api_url'))
+      ->set('stock_refresh_type', $form_state->getValue('stock_refresh_type'))
+      ->set('stock_refresh_interval', $form_state->getValue('stock_refresh_interval'))
       ->save();
 
     parent::submitForm($form, $form_state);
