@@ -1,0 +1,7 @@
+type: module
+name: 'Customer Engagement Center Catalog Free Shipping'
+description: 'Customer Engagement Center (CEC) Catalog free shipping for sites that do not charge for shipping.'
+package: 'Customer Engagement Center'
+core_version_requirement: ^9
+dependencies:
+  - drupal:commerce_shipping

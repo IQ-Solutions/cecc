@@ -1,0 +1,54 @@
+<?php
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_preprocess_commerce_order().
+ */
+function cecc_free_shipping_preprocess_commerce_order(&$variables) {
+  /** @var Drupal\commerce_order\Entity\OrderInterface $order */
+  $order = $variables['order_entity'];
+  $summary = \Drupal::service('commerce_shipping.order_shipment_summary')->build($order);
+  if (!empty($summary)) {
+    $variables['order']['cecc_shipping_information'] = $summary;
+  }
+}
+
+/**
+ * Implements hook_preprocess_commerce_order_receipt().
+ */
+function cecc_free_shipping_preprocess_commerce_order_receipt(&$variables) {
+  /** @var Drupal\commerce_order\Entity\OrderInterface $order */
+  $order = $variables['order_entity'];
+  $summary = \Drupal::service('commerce_shipping.order_shipment_summary')->build($order);
+  if (!empty($summary)) {
+    $variables['cecc_shipping_information'] = $summary;
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function cecc_free_shipping_entity_base_field_info(EntityTypeInterface $entity_type) {
+  $fields = [];
+
+  if ($entity_type->id() === 'commerce_order') {
+    $fields['cecc_shipping_profile'] = BaseFieldDefinition::create('entity_reference_revisions')
+      ->setLabel(t('Shipping information'))
+      ->setDescription(t('Shipping profile'))
+      ->setSetting('target_type', 'profile')
+      ->setSetting('handler', 'default')
+      ->setSetting('handler_settings', ['target_bundles' => ['customer' => 'customer']])
+      ->setTranslatable(TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'commerce_billing_profile',
+        'weight' => 0,
+        'settings' => [],
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    return $fields;
+  }
+}
