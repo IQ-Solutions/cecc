@@ -44,6 +44,18 @@ class CeccConfigForm extends ConfigFormBase {
       $config->get('quantity_update_type') : 'normal',
     ];
 
+    $form['add_to_cart_dest'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Add to Cart Destination'),
+      '#description' => $this->t('Changes where the user goes after adding to cart.'),
+      '#options' => [
+        'normal' => $this->t('Normal - The page reloads after the user adds to cart.'),
+        'cart' => $this->t('Cart - the user goes to the cart page.'),
+      ],
+      '#default_value' => !empty($config->get('add_to_cart_dest')) ?
+      $config->get('add_to_cart_dest') : 'cart',
+    ];
+
     $form['email_settings'] = [
       '#type' => 'details',
       '#title' => $this->t('Email settings'),
@@ -85,6 +97,7 @@ class CeccConfigForm extends ConfigFormBase {
       ->set('email_from', $form_state->getValue('email_from'))
       ->set('email_from_name', $form_state->getValue('email_from_name'))
       ->set('email_subject', $form_state->getValue('email_subject'))
+      ->set('add_to_cart_dest', $form_state->getValue('add_to_cart_dest'))
       ->save();
 
     parent::submitForm($form, $form_state);
