@@ -180,12 +180,6 @@ class Order implements ContainerInjectionInterface {
 
     unset($profile['shipping_address']['profession'], $profile['billing_address']['profession']);
 
-    /** @var \Drupal\commerce_shipping\Entity\ShipmentInterface $shipments */
-    $shipments = $order->get('shipments')->entity;
-
-    $shippingMethod = $shipments->getShippingMethod();
-    $price = $shipments->getAmount();
-
     $this->orderData = [
       'source_order_id' => $order->getOrderNumber(),
       'warehouse_organization_id' => $store->get('field_warehouse_organization_id')->value,
@@ -198,8 +192,8 @@ class Order implements ContainerInjectionInterface {
       'event_location' => $order->get('field_event_location')->isEmpty() ? NULL : $order->get('field_event_location')->value,
       'event_name' => $order->get('field_event_name')->isEmpty() ? NULL : $order->get('field_event_name')->value,
       'overlimit_comments' => $order->get('field_cecc_over_limit_desc')->isEmpty() ? NULL : $order->get('field_cecc_over_limit_desc')->value,
-      'shipping_method' => $shippingMethod->label(),
-      'estimated_shipping_cost' => $this->currencyFormatter->format($price->getNumber(), $price->getCurrencyCode()),
+      'shipping_method' => 'Free Shipping',
+      'estimated_shipping_cost' => 0,
       'stripe_confirmation_code' => '',
       'use_shipping_account' => 'false',
       'shipping_account_no' => '',
@@ -211,6 +205,17 @@ class Order implements ContainerInjectionInterface {
         'setting' => $setting,
       ],
     ];
+
+    if ($order->hasField('shipments')) {
+      /** @var \Drupal\commerce_shipping\Entity\ShipmentInterface $shipments */
+      $shipments = $order->get('shipments')->entity;
+
+      $shippingMethod = $shipments->getShippingMethod();
+      $price = $shipments->getAmount();
+      $this->orderData['shipping_method'] = $shippingMethod->label();
+      $this->orderData['estimated_shipping_cost'] = $this->currencyFormatter
+        ->format($price->getNumber(), $price->getCurrencyCode());
+    }
 
     $this->setPaymentInfo($order);
 
