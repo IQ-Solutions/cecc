@@ -2,11 +2,11 @@
 
 namespace Drupal\cecc_api\Service;
 
-use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_price\CurrencyFormatter;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerTrait;
@@ -73,7 +73,31 @@ class Order implements ContainerInjectionInterface {
    *
    * @var array
    */
-  public $orderData;
+  public $orderData = [
+    'source_order_id' => '',
+    'warehouse_organization_id' => '',
+    'project_id' => '',
+    'order_date' => '',
+    'order_type' => 'web',
+    'email' => '',
+    'complete' => FALSE,
+    'is_overlimit' => 'false',
+    'event_location' => NULL,
+    'event_name' => NULL,
+    'overlimit_comments' => NULL,
+    'shipping_method' => 'Free Shipping',
+    'estimated_shipping_cost' => 0,
+    'stripe_confirmation_code' => '',
+    'use_shipping_account' => 'false',
+    'shipping_account_no' => '',
+    'cart' => NULL,
+    'shipping_address' => NULL,
+    'billing_address' => NULL,
+    'customer_questions' => [
+      'profession' => '',
+      'setting' => '',
+    ],
+  ];
 
   /**
    * The currency formatter service.
@@ -81,6 +105,20 @@ class Order implements ContainerInjectionInterface {
    * @var \Drupal\commerce_price\CurrencyFormatter
    */
   public $currencyFormatter;
+
+  /**
+   * The currency formatter service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  public $moduleHandler;
+
+  /**
+   * Order object.
+   *
+   * @var \Drupal\commerce_order\Entity\OrderInterface
+   */
+  public $order;
 
   /**
    * Service config and DI.
@@ -97,6 +135,8 @@ class Order implements ContainerInjectionInterface {
    *   The telephone number formatter service.
    * @param \Drupal\commerce_price\CurrencyFormatter $currency_formatter
    *   The currency formatter service.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler service.
    */
   public function __construct(
     ClientFactory $http_client_factory,
@@ -104,7 +144,8 @@ class Order implements ContainerInjectionInterface {
     EntityTypeManagerInterface $entity_type_manager,
     ConfigFactory $configFactory,
     Formatter $telephone_formatter,
-    CurrencyFormatter $currency_formatter
+    CurrencyFormatter $currency_formatter,
+    ModuleHandlerInterface $module_handler
   ) {
     $this->config = $configFactory->get('cecc_api.settings');
     $this->httpClient = $http_client_factory->fromOptions([
@@ -114,6 +155,7 @@ class Order implements ContainerInjectionInterface {
     $this->entityTypeManager = $entity_type_manager;
     $this->telephoneFormatter = $telephone_formatter;
     $this->currencyFormatter = $currency_formatter;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -126,8 +168,157 @@ class Order implements ContainerInjectionInterface {
       $container->get('entity_type.manager'),
       $container->get('config.factory'),
       $container->get('telephone_formatter.formatter'),
-      $container->get('commerce_price.currency_formatter')
+      $container->get('commerce_price.currency_formatter'),
+      $container->get('module_handler')
     );
+  }
+
+  /**
+   * Sets the order being sent.
+   *
+   * @param int $id
+   *   The order id.
+   */
+  private function setOrder($id) {
+    $this->order = $this->entityTypeManager->getStorage('commerce_order')
+      ->load($id);
+  }
+
+  /**
+   * Adds additional info data to data array.
+   */
+  private function loadAdditionalInformation() {
+    if ($this->order->hasField('field_setting')) {
+      $this->orderData['customer_questions']['setting']
+        = $this->order->get('field_setting')->value;
+    }
+
+    if ($this->order->hasField('field_order_occupation')) {
+      $this->orderData['customer_questions']['profession']
+        = $this->order->get('field_order_occupation')->value;
+    }
+  }
+
+  /**
+   * Gets items from an order.
+   *
+   * @return array
+   *   Array of order items.
+   */
+  private function getOrderItems() {
+    $orderItems = [];
+
+    foreach ($this->order->getItems() as $orderItem) {
+      $purchasedEntity = $orderItem->getPurchasedEntity();
+      $quantity = $orderItem->getQuantity();
+      $overLimitValue = $purchasedEntity->get('field_cecc_order_limit')->value;
+
+      $orderArray = [
+        'sku' => $purchasedEntity->get('sku')->value,
+        'warehouse_item_id' => $purchasedEntity->get('field_cecc_warehouse_item_id')->value,
+        'quantity' => (int) $orderItem->getQuantity(),
+      ];
+
+      $orderItems[] = $orderArray;
+
+      if (!$this->isOverLimit) {
+        $this->isOverLimit = $quantity > $overLimitValue;
+      }
+    }
+
+    return $orderItems;
+  }
+
+  /**
+   * Set order profiles.
+   */
+  private function setOrderProfiles() {
+    $customerProfiles = $this->order->collectProfiles();
+    $this->setCustomerInformation($customerProfiles);
+  }
+
+  /**
+   * Set the order number.
+   */
+  private function setOrderData() {
+    $this->orderData['source_order_id'] = $this->order->getOrderNumber();
+    $this->orderData['order_date'] = date('c', $this->order->getCreatedTime());
+    $this->orderData['email'] = $this->order->getEmail();
+    $this->orderData['complete'] = $this->order->getState()->getId() == 'completed';
+  }
+
+  /**
+   * Set the order number.
+   */
+  private function setStoreData() {
+    $store = $this->order->getStore();
+    $this->orderData['warehouse_organization_id']
+      = $store->get('field_warehouse_organization_id')->value;
+    $this->orderData['project_id']
+      = $store->get('field_project_id')->value;
+  }
+
+  /**
+   * Set order item data.
+   */
+  private function setOrderItems() {
+    $cart = $this->getOrderItems();
+
+    $this->orderData['cart'] = $cart;
+    $this->orderData['is_overlimit'] = $this->isOverLimit ? 'true' : 'false';
+    $this->orderData['event_location'] =
+      $this->order->get('field_event_location')->isEmpty()
+      ? NULL : $this->order->get('field_event_location')->value;
+    $this->orderData['event_name'] =
+      $this->order->get('field_event_name')->isEmpty()
+      ? NULL : $this->order->get('field_event_name')->value;
+    $this->orderData['overlimit_comments'] =
+      $this->order->get('field_cecc_over_limit_desc')->isEmpty()
+      ? NULL : $this->order->get('field_cecc_over_limit_desc')->value;
+  }
+
+  /**
+   * Sets the order payment information.
+   */
+  private function setPaymentInfo() {
+    /** @var \Drupal\commerce_payment\PaymentStorageInterface $commercePaymentStorage */
+    $commercePaymentStorage = $this->entityTypeManager->getStorage('commerce_payment');
+    /** @var \Drupal\commerce_payment\Entity\PaymentInterface[] $payments */
+    $payments = $commercePaymentStorage->loadMultipleByOrder($this->order);
+
+    foreach ($payments as $payment) {
+      if (empty($payment)) {
+        continue;
+      }
+
+      $paymentGateway = $payment->getPaymentGateway()->getPluginId();
+      $paymentMethod = $payment->getPaymentMethod();
+
+      if ($paymentGateway == 'stripe') {
+        $this->orderData['stripe_confirmation_code'] = $paymentMethod->getRemoteId();
+      }
+      elseif ($paymentGateway == 'cecc_shipping_account') {
+        $this->orderData['use_shipping_account'] = 'true';
+        $this->orderData['shipping_account_no'] = $paymentMethod->label();
+      }
+
+    }
+  }
+
+  /**
+   * Sets shipping cost and method.
+   */
+  private function setShippingInfo() {
+    if ($this->order->hasField('shipments')) {
+      /** @var \Drupal\commerce_shipping\Entity\ShipmentInterface $shipments */
+      $shipments = $this->order->get('shipments')->entity;
+
+      $shippingMethod = $shipments->getShippingMethod();
+      $price = $shipments->getAmount();
+      $this->orderData['shipping_method'] = $shippingMethod->label();
+      $this->orderData['estimated_shipping_cost'] = $this->currencyFormatter
+        ->format($price->getNumber(), $price->getCurrencyCode());
+    }
   }
 
   /**
@@ -148,76 +339,28 @@ class Order implements ContainerInjectionInterface {
       return self::API_NOT_CONFIGURED;
     }
 
-    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
-    $order = $this->entityTypeManager->getStorage('commerce_order')
-      ->load($id);
+    $this->setOrder($id);
 
-    if (is_null($order)) {
+    if (is_null($this->order)) {
       $this->logger->warning('Order does not exist: @id', ['@id', $id]);
       return self::ORDER_DOES_NOT_EXIST;
     }
 
-    /** @var \Drupal\commerce_store\StoreStorageInterface $storeStorage */
-    $storeStorage = $this->entityTypeManager->getStorage('commerce_store');
+    $this->setOrderData();
+    $this->setStoreData();
+    $this->setOrderItems();
 
-    /** @var \Drupal\commerce_store\Entity\StoreInterface $store */
-    $store = $storeStorage->loadDefault();
+    $this->loadAdditionalInformation();
 
-    $setting = $order->get('field_setting')->value;
-
-    $cart = $this->getOrderItems($order);
-    $customerProfiles = $order->collectProfiles();
-    $profile = $this->getCustomerInformation($customerProfiles);
-
-    try {
-      $professionObj = $order->get('field_order_occupation');
-
-      $profession = $professionObj->value;
-    }
-    catch (\InvalidArgumentException $e) {
-      $profession = $profile['shipping_address']['profession'];
+    if ($this->moduleHandler->moduleExists('commerce_payment')) {
+      $this->setPaymentInfo();
     }
 
-    unset($profile['shipping_address']['profession'], $profile['billing_address']['profession']);
-
-    $this->orderData = [
-      'source_order_id' => $order->getOrderNumber(),
-      'warehouse_organization_id' => $store->get('field_warehouse_organization_id')->value,
-      'project_id' => $store->get('field_project_id')->value,
-      'order_date' => date('c', $order->getCreatedTime()),
-      'order_type' => 'web',
-      'email' => $order->getEmail(),
-      'complete' => $order->getState()->getId() == 'completed',
-      'is_overlimit' => $this->isOverLimit ? 'true' : 'false',
-      'event_location' => $order->get('field_event_location')->isEmpty() ? NULL : $order->get('field_event_location')->value,
-      'event_name' => $order->get('field_event_name')->isEmpty() ? NULL : $order->get('field_event_name')->value,
-      'overlimit_comments' => $order->get('field_cecc_over_limit_desc')->isEmpty() ? NULL : $order->get('field_cecc_over_limit_desc')->value,
-      'shipping_method' => 'Free Shipping',
-      'estimated_shipping_cost' => 0,
-      'stripe_confirmation_code' => '',
-      'use_shipping_account' => 'false',
-      'shipping_account_no' => '',
-      'cart' => $cart,
-      'shipping_address' => $profile['shipping_address'],
-      'billing_address' => $profile['billing_address'],
-      'customer_questions' => [
-        'profession' => $profession,
-        'setting' => $setting,
-      ],
-    ];
-
-    if ($order->hasField('shipments')) {
-      /** @var \Drupal\commerce_shipping\Entity\ShipmentInterface $shipments */
-      $shipments = $order->get('shipments')->entity;
-
-      $shippingMethod = $shipments->getShippingMethod();
-      $price = $shipments->getAmount();
-      $this->orderData['shipping_method'] = $shippingMethod->label();
-      $this->orderData['estimated_shipping_cost'] = $this->currencyFormatter
-        ->format($price->getNumber(), $price->getCurrencyCode());
+    if ($this->moduleHandler->moduleExists('commerce_shipping')) {
+      $this->setShippingInfo();
     }
 
-    $this->setPaymentInfo($order);
+    $this->setOrderProfiles();
 
     if ($this->config->get('debug') == 0) {
       try {
@@ -264,103 +407,40 @@ class Order implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets the order payment information.
+   * Set order shipping information.
    *
-   * @param \Drupal\commerce_order\Entity\OrderInterface $order
-   *   The order object.
-   */
-  private function setPaymentInfo(OrderInterface $order) {
-    /** @var \Drupal\commerce_payment\PaymentStorageInterface $commercePaymentStorage */
-    $commercePaymentStorage = $this->entityTypeManager->getStorage('commerce_payment');
-    /** @var \Drupal\commerce_payment\Entity\PaymentInterface[] $payments */
-    $payments = $commercePaymentStorage->loadMultipleByOrder($order);
-
-    foreach ($payments as $payment) {
-      if (empty($payment)) {
-        continue;
-      }
-
-      $paymentGateway = $payment->getPaymentGateway()->getPluginId();
-      $paymentMethod = $payment->getPaymentMethod();
-
-      if ($paymentGateway == 'stripe') {
-        $this->orderData['stripe_confirmation_code'] = $paymentMethod->getRemoteId();
-      }
-      elseif ($paymentGateway == 'cecc_shipping_account') {
-        $this->orderData['use_shipping_account'] = 'true';
-        $this->orderData['shipping_account_no'] = $paymentMethod->label();
-      }
-
-    }
-  }
-
-  /**
-   * Gets items from an order.
-   *
-   * @param \Drupal\commerce_order\Entity\OrderInterface $order
-   *   The order entity.
-   *
-   * @return array
-   *   Array of order items.
-   */
-  private function getOrderItems(OrderInterface $order) {
-    $orderItems = [];
-
-    foreach ($order->getItems() as $orderItem) {
-      $purchasedEntity = $orderItem->getPurchasedEntity();
-      $quantity = $orderItem->getQuantity();
-      $overLimitValue = $purchasedEntity->get('field_cecc_order_limit')->value;
-
-      $orderArray = [
-        'sku' => $purchasedEntity->get('sku')->value,
-        'warehouse_item_id' => $purchasedEntity->get('field_cecc_warehouse_item_id')->value,
-        'quantity' => (int) $orderItem->getQuantity(),
-      ];
-
-      $orderItems[] = $orderArray;
-
-      if (!$this->isOverLimit) {
-        $this->isOverLimit = $quantity > $overLimitValue;
-      }
-    }
-
-    return $orderItems;
-  }
-
-  /**
-   * Get order shipping information.
-
    * @param \Drupal\profile\Entity\ProfileInterface[] $customerProfiles
    *   Customer profiles.
-   *
-   * @return array
-   *   The address information in array format.
    */
-  private function getCustomerInformation(array $customerProfiles) {
-    $profiles = [];
-
+  private function setCustomerInformation(array $customerProfiles) {
     foreach ($customerProfiles as $type => $profile) {
       $addressArray = $profile->get('address')->getValue()[0];
       $phone = $profile->get('field_phone_number')->value;
       $phoneExt = $profile->get('field_extension')->value;
-      $profiles[$type . '_address']['first_name'] = $profile->get('field_first_name')->value;
-      $profiles[$type . '_address']['last_name'] = $profile->get('field_last_name')->value;
-      $profiles[$type . '_address']['company_name'] = $profile->get('field_organization')->value;
-      $profiles[$type . '_address']['address'] = $addressArray['address_line1'];
-      $profiles[$type . '_address']['street2'] = $addressArray['address_line2'];
-      $profiles[$type . '_address']['street3'] = '';
-      $profiles[$type . '_address']['suite_no'] = '';
-      $profiles[$type . '_address']['city'] = $addressArray['locality'];
-      $profiles[$type . '_address']['state'] = $addressArray['administrative_area'];
-      $profiles[$type . '_address']['zip'] = $addressArray['postal_code'];
-      $profiles[$type . '_address']['country'] = $addressArray['country_code'];
-      $profiles[$type . '_address']['phone'] = !empty($phone) ? $this->telephoneFormatter
-        ->format($phone, 2, 'US') : NULL;
-      $profiles[$type . '_address']['phone_ext'] = $phoneExt;
-      $profiles[$type . '_address']['profession'] = $profile->get('field_occupation')->value;
+      $type = $type == 'cecc_shipping' ? 'shipping' : $type;
+      $this->orderData[$type . '_address']['first_name']
+        = $profile->get('field_first_name')->value;
+      $this->orderData[$type . '_address']['last_name']
+        = $profile->get('field_last_name')->value;
+      $this->orderData[$type . '_address']['company_name']
+        = $profile->get('field_organization')->value;
+      $this->orderData[$type . '_address']['address']
+        = $addressArray['address_line1'];
+      $this->orderData[$type . '_address']['street2']
+        = $addressArray['address_line2'];
+      $this->orderData[$type . '_address']['street3'] = '';
+      $this->orderData[$type . '_address']['suite_no'] = '';
+      $this->orderData[$type . '_address']['city'] = $addressArray['locality'];
+      $this->orderData[$type . '_address']['state']
+        = $addressArray['administrative_area'];
+      $this->orderData[$type . '_address']['zip']
+        = $addressArray['postal_code'];
+      $this->orderData[$type . '_address']['country']
+        = $addressArray['country_code'];
+      $this->orderData[$type . '_address']['phone'] = !empty($phone)
+        ? $this->telephoneFormatter->format($phone, 2, 'US') : NULL;
+      $this->orderData[$type . '_address']['phone_ext'] = $phoneExt;
     }
-
-    return $profiles;
   }
 
 }

@@ -1,0 +1,5 @@
+services:
+  cecc_free_shipping.profile_subscriber:
+    class: Drupal\cecc_free_shipping\EventSubscriber\ProfileSubscriber
+    tags:
+      - { name: 'event_subscriber' }

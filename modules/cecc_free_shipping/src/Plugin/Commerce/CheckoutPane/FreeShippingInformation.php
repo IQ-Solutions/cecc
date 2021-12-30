@@ -90,6 +90,7 @@ class FreeShippingInformation extends CheckoutPaneBase implements CheckoutPaneIn
         'uid' => 0,
       ]);
     }
+    /** @var \Drupal\commerce_order\Plugin\Commerce\InlineForm\CustomerProfile $inline_form */
     $inline_form = $this->inlineFormManager->createInstance('customer_profile', [
       'profile_scope' => 'cecc_shipping',
       'available_countries' => $this->order->getStore()->getBillingCountries(),

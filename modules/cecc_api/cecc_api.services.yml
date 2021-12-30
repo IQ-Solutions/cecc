@@ -50,3 +50,4 @@ services:
       - '@config.factory'
       - '@telephone_formatter.formatter'
       - '@commerce_price.currency_formatter'
+      - '@module_handler'
