@@ -6,3 +6,10 @@ services:
       - '@config.factory'
       - '@request_stack'
       - '@module_handler'
+  cecc.cart_event_subscriber:
+    class: Drupal\cecc\EventSubscriber\CartRedirectionSubscriber
+    arguments:
+      - '@request_stack'
+      - '@router.route_provider'
+    tags:
+      - { name: event_subscriber }
