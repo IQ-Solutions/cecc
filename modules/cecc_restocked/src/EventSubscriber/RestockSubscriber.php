@@ -101,8 +101,9 @@ class RestockSubscriber implements EventSubscriberInterface {
   public function onRestock(RestockEvent $event) {
     $productVariation = $event->productVariation;
     $product = $productVariation->getProduct();
+    $flag = $this->flag->getFlagById('cecc_request_restock');
     /** @var \Drupal\user\Entity\User[] $flagginUsers */
-    $flaggingUsers = $this->flag->getFlaggingUsers($product);
+    $flaggingUsers = $this->flag->getFlaggingUsers($product, $flag);
 
     if ($flaggingUsers) {
       $queue = $this->queueFactory->get('cecc_restock_notification');

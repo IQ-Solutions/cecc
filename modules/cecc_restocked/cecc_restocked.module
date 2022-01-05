@@ -15,17 +15,29 @@ function cecc_restocked_form_alter(
     $stockValidation = \Drupal::service('cecc_stock.stock_validation');
     /** @var \Drupal\flag\FlagLinkBuilderInterface $flagLinkBuilder */
     $flagLinkBuilder = \Drupal::service('flag.link_builder');
+    /** @var \Drupal\flag\FlagServiceInterface $flagService */
+    $flagService = \Drupal::service('flag');
+    $flag = $flagService->getFlagById('cecc_request_restock');
+    $currentUser = \Drupal::currentUser();
 
     // Check if in stock.
     $inStock = $stockValidation->checkProductStock($selected_variation);
 
     if (!$inStock) {
       $product = FormHelper::getSelectedProduct($formState);
-      $isAnonymous = \Drupal::currentUser()->isAnonymous();
+      $isAnonymous = $currentUser->isAnonymous();
 
       if (!$isAnonymous) {
         $form['actions']['restocked'] =
           $flagLinkBuilder->build('commerce_product', $product->id(), 'cecc_request_restock');
+        $flagging = $flagService->getFlagging($flag, $product);
+
+        if ($flagging) {
+          $form['actions']['flagged_restocked'] = [
+            '#type' => 'item',
+            '#markup' => t('Thank you. You will be notified when this publication is back in stock.')
+          ];
+        }
       }
       else {
         $form['actions']['restocked'] = [
