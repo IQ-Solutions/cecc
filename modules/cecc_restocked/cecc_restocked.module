@@ -28,11 +28,13 @@ function cecc_restocked_form_alter(
       $isAnonymous = $currentUser->isAnonymous();
 
       if (!$isAnonymous) {
-        $form['actions']['restocked'] =
-          $flagLinkBuilder->build('commerce_product', $product->id(), 'cecc_request_restock');
         $flagging = $flagService->getFlagging($flag, $product);
 
-        if ($flagging) {
+        if (!$flagging) {
+          $form['actions']['restocked'] =
+            $flagLinkBuilder->build('commerce_product', $product->id(), 'cecc_request_restock');
+        }
+        else {
           $form['actions']['flagged_restocked'] = [
             '#type' => 'item',
             '#markup' => t('Thank you. You will be notified when this publication is back in stock.')
@@ -43,15 +45,18 @@ function cecc_restocked_form_alter(
         $form['actions']['restocked'] = [
           '#weight' => 1,
           '#type' => 'link',
-          '#title' => t('Request Restock'),
+          '#title' => t('Request Restock to Get Notified'),
           '#attributes' => [
             'class' => [
               'usa-button',
               'usa-button--outline',
             ],
           ],
-          '#url' => Url::fromRoute('user.register'),
-          '#suffix' => '<div>You must be registered to request restock notifications.</div>'
+          '#url' => Url::fromRoute('user.login', [], [
+            'query' => [
+              'destination' => Url::fromRoute('<current>')->toString(),
+            ],
+          ]),
         ];
       }
       $form['actions']['submit']['#weight'] = 0;
