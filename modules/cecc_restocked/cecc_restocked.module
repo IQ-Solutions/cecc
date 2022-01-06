@@ -43,7 +43,6 @@ function cecc_restocked_form_alter(
               '</p></div></div>',
           ];
         }
-        }
       }
       else {
         $form['actions']['restocked'] = [
