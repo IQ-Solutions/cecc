@@ -37,8 +37,12 @@ function cecc_restocked_form_alter(
         else {
           $form['actions']['flagged_restocked'] = [
             '#type' => 'item',
-            '#markup' => t('Thank you. You will be notified when this publication is back in stock.')
+            '#markup' => '<div class="usa-alert usa-alert--warning usa-alert--no-icon"> ' .
+              '<div class="usa-alert__body"><p class="usa-alert__text">' .
+              t('Thank you. You will be notified when this publication is back in stock.') .
+              '</p></div></div>',
           ];
+        }
         }
       }
       else {
