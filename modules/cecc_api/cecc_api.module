@@ -31,7 +31,7 @@ function cecc_api_inventory_update() {
         $nextRefreshTime = strtotime('tomorrow 01:00');
     }
 
-    $stockRefresh = NULL; //$state->get($stateId);
+    $stockRefresh = $state->get($stateId);
 
     if ($stockRefresh === NULL) {
       $state->set($stateId, $nextRefreshTime);
