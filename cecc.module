@@ -4,6 +4,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Site\Settings;
 use Drupal\cecc\Service\FormHelper;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_theme().
@@ -170,4 +172,29 @@ function cecc_local_tasks_alter(&$local_tasks) {
   $local_tasks['user.register']['title'] = t('Create New Account');
   $local_tasks['user.pass']['title'] = t('Reset Your Password');
   $local_tasks['user.login']['title'] = t('Log In');
+}
+
+
+function cecc_entity_operation(EntityInterface $entity) {
+  $operations = [];
+
+  if ($entity->getEntityTypeId() == 'commerce_order') {
+    $operations['view_receipt'] = [
+      'title' => t('View Receipt'),
+      'url' => Url::fromRoute('cecc.view_receipt', [
+        'order' => $entity->id(),
+      ]),
+      'weight' => 50,
+    ];
+  }
+
+  return $operations;
+}
+
+function cecc_preprocess_commerce_order_receipt(&$variables) {
+ $order = $variables['order_entity'];
+ $profileViewBuilder = \Drupal::entityTypeManager()->getViewBuilder('profile');
+
+ //$variables['cecc_shipping_information'] =
+  //$profileViewBuilder->view($order->get('cecc_shipping_profile')->getEntity());
 }

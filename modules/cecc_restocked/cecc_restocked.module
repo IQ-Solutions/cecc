@@ -60,6 +60,7 @@ function cecc_restocked_form_alter(
               'destination' => Url::fromRoute('<current>')->toString(),
             ],
           ]),
+          '#suffix' => t('You will be required to create an account to receive this notification'),
         ];
       }
       $form['actions']['submit']['#weight'] = 0;

@@ -6,3 +6,14 @@ cecc.settings:
   requirements:
     _permission:
       'access commerce administration pages'
+
+cecc.view_receipt:
+  path: '/view-receipt/{order}'
+  defaults:
+    _controller: '\Drupal\cecc\Controller\CeccOrderReceipt:viewReceipt'
+  options:
+    parameters:
+      order:
+        type: entity:commerce_order
+  requirements:
+    _permission: 'view own order'
