@@ -190,7 +190,3 @@ function cecc_entity_operation(EntityInterface $entity) {
 
   return $operations;
 }
-
-function cecc_preprocess_commerce_order_receipt(&$variables) {
-  $variables['cecc_shipping_information'] = NULL;
-}
