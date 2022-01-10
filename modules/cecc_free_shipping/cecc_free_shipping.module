@@ -9,9 +9,13 @@ use Drupal\Core\Field\BaseFieldDefinition;
 function cecc_free_shipping_preprocess_commerce_order(&$variables) {
   /** @var Drupal\commerce_order\Entity\OrderInterface $order */
   $order = $variables['order_entity'];
-  $summary = \Drupal::service('commerce_shipping.order_shipment_summary')->build($order);
+  $profileViewBuilder = \Drupal::entityTypeManager()->getViewBuilder('profile');
+  $profile = $order->get('cecc_shipping_profile')->entity;
+  $summary = [];
+
+  $summary = $profileViewBuilder->view($profile);
   if (!empty($summary)) {
-    $variables['order']['cecc_shipping_information'] = $summary;
+    $variables['cecc_shipping_information'] = $summary;
   }
 }
 
@@ -21,7 +25,11 @@ function cecc_free_shipping_preprocess_commerce_order(&$variables) {
 function cecc_free_shipping_preprocess_commerce_order_receipt(&$variables) {
   /** @var Drupal\commerce_order\Entity\OrderInterface $order */
   $order = $variables['order_entity'];
-  $summary = \Drupal::service('commerce_shipping.order_shipment_summary')->build($order);
+  $profileViewBuilder = \Drupal::entityTypeManager()->getViewBuilder('profile');
+  $profile = $order->get('cecc_shipping_profile')->entity;
+  $summary = [];
+
+  $summary = $profileViewBuilder->view($profile);
   if (!empty($summary)) {
     $variables['cecc_shipping_information'] = $summary;
   }
