@@ -52,7 +52,9 @@ function cecc_restocked_form_alter(
           '#attributes' => [
             'class' => [
               'usa-button',
-              'usa-button--outline',
+              'usa-button--secondary',
+              'width-full',
+              'margin-x-0'
             ],
           ],
           '#url' => Url::fromRoute('user.login', [], [
@@ -60,7 +62,9 @@ function cecc_restocked_form_alter(
               'destination' => Url::fromRoute('<current>')->toString(),
             ],
           ]),
-          '#suffix' => t('You will be required to create an account to receive this notification'),
+          '#suffix' => '<div class="margin-top-1">' .
+            t('You will be required to create an account to receive this notification')
+            . '</div>',
         ];
       }
       $form['actions']['submit']['#weight'] = 0;

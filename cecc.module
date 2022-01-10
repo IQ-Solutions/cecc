@@ -192,9 +192,5 @@ function cecc_entity_operation(EntityInterface $entity) {
 }
 
 function cecc_preprocess_commerce_order_receipt(&$variables) {
- $order = $variables['order_entity'];
- $profileViewBuilder = \Drupal::entityTypeManager()->getViewBuilder('profile');
-
- //$variables['cecc_shipping_information'] =
-  //$profileViewBuilder->view($order->get('cecc_shipping_profile')->getEntity());
+  $variables['cecc_shipping_information'] = NULL;
 }
