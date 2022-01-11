@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_restocked\Plugin\QueueWorker;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Mail\MailManagerInterface;
@@ -9,6 +10,7 @@ use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\RequeueException;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Utility\Token;
 use Drupal\flag\FlagServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -47,6 +49,20 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
   protected $flag;
 
   /**
+   * The token service.
+   *
+   * @var \Drupal\Core\Utility\Token
+   */
+  protected $token;
+
+  /**
+   * Drupal config service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  private $configFactory;
+
+  /**
    * Queueworker Construct.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -57,16 +73,20 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
    *   Drupal mail manager service.
    * @param \Drupal\flag\FlagServiceInterface $flag
    *   The flag service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory,
     MailManagerInterface $mailManager,
-    FlagServiceInterface $flag) {
+    FlagServiceInterface $flag,
+    ConfigFactoryInterface $config_factory) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_restocked');
     $this->mailManager = $mailManager;
     $this->flag = $flag;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -77,12 +97,28 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
     array $configuration,
     $plugin_id,
     $plugin_definition) {
-    return new static(
+
+    $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('logger.factory'),
       $container->get('plugin.manager.mail'),
-      $container->get('flag')
+      $container->get('flag'),
+      $container->get('config.factory')
     );
+
+    $instance->setToken($container->get('token'));
+
+    return $instance;
+  }
+
+  /**
+   * Sets the token service.
+   *
+   * @param \Drupal\Core\Utility\Token $token
+   *   The token service.
+   */
+  public function setToken(Token $token) {
+    $this->token = $token;
   }
 
   /**
@@ -97,6 +133,7 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
     /** @var \Drupal\user\Entity\User $user */
     $user = $this->entityTypeManager->getStorage('user')
       ->load($item['user']);
+    $config = $this->configFactory->get('cecc_restocked.settings');
 
     if (is_null($product)) {
       $this->logger->warning('Product does not exist: @id', [
@@ -114,13 +151,15 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
       return FALSE;
     }
 
+    $message = $this->token->replace($config->get('text'), [
+      'commerce_product' => $product,
+    ]);
+
     $module = 'cecc_restocked';
     $key = 'restock_notification';
     $to = $user->getEmail();
     $params = [
-      'message' => $this->t('@product has been restocked.', [
-        '@product' => $product->getTitle(),
-      ]),
+      'message' => $message,
       'product_title' => $product->getTitle(),
     ];
 

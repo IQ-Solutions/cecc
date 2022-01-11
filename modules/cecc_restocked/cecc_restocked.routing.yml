@@ -1,0 +1,8 @@
+cecc_restocked.settings:
+  path: '/admin/commerce/cecc/stock/restock'
+  defaults:
+   _form: '\Drupal\cecc_restocked\Form\RestockedConfig'
+   _title: 'CEC Catalog Restock Config'
+  requirements:
+    _permission:
+      'administer site configuration'

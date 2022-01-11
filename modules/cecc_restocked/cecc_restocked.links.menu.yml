@@ -1,0 +1,5 @@
+cecc_restocked.config:
+  title: 'API'
+  parent: cecc_stock.config
+  description: 'Customer Engagement Center Catalog Restock configuration'
+  route_name: cecc_restocked.settings
