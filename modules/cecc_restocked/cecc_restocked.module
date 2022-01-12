@@ -63,7 +63,7 @@ function cecc_restocked_form_alter(
             ],
           ]),
           '#suffix' => '<div class="margin-top-1">' .
-            t('You will be required to create an account to receive this notification')
+            t('You will be required to create an account to receive this notification.')
             . '</div>',
         ];
       }
