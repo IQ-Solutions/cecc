@@ -5,6 +5,7 @@ namespace Drupal\cecc_api\Plugin\rest\resource;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\physical\Weight;
 use Drupal\physical\WeightUnit;
@@ -63,6 +64,13 @@ class PublicationResource extends ResourceBase {
   protected $fieldMapping;
 
   /**
+   * Generates a file url.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * Constructs a new object.
    *
    * @param array $configuration
@@ -81,6 +89,10 @@ class PublicationResource extends ResourceBase {
    *   The request object.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The request object.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory object.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file url generator service.
    */
   public function __construct(
     array $configuration,
@@ -91,7 +103,8 @@ class PublicationResource extends ResourceBase {
     AccountProxyInterface $current_user,
     Request $request,
     EntityTypeManagerInterface $entity_type_manager,
-    ConfigFactoryInterface $config_factory
+    ConfigFactoryInterface $config_factory,
+    FileUrlGeneratorInterface $file_url_generator
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
     $this->request = $request;
@@ -99,6 +112,7 @@ class PublicationResource extends ResourceBase {
     $this->entityTypeMananger = $entity_type_manager;
     $this->fieldMapping = $config_factory->get('cecc_api.publication_field_mapping');
     $this->config = $config_factory->get('cecc_api.settings');
+    $this->fileUrlGenerator = $file_url_generator;
   }
 
   /**
@@ -114,10 +128,19 @@ class PublicationResource extends ResourceBase {
       $container->get('current_user'),
       $container->get('request_stack')->getCurrentRequest(),
       $container->get('entity_type.manager'),
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('file_url_generator')
     );
   }
 
+  /**
+   * Maps DB fields to output fields.
+   *
+   * @param string $prefix
+   *   The table/entity prefix.
+   * @param string $field
+   *   The field name.
+   */
   private function mapField($prefix, $field) {
     $fieldName = $prefix . '_' . $field;
     $sendField = $this->fieldMapping->get($fieldName . '_send');
@@ -140,11 +163,6 @@ class PublicationResource extends ResourceBase {
   private function mapFieldValue($entity, $type, $fieldName) {
 
     switch ($type) {
-      case 'string':
-      case 'list_string':
-      case 'integer':
-        return $entity->get($fieldName)->value;
-
       case 'physical_measurement':
         $displayWeight = 0;
 
@@ -156,13 +174,6 @@ class PublicationResource extends ResourceBase {
         }
 
         return $displayWeight;
-
-      case 'datetime':
-        return $entity->get($fieldName)->value;
-
-      case 'text_with_summary':
-      case 'text_long':
-        return $entity->get($fieldName)->value;
 
       case 'entity_reference':
         $field = $entity->get($fieldName);
@@ -181,6 +192,8 @@ class PublicationResource extends ResourceBase {
 
         return $value;
 
+      default:
+        return $entity->get($fieldName)->value;
     }
   }
 
@@ -292,7 +305,7 @@ class PublicationResource extends ResourceBase {
       $file = $media->get('field_media_' . $mediaType)->entity;
       $fileUri = $file->getFileUri();
 
-      $filePath = $file->toUrl();
+      $filePath = $this->fileUrlGenerator->generateAbsoluteString($fileUri);
       $mediaLinks['src'] = $filePath ?: NULL;
     }
 
