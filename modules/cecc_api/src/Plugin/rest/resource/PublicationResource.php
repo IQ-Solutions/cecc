@@ -292,7 +292,7 @@ class PublicationResource extends ResourceBase {
       $file = $media->get('field_media_' . $mediaType)->entity;
       $fileUri = $file->getFileUri();
 
-      $filePath = file_create_url($fileUri);
+      $filePath = $file->toUrl();
       $mediaLinks['src'] = $filePath ?: NULL;
     }
 
