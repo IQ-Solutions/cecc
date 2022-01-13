@@ -32,7 +32,7 @@ class BrowsePublications extends BlockBase {
    *   A render array.
    */
   public function build() {
-    $viewUrl = Url::fromRoute('view.publications.browse_all')->toString();
+    $viewUrl = Url::fromRoute('view.cecc_publications.browse_all')->toString();
 
     return [
       '#description' => $this->t('Browse all publications'),
