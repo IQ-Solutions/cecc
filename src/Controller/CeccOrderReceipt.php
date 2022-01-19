@@ -7,7 +7,6 @@ use Drupal\commerce_order\OrderTotalSummaryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Render\AttachmentsResponseProcessorInterface;
 use Drupal\Core\Render\BareHtmlPageRenderer;
-use Drupal\Core\Render\HtmlResponseAttachmentsProcessor;
 use Drupal\Core\Render\Renderer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
