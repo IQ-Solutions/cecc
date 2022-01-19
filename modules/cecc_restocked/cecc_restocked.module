@@ -81,7 +81,7 @@ function cecc_restocked_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'restock_notification':
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+      $message['headers']['Content-Type'] = 'charset=UTF-8;';
       $message['headers']['Content-Transfer-Encoding'] = '8Bit';
       $message['from'] = $siteMail;
       $message['subject'] = t('@site_name Restock Notification for @product_title', [
