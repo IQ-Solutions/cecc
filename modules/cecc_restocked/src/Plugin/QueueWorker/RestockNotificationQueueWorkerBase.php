@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_restocked\Plugin\QueueWorker;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -151,7 +152,7 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
       return FALSE;
     }
 
-    $message = $this->token->replace($config->get('text'), [
+    $message = $this->token->replace(Html::escape($config->get('text')), [
       'commerce_product' => $product,
     ]);
 
