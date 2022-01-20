@@ -9,3 +9,10 @@ services:
       - '@queue'
     tags:
       - { name: 'event_subscriber' }
+
+  cecc_restocked.restock_mail:
+    class: Drupal\cecc_restocked\Mail\RestockMail
+    arguments:
+      - '@entity_type.manager'
+      - '@commerce.mail_handler'
+      - '@config.factory'

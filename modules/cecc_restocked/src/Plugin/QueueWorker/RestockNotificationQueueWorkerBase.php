@@ -2,16 +2,14 @@
 
 namespace Drupal\cecc_restocked\Plugin\QueueWorker;
 
-use Drupal\Component\Utility\Html;
+use Drupal\cecc_restocked\Mail\RestockMail;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\RequeueException;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Utility\Token;
 use Drupal\flag\FlagServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -64,13 +62,20 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
   private $configFactory;
 
   /**
+   * The restock notification service.
+   *
+   * @var \Drupal\cecc_restocked\Mail\RestockMail
+   */
+  private $restockMail;
+
+  /**
    * Queueworker Construct.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Entity Type Manager service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   Drupal logger service.
-   * @param \Drupal\Core\Mail\MailManagerInterface $mailManager
+   * @param \Drupal\cecc_restocked\Mail\RestockMail $restock_mail
    *   Drupal mail manager service.
    * @param \Drupal\flag\FlagServiceInterface $flag
    *   The flag service.
@@ -80,12 +85,12 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory,
-    MailManagerInterface $mailManager,
+    RestockMail $restock_mail,
     FlagServiceInterface $flag,
     ConfigFactoryInterface $config_factory) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_restocked');
-    $this->mailManager = $mailManager;
+    $this->restockMail = $restock_mail;
     $this->flag = $flag;
     $this->configFactory = $config_factory;
   }
@@ -102,24 +107,12 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
     $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('logger.factory'),
-      $container->get('plugin.manager.mail'),
+      $container->get('cecc_restocked.restock_mail'),
       $container->get('flag'),
       $container->get('config.factory')
     );
 
-    $instance->setToken($container->get('token'));
-
     return $instance;
-  }
-
-  /**
-   * Sets the token service.
-   *
-   * @param \Drupal\Core\Utility\Token $token
-   *   The token service.
-   */
-  public function setToken(Token $token) {
-    $this->token = $token;
   }
 
   /**
@@ -134,10 +127,9 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
     /** @var \Drupal\user\Entity\User $user */
     $user = $this->entityTypeManager->getStorage('user')
       ->load($item['user']);
-    $config = $this->configFactory->get('cecc_restocked.settings');
 
     if (is_null($product)) {
-      $this->logger->warning('Product does not exist: @id', [
+      $this->logger->warning('Attempted to send restock notification for product that does not exist: @id', [
         '@id',
         $item['product'],
       ]);
@@ -145,31 +137,17 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
     }
 
     if (is_null($user)) {
-      $this->logger->warning('User does not exist: @id', [
+      $this->logger->warning('Attempted to send restock notification to user that does not exist: @id', [
         '@id',
         $item['user'],
       ]);
+
       return FALSE;
     }
 
-    $message = $this->token->replace(Html::escape($config->get('text')), [
-      'commerce_product' => $product,
-    ]);
+    $result = $this->restockMail->send($product, $user);
 
-    $module = 'cecc_restocked';
-    $key = 'restock_notification';
-    $to = $user->getEmail();
-    $params = [
-      'message' => $message,
-      'product_title' => $product->getTitle(),
-    ];
-
-    $langcode = $user->getPreferredLangcode();
-    $send = TRUE;
-
-    $result = $this->mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
-
-    if ($result['result'] !== TRUE) {
+    if (!$result['result']) {
       $this->logger->error('The message could not be sent');
       throw new RequeueException('The message could not be sent');
     }
