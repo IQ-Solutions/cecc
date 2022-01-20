@@ -147,7 +147,7 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
 
     $result = $this->restockMail->send($product, $user);
 
-    if (!$result['result']) {
+    if (!$result) {
       $this->logger->error('The message could not be sent');
       throw new RequeueException('The message could not be sent');
     }
