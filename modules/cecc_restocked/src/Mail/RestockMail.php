@@ -81,8 +81,8 @@ class RestockMail {
       '#theme' => 'cecc_restocked_notification',
       '#product' => $product,
       '#user' => $user,
-      'site_name' => $siteName,
-      'site_mail' => $siteMail,
+      '#site_name' => $siteName,
+      '#site_mail' => $siteMail,
     ];
 
     $params = [
