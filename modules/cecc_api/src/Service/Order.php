@@ -3,6 +3,7 @@
 namespace Drupal\cecc_api\Service;
 
 use Drupal\commerce_price\CurrencyFormatter;
+use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -321,23 +322,7 @@ class Order implements ContainerInjectionInterface {
     }
   }
 
-  /**
-   * Sends an order through the api.
-   *
-   * @param int $id
-   *   The order ID.
-   */
-  public function sendOrder($id) {
-    $agency = $this->config->get('agency');
-    $apiKey = $this->config->get('api_key');
-
-    if (empty($apiKey) || empty($agency)) {
-      $message = 'An API Key and service ID must be entered.';
-
-      $this->logger->error($message);
-
-      return self::API_NOT_CONFIGURED;
-    }
+  private function collectOrderData($id) {
 
     $this->setOrder($id);
 
@@ -361,6 +346,41 @@ class Order implements ContainerInjectionInterface {
     }
 
     $this->setOrderProfiles();
+
+  }
+
+  /**
+   * Sends Json view of order data.
+   *
+   * @param int $id
+   *   The order ID.
+   */
+  public function viewOrderAsJson($id) {
+    $this->collectOrderData($id);
+    $response = new CacheableJsonResponse($this->orderData);
+
+    return $response;
+  }
+
+  /**
+   * Sends an order through the api.
+   *
+   * @param int $id
+   *   The order ID.
+   */
+  public function sendOrder($id) {
+    $agency = $this->config->get('agency');
+    $apiKey = $this->config->get('api_key');
+
+    if (empty($apiKey) || empty($agency)) {
+      $message = 'An API Key and service ID must be entered.';
+
+      $this->logger->error($message);
+
+      return self::API_NOT_CONFIGURED;
+    }
+
+    $this->collectOrderData($id);
 
     if ($this->config->get('debug') == 0) {
       try {
