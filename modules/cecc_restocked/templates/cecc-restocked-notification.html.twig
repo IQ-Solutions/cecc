@@ -14,7 +14,7 @@
  */
 #}
 <p>Great News!</p>
-<p>The publication, <a href="{{ url('entity.commerce_product.canonical', {'commerce_product': product.id })}}" title="{{ product.display_title.value }}">{{ product.display_title.value }}</a>.</p>
+<p>The publication, <a href="{{ url('entity.commerce_product.canonical', {'commerce_product': product.id })}}" title="{{ product.title.value }}">{{ product.title.value }}</a>.</p>
 <p>Print copies can be ordered on the {{ site_name }} (<a href="{{ url('<front>') }}" title="{{ site_name }}">{{ url('<front>') }}</a>).</p>
 <p>If you have questions about this publication or ordering publications, email your request to <a href="mailto:{{ site_mail }}" title="{{ site_mail }}">{{ site_mail }}</a>.</p>
 <p>Questions?</p>
