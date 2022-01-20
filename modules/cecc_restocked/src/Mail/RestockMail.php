@@ -69,8 +69,11 @@ class RestockMail {
    */
   public function send(ProductInterface $product, User $user) {
     $siteConfig = $this->configFactory->get('system.site');
-    $siteMail = $siteConfig->get('mail');
-    $siteName = $siteConfig->get('name');
+    $ceccConfig = $this->configFactory->get('cecc.settings');
+    $siteMail = empty($ceccConfig->get('email_from')) ? $siteConfig->get('mail') :
+      $ceccConfig->get('email_from');
+    $siteName = empty($ceccConfig->get('email_from_name')) ? $siteConfig->get('name') :
+      $ceccConfig->get('email_from_name');
     $to = $user->getEmail();
 
     $subject = $this->t('Restock Notification for @product_title', [
