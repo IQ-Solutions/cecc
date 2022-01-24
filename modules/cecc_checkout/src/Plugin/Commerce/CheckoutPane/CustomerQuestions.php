@@ -75,7 +75,7 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
 
     if (!$this->order->get('field_order_occupation')->isEmpty()) {
 
-      $build['summary_display']['pub_setting'] = [
+      $build['summary_display']['pub_occupation'] = [
         '#type' => 'item',
         '#title' => $this->order->get('field_order_occupation')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_order_occupation')->value . '</p>',
