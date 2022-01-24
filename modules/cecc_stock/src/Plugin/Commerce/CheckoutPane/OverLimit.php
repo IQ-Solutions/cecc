@@ -57,6 +57,7 @@ class OverLimit extends CheckoutPaneBase {
    */
   public function defaultConfiguration() {
     return [
+      'pane_title' => 'Over Limit Order Request',
       'message' => [
         'value' => '<p>Requests for quantities above the limit are considered on a case-by-case basis. Please call the NINDS toll-free number <a href="tel:8003529424">800-352-9424</a> between 8:30 a.m. and 5:00 p.m. Eastern time, Monday through Friday, to place your order and explain how you plan to use our materials.</p><p>You have requested a quantity of product(s) NDS-169 greater than the limit we allow. You can lower your requested quantity OR We may be able to ship the full amount you have requested, but need more information.</p>',
         'format' => 'basic_html',
@@ -73,6 +74,14 @@ class OverLimit extends CheckoutPaneBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
+
+    $form['pane_title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Pane Title'),
+      '#description' => $this->t('The title of the pane.'),
+      '#default_value' => $this->configuration['pane_title'],
+      '#required' => TRUE,
+    ];
 
     $form['message'] = [
       '#type' => 'text_format',
@@ -123,6 +132,7 @@ class OverLimit extends CheckoutPaneBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
+      $this->configuration['pane_title'] = $values['pane_title'];
       $this->configuration['message'] = $values['message'];
       $this->configuration['form_message'] = $values['form_message'];
       $this->configuration['after_form_message'] = $values['after_form_message'];
@@ -162,6 +172,8 @@ class OverLimit extends CheckoutPaneBase {
       'commerce_order' => $this->order,
     ]);
 
+    $pane_form['#title'] = $this->configuration['pane_title'];
+
     $pane_form['message'] = [
       '#type' => 'markup',
       '#markup' => $message,
@@ -174,7 +186,7 @@ class OverLimit extends CheckoutPaneBase {
 
     $pane_form['field_event_name'] = [
       '#type' => 'textfield',
-      '#title' => 'Event Name',
+      '#title' => $this->order->get('field_event_name')->getFieldDefinition()->getLabel(),
       '#default_value' => $this->order->get('field_event_name')->isEmpty() ?
       NULL : $this->order->get('field_event_name')->value,
       '#required' => TRUE,
@@ -183,7 +195,7 @@ class OverLimit extends CheckoutPaneBase {
 
     $pane_form['field_event_location'] = [
       '#type' => 'textfield',
-      '#title' => 'Event Location (State)',
+      '#title' => $this->order->get('field_event_location')->getFieldDefinition()->getLabel(),
       '#default_value' => $this->order->get('field_event_location')->isEmpty() ?
       NULL : $this->order->get('field_event_location')->value,
       '#required' => TRUE,
@@ -192,7 +204,7 @@ class OverLimit extends CheckoutPaneBase {
 
     $pane_form['field_cecc_over_limit_desc'] = [
       '#type' => 'textarea',
-      '#title' => 'Description',
+      '#title' => $this->order->get('field_cecc_over_limit_desc')->getFieldDefinition()->getLabel(),
       '#default_value' => $this->order->get('field_cecc_over_limit_desc')->isEmpty() ?
       NULL : $this->order->get('field_cecc_over_limit_desc')->value,
       '#maxlength' => 1000,
