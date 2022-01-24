@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @CommerceCheckoutPane(
  *   id = "cecc_free_shipping_information",
- *   label = @Translation("Shipping information"),
+ *   label = @Translation("Shipping Information"),
  *   default_step = "shipping_information",
  *   wrapper_element = "fieldset",
  * )

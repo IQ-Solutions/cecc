@@ -252,7 +252,7 @@ class FormHelper implements FormHelperInterface {
         $form['captcha'] = [
           '#type' => 'captcha',
           '#captcha_type' => 'recaptcha/reCAPTCHA',
-          '#prefix' => $this->t('<span class="text-bold font-ui-lg">Captcha</span><br>This question is for testing whether or not you are a human visitor and to prevent automated spam submissions.'),
+          '#prefix' => $this->t('<span class="text-bold font-ui-lg">CAPTCHA</span><br>This question is for testing whether or not you are a human visitor and to prevent automated spam submissions.'),
         ];
       }
     }
