@@ -85,6 +85,14 @@ class CeccStockConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('order_over_limit_text'),
     ];
 
+    $form['quantity_limit_messaging']['order_over_limit_warning_text'] = [
+      '#name' => 'order_over_limit_warning_text',
+      '#type' => 'text_format',
+      '#title' => $this->t('Cart Over Limit Notification'),
+      '#description' => $this->t('Message shown on cart page when an item is over limit'),
+      '#default_value' => $config->get('order_over_limit_warning_text'),
+    ];
+
     $form['over_available stock_messaging']['over_stock_level'] = [
       '#name' => 'over_stock_level',
       '#type' => 'text_format',
@@ -116,6 +124,7 @@ class CeccStockConfigForm extends ConfigFormBase {
     $this->config('cecc_stock.settings')
       ->set('over_limit_text', $form_state->getValue('over_limit_text')['value'])
       ->set('order_over_limit_text', $form_state->getValue('order_over_limit_text')['value'])
+      ->set('order_over_limit_text', $form_state->getValue('order_over_limit_warning_text')['value'])
       ->set('over_stock_level', $form_state->getValue('over_stock_level')['value'])
       ->set('order_over_stock_level', $form_state->getValue('order_over_stock_level')['value'])
       ->set('hard_limit_order_quantity', $form_state->getValue('hard_limit_order_quantity'))

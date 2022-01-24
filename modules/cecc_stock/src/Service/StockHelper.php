@@ -160,6 +160,7 @@ class StockHelper {
 
       $orderItems = $order->getItems();
       $hasOverLimitItems = FALSE;
+      $stockConfig = $this->configFactory->get('cecc_stock.settings');
 
       foreach ($orderItems as $index => $orderItem) {
         $purchasedEntity = $orderItem->getPurchasedEntity();
@@ -188,7 +189,7 @@ class StockHelper {
       }
 
       if ($hasOverLimitItems) {
-        $this->messenger()->addWarning($this->t('Your cart has publications that are over the max order limit. When you checkout, please complete an order limit request form.'));
+        $this->messenger()->addWarning($stockConfig->get('order_over_limit_warning_text'));
       }
 
       // Force a check to display the stock state to the user.
