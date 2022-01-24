@@ -230,6 +230,13 @@ class OverLimit extends CheckoutPaneBase {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public function getDisplayLabel() {
+    return $this->configuration['pane_title'];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function buildPaneSummary() {
@@ -246,7 +253,6 @@ class OverLimit extends CheckoutPaneBase {
       $build = [
         'summary_display' => [
           '#type' => 'container',
-          '#title' => $this->configuration['pane_title'],
         ],
       ];
       $build['summary_display']['message'] = [
