@@ -246,7 +246,7 @@ class OverLimit extends CheckoutPaneBase {
       $build = [
         'summary_display' => [
           '#type' => 'container',
-          '#title' => $this->t('Over Limit Order Request'),
+          '#title' => $this->configuration['pane_title'],
         ],
       ];
       $build['summary_display']['message'] = [
@@ -256,13 +256,13 @@ class OverLimit extends CheckoutPaneBase {
 
       $build['summary_display']['field_event_name'] = [
         '#type' => 'item',
-        '#title' => 'Event Name',
+        '#title' => $this->order->get('field_event_name')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_event_name')->value . '</p>',
       ];
 
       $build['summary_display']['field_event_location'] = [
         '#type' => 'item',
-        '#title' => 'Event Location (State)',
+        '#title' => $this->order->get('field_event_location')->getFieldDefinition()->getLabel(),
         '#markup' => '<p>' . $this->order->get('field_event_location')->value . '</p>',
       ];
 
