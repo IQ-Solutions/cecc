@@ -286,7 +286,7 @@ class MigrateOrdersForm extends FormBase {
           'count' => 1,
         ];
 
-        \Drupal::logger('cecc_migrate')->info($title . '(' . $sku . ') failed to import.');
+        \Drupal::logger('cecc_migrate')->info($sku . '(' . $title . ') failed to import.');
       }
       else {
         $context['results']['failed_import'][$sku]['count']++;
