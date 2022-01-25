@@ -48,7 +48,7 @@ function cecc_restocked_form_alter(
         $form['actions']['restocked'] = [
           '#weight' => 1,
           '#type' => 'link',
-          '#title' => t('Request Restock to Get Notified'),
+          '#title' => t('Get Notified When This Publication Comes Back in Stock'),
           '#attributes' => [
             'class' => [
               'usa-button',
