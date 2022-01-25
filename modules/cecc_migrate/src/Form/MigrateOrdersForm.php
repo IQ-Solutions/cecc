@@ -173,6 +173,7 @@ class MigrateOrdersForm extends FormBase {
 
     if (empty($context['sandbox'])) {
       $context['results']['processed'] = 0;
+      $context['results']['failed_import'] = [];
       $context['sandbox']['progress'] = $skipFirstLine ? 1 : 0;
       $fileObj->seek(PHP_INT_MAX);
       $context['sandbox']['max'] = $fileObj->key();
@@ -184,18 +185,19 @@ class MigrateOrdersForm extends FormBase {
     if ($fileObj->valid()) {
       $line = $fileObj->current();
       if (!empty($line[1])) {
-        $status = self::migrateOrders($line);
+        $status = self::migrateOrders($line, $context);
 
         if ($status) {
           $context['results']['processed']++;
         }
       }
 
-      $context['message'] = t('Processing order item for order @order. @current/@orderItems | Updated: @updated', [
+      $context['message'] = t('Processing order item for order @order. @current/@orderItems | Updated: @updated | Failed Order Items: :failedImports', [
         '@order' => $line[1],
         '@orderItems' => $context['sandbox']['max'],
         '@current' => $context['sandbox']['progress'],
         '@updated' => $context['results']['processed'],
+        ':failedImports' => count($context['results']['failed_import']),
       ]);
 
       $context['sandbox']['progress']++;
@@ -212,11 +214,11 @@ class MigrateOrdersForm extends FormBase {
    * @param array $data
    *   The csv line data.
    */
-  public static function migrateOrders(array $data) {
+  public static function migrateOrders(array $data, &$context) {
 
     $title = $data[27];
     $quantity = (int) $data[18];
-    $sku = 'NINDS-' . trim($data[26]);
+    $sku = \Drupal::config('cecc_api.settings')->get('agency') . '-' . trim($data[26]);
 
     $user = self::getUser($data);
 
@@ -232,7 +234,7 @@ class MigrateOrdersForm extends FormBase {
     }
 
     $order = self::getOrder($data, $user, $profile);
-    $orderItem = self::getOrderItem($quantity, $sku, $title, $order);
+    $orderItem = self::getOrderItem($quantity, $sku, $title, $order, $context);
 
     if (!$order->hasItem($orderItem)) {
       $order = $order->addItem($orderItem);
@@ -258,7 +260,7 @@ class MigrateOrdersForm extends FormBase {
    * @return \Drupal\commerce_order\Entity\OrderItemInterface
    *   The order item.
    */
-  public static function getOrderItem($quantity, $sku, $title, OrderInterface $order) {
+  public static function getOrderItem($quantity, $sku, $title, OrderInterface $order, &$context) {
     $entityTypeManager = \Drupal::entityTypeManager();
     $orderItem = NULL;
     $productVariation = NULL;
@@ -276,6 +278,19 @@ class MigrateOrdersForm extends FormBase {
         'purchased_entity' => $productVariation->id(),
         'order_id' => $order->id(),
       ];
+    }
+    else {
+      if (!isset($context['results']['failed_import'][$sku])) {
+        $context['results']['failed_import'][$sku] = [
+          'title' => $title,
+          'count' => 1,
+        ];
+
+        \Drupal::logger('cecc_migrate')->info($title . '(' . $sku . ') failed to import.');
+      }
+      else {
+        $context['results']['failed_import'][$sku]['count']++;
+      }
     }
 
     /** @var \Drupal\commerce_order\Entity\OrderItem[] $orderItems */
@@ -334,23 +349,34 @@ class MigrateOrdersForm extends FormBase {
     $orderStates = [
       'InProcess' => 'fulfillment',
       'Closed' => 'completed',
+      'ClosedRequestOnly' => 'completed',
       'OnHold' => 'fulfillment',
       'Submitted' => 'fulfillment',
       'Cancelled' => 'canceled',
     ];
 
     if (empty($orderIds)) {
-      $order = Order::create([
+      $usingFreeShippingModule = \Drupal::moduleHandler()->moduleExists('cecc_free_shipping');
+
+      $orderMetaData = [
         'type' => 'cecc_publication',
         'state' => $orderStates[$data[31]],
         'mail' => $user->getEmail(),
         'uid' => $user->id(),
         'order_number' => $data[1],
-        'billing_profile' => $profile->createDuplicate(),
-        'shipping_profile' => $profile->createDuplicate(),
         'store_id' => 1,
         'placed' => strtotime($data[3]),
-      ]);
+      ];
+
+      if (!$usingFreeShippingModule) {
+        $orderMetaData['billing_profile'] = $profile->createDuplicate();
+        $orderMetaData['shipping_profile'] = $profile->createDuplicate();
+      }
+      else {
+        $orderMetaData['cecc_shipping_profile'] = $profile->createDuplicate();
+      }
+
+      $order = Order::create($orderMetaData);
       $order->save();
     }
     else {
@@ -458,8 +484,9 @@ class MigrateOrdersForm extends FormBase {
     $status = Messenger::TYPE_STATUS;
 
     if ($success) {
-      $message = t('@count orders imported.', [
+      $message = t('@count orders imported. @failed failed to import', [
         '@count' => $results['processed'],
+        '@failed' => count($results['failed_import']),
       ]);
 
       \Drupal::logger('cecc_migrate')->info($message);
