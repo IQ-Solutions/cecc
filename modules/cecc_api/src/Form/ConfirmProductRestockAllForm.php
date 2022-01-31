@@ -152,6 +152,13 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
           ]));
         }
       }
+      else {
+        $message = t('Could not update inventory for item with warehouse id: %warehouse_id', [
+          '%warehouse_id' => $data['warehouse_item_id'],
+        ]);
+        $logger->info($message);
+        $messenger->addStatus($message);
+      }
     }
 
     $start = $index * $batchSize + 1;

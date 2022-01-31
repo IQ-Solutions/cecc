@@ -178,7 +178,8 @@ class Stock implements ContainerInjectionInterface {
     $queue = $this->queueFactory->get('cecc_update_stock');
 
     foreach ($productVariations as $productVariation) {
-      $warehouse_record = array_search($productVariation->field_cecc_warehouse_item_id->value, array_column($response, 'warehouse_item_id'));
+      $warehouseItemId = trim($productVariation->field_cecc_warehouse_item_id->value);
+      $warehouse_record = array_search($warehouseItemId, array_column($response, 'warehouse_item_id'));
       $item = [
         'id' => $productVariation->id(),
         'new_stock_value' => $response[$warehouse_record]['warehouse_stock_on_hand'],
@@ -202,7 +203,9 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    $response = $this->inventoryApi->getSingleInventory($productVariation->get('field_cecc_warehouse_item_id')->value);
+    $warehouseItemId = trim($productVariation->field_cecc_warehouse_item_id->value);
+
+    $response = $this->inventoryApi->getSingleInventory($warehouseItemId);
 
     if (empty($response)) {
       $this->messenger()->addError($this->t('%label failed to update. Check the error logs for more information.', [
