@@ -243,7 +243,7 @@ class Order implements ContainerInjectionInterface {
    */
   private function setOrderData() {
     $this->orderData['source_order_id'] = $this->order->getOrderNumber();
-    $this->orderData['order_date'] = date('c', $this->order->getCreatedTime());
+    $this->orderData['order_date'] = date('c', $this->order->getPlacedTime());
     $this->orderData['email'] = $this->order->getEmail();
     $this->orderData['complete'] = $this->order->getState()->getId() == 'completed';
   }
