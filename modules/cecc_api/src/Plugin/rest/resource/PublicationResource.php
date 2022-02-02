@@ -193,7 +193,15 @@ class PublicationResource extends ResourceBase {
         return $value;
 
       default:
-        return $entity->get($fieldName)->value;
+        if ($fieldName == 'field_cecc_main_title') {
+          $value = $entity->get($fieldName)->isEmpty() ?
+            $entity->getTitle() : $entity->get($fieldName)->value;
+        }
+        else {
+          $value = $entity->get($fieldName)->value;
+        }
+
+        return $value;
     }
   }
 
