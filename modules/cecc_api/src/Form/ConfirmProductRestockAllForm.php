@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Drupal\cecc_api\Service\Stock;
+use Drupal\cecc_stock\Event\RestockEvent;
 use Drupal\Core\Entity\EntityStorageException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -124,6 +125,8 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
     $storage = \Drupal::entityTypeManager()->getStorage('commerce_product_variation');
     $logger = \Drupal::logger('cecc_api');
     $messenger = \Drupal::messenger();
+    /** @var \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher */
+    $eventDispatcher = \Drupal::service('event_dispatcher');
 
     foreach ($batchData as $data) {
       $cpvId = $storage->getQuery()
@@ -133,6 +136,11 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
       $productVariation = ProductVariation::load(reset($cpvId));
 
       if ($productVariation) {
+        if ($data['warehouse_stock_on_hand'] > $productVariation->field_cecc_stock->value) {
+          $restockEvent = new RestockEvent($productVariation);
+          $eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
+        }
+
         $productVariation->set('field_cecc_stock', $data['warehouse_stock_on_hand']);
 
         try {

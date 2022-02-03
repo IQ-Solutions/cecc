@@ -107,15 +107,12 @@ class ProductVariation implements EventSubscriberInterface {
     $productVariation = $event->getProductVariation();
     $inStock = $this->stockValidation->checkProductStock($productVariation);
     $lowStock = $this->stockValidation->isStockBelowThreshold($productVariation);
-    $productVariationStockState = $this->state->get(StockHelper::PVS_PREFIX . $productVariation->id());
+    $stateId = StockHelper::PVS_PREFIX . $productVariation->id();
+    $productVariationStockState = $this->state->get($stateId);
 
     if (!$inStock && is_null($productVariationStockState)) {
       $outStockEvent = new OutStockEvent($productVariation);
       $this->eventDispatcher->dispatch($outStockEvent, OutStockEvent::CECC_PRODUCT_VARIATION_OUT_STOCK);
-    }
-    elseif (!is_null($productVariationStockState)) {
-      $restockEvent = new RestockEvent($productVariation);
-      $this->eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
     }
     elseif ($lowStock && is_null($productVariationStockState)) {
       $lowStockEvent = new LowStockEvent($productVariation);

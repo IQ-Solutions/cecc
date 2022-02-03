@@ -142,6 +142,12 @@ class Stock implements ContainerInjectionInterface {
     );
   }
 
+  /**
+   * Is inventory API is active.
+   *
+   * @return bool
+   *   Return true is active. False if not active.
+   */
   private function isInventoryApiAvailable() {
     if (!$this->inventoryApi->apiActive) {
       $message = 'An API Key and service ID must be entered.';
@@ -160,14 +166,6 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    /** @var \Drupal\commerce_product\Entity\ProductVariationInterface[] $productVariations */
-    $productVariations = $this->entityTypeManager->getStorage('commerce_product_variation')->loadMultiple();
-
-    if (empty($productVariations)) {
-      $this->logger->warning('A publication refresh was attempted but found no publications.');
-      return FALSE;
-    }
-
     $response = $this->inventoryApi->getAllInventory();
 
     if (empty($response)) {
@@ -177,12 +175,10 @@ class Stock implements ContainerInjectionInterface {
 
     $queue = $this->queueFactory->get('cecc_update_stock');
 
-    foreach ($productVariations as $productVariation) {
-      $warehouseItemId = trim($productVariation->field_cecc_warehouse_item_id->value);
-      $warehouse_record = array_search($warehouseItemId, array_column($response, 'warehouse_item_id'));
+    foreach ($response as $warehouseRecord) {
       $item = [
-        'id' => $productVariation->id(),
-        'new_stock_value' => $response[$warehouse_record]['warehouse_stock_on_hand'],
+        'id' => $warehouseRecord['warehouse_item_id'],
+        'new_stock_value' => $warehouseRecord['warehouse_stock_on_hand'],
       ];
 
       $queue->createItem($item);

@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
+use Drupal\cecc_stock\Event\RestockEvent;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -9,10 +10,10 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\RequeueException;
-use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\http_client_manager\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Processes items for updating stocking value.
@@ -49,6 +50,13 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
   protected $httpClient;
 
   /**
+   * Event dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Queueworker Construct.
    *
    * @param \Drupal\http_client_manager\HttpClientInterface $http_client
@@ -59,16 +67,20 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    *   Entity Type Manager service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   Drupal logger service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   Event dispatcher service.
    */
   public function __construct(
     HttpClientInterface $http_client,
     ConfigFactory $configFactory,
     EntityTypeManagerInterface $entity_type_manager,
-    LoggerChannelFactoryInterface $loggerFactory) {
+    LoggerChannelFactoryInterface $loggerFactory,
+    EventDispatcherInterface $event_dispatcher) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_api');
     $this->config = $configFactory->get('cecc_api.settings');
     $this->httpClient = $http_client;
+    $this->eventDispatcher = $event_dispatcher;
   }
 
   /**
@@ -83,7 +95,8 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
       $container->get('cecc_api.http_client.contents'),
       $container->get('config.factory'),
       $container->get('entity_type.manager'),
-      $container->get('logger.factory')
+      $container->get('logger.factory'),
+      $container->get('event_dispatcher')
     );
   }
 
@@ -92,14 +105,25 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    */
   public function processItem($item) {
 
-    /**
-     * @var \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation
-     */
+    $productVariationIds = $this->entityTypeManager->getStorage('commerce_product_variation')
+      ->getQuery()
+      ->condition('field_cecc_warehouse_item_id', $item['id'])
+      ->execute();
+
+    if (empty($productVariationIds)) {
+      return FALSE;
+    }
+
+    /** @var \Drupal\commerce_product\Entity\ProductVariationInterface $productVariation */
     $productVariation = $this->entityTypeManager->getStorage('commerce_product_variation')
-      ->load($item['id']);
+      ->load(reset($productVariationIds));
 
     if (is_null($productVariation)) {
-      $this->logger->warning('Product does not exist: @id', ['@id', $item['id']]);
+      $this->logger->warning('Product does not exist: @id', ['@id' => $item['id']]);
+      return FALSE;
+    }
+
+    if ($item['new_stock_value'] <= $productVariation->field_cecc_stock->value) {
       return FALSE;
     }
 
@@ -108,6 +132,8 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
 
     try {
       $productVariation->save();
+      $restockEvent = new RestockEvent($productVariation);
+      $this->eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
       $this->logger->info('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
         '%level' => $productVariation->get('field_cecc_stock')->value,

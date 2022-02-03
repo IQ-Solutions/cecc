@@ -152,6 +152,10 @@ class RestockNotificationQueueWorkerBase extends QueueWorkerBase implements Cont
       throw new RequeueException('The message could not be sent');
     }
     else {
+      $this->logger->info('Restock notification sent to %user for %product.', [
+        '%user' => $user->getAccountName(),
+        '%product' => $product->getTitle(),
+      ]);
       $flag = $this->flag->getFlagById('cecc_request_restock');
       try {
         $this->flag->unflag($flag, $product, $user);
