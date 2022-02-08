@@ -3,6 +3,7 @@
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
 use Drupal\cecc_stock\Event\RestockEvent;
+use Drupal\cecc_stock\Service\StockValidation;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -57,6 +58,13 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
   protected $eventDispatcher;
 
   /**
+   * Stock Validation service.
+   *
+   * @var \Drupal\cecc_stock\Service\StockValidation
+   */
+  protected $stockValidation;
+
+  /**
    * Queueworker Construct.
    *
    * @param \Drupal\http_client_manager\HttpClientInterface $http_client
@@ -75,12 +83,14 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
     ConfigFactory $configFactory,
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory,
-    EventDispatcherInterface $event_dispatcher) {
+    EventDispatcherInterface $event_dispatcher,
+    StockValidation $stockValidation) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_api');
     $this->config = $configFactory->get('cecc_api.settings');
     $this->httpClient = $http_client;
     $this->eventDispatcher = $event_dispatcher;
+    $this->stockValidation = $stockValidation;
   }
 
   /**
@@ -96,7 +106,8 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
       $container->get('config.factory'),
       $container->get('entity_type.manager'),
       $container->get('logger.factory'),
-      $container->get('event_dispatcher')
+      $container->get('event_dispatcher'),
+      $container->get('cecc_stock.stock_validation')
     );
   }
 
@@ -123,17 +134,21 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
       return FALSE;
     }
 
-    if ($item['new_stock_value'] <= $productVariation->field_cecc_stock->value) {
-      return FALSE;
-    }
+    $previouslyInStock = $this->stockValidation->checkProductStock($productVariation);
 
     $productVariation->set('field_cecc_stock', $item['new_stock_value']);
     $productVariation->set('field_awaiting_stock_refresh', FALSE);
 
     try {
       $productVariation->save();
-      $restockEvent = new RestockEvent($productVariation);
-      $this->eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
+
+      $inStock = $this->stockValidation->checkProductStock($productVariation);
+
+      if (!$previouslyInStock && $inStock) {
+        $restockEvent = new RestockEvent($productVariation);
+        $this->eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
+      }
+
       $this->logger->info('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
         '%level' => $productVariation->get('field_cecc_stock')->value,
