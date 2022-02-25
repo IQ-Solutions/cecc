@@ -17,6 +17,11 @@
  * @ingroup themeable
  */
 #}
-<a href="{{ product_url }}" target="_blank" alt="{{ product_title }}">{{ product_title }} ({{ file_type }}, {{ file_size }})</a>
-
+<a target="_blank" href="{{ product_url }}" title="{{ product_title }}" class=" usa-button usa-button--secondary margin-x-0 margin-top-2 padding-x-0 width-full">
+  <svg class="usa-icon" aria-hidden="true" focusable="false" role="img">
+    <use xlink:href="/{{ directory }}/assets/img/sprite.svg#file_download"></use>
+  </svg>
+  &nbsp;Download PDF
+      ({{ file_size }})
+</a>
 

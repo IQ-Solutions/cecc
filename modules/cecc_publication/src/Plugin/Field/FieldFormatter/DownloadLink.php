@@ -2,11 +2,11 @@
 
 namespace Drupal\cecc_publication\Plugin\Field\FieldFormatter;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Field\FieldItemListInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceFormatterBase;
+use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
  * Plugin implementation of the download_link formatter.
@@ -20,14 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   }
  * )
  */
-class DownloadLink extends FormatterBase {
-
-  /**
-   * The entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  public $entityTypeManager;
+class DownloadLink extends EntityReferenceFormatterBase {
 
   /**
    * An array of mimetypes and labels.
@@ -41,63 +34,33 @@ class DownloadLink extends FormatterBase {
   ];
 
   /**
-   * Constructs a FormatterBase object.
-   *
-   * @param string $plugin_id
-   *   The plugin_id for the formatter.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
-   *   The definition of the field to which the formatter is associated.
-   * @param array $settings
-   *   The formatter settings.
-   * @param string $label
-   *   The formatter label display setting.
-   * @param string $view_mode
-   *   The view mode.
-   * @param array $third_party_settings
-   *   Any third party settings.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manage service.
+   * {@inheritdoc}
    */
-  public function __construct(
-    $plugin_id,
-    $plugin_definition,
-    FieldDefinitionInterface $field_definition,
-    array $settings,
-    $label,
-    $view_mode,
-    array $third_party_settings,
-    EntityTypeManagerInterface $entity_type_manager) {
-    parent::__construct(
-      $plugin_id,
-      $plugin_definition,
-      $field_definition,
-      $settings,
-      $label,
-      $view_mode,
-      $third_party_settings);
-
-    $this->entityTypeManager = $entity_type_manager;
+  public static function defaultSettings() {
+    return [
+      'disposition' => ResponseHeaderBag::DISPOSITION_INLINE,
+    ] + parent::defaultSettings();
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(
-    ContainerInterface $container,
-    array $configuration,
-    $plugin_id,
-    $plugin_definition) {
-    return new static(
-      $plugin_id,
-      $plugin_definition,
-      $configuration['field_definition'],
-      $configuration['settings'],
-      $configuration['label'],
-      $configuration['view_mode'],
-      $configuration['third_party_settings'],
-      $container->get('entity_type.manager'));
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $elements = parent::settingsForm($form, $form_state);
+    $elements['rel'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Add rel="nofollow" to links'),
+      '#return_value' => 'nofollow',
+      '#default_value' => $this->getSetting('rel'),
+    ];
+    $elements['target'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Open link in new window'),
+      '#return_value' => '_blank',
+      '#default_value' => $this->getSetting('target'),
+    ];
+
+    return $elements;
   }
 
   /**
@@ -106,6 +69,14 @@ class DownloadLink extends FormatterBase {
   public function settingsSummary() {
     $summary = [];
     $summary[] = $this->t('Displays the media as a link.');
+    $settings = $this->getSettings();
+    if ($settings['disposition'] == ResponseHeaderBag::DISPOSITION_ATTACHMENT) {
+      $summary[] = $this->t('Force "Save as..." dialog');
+    }
+    else {
+      $summary[] = $this->t('Display media in browser.');
+    }
+
     return $summary;
   }
 
@@ -114,16 +85,38 @@ class DownloadLink extends FormatterBase {
    */
   public static function isApplicable(FieldDefinitionInterface $field_definition) {
 
-    if ($field_definition->getFieldStorageDefinition()->getSetting('target_type') == 'media') {
-      $handlerSettings = $field_definition->getSetting('handler_settings');
+    // This formatter is only available for entity types that reference
+    // media items whose source field types are file.
+    $target_type = $field_definition->getFieldStorageDefinition()->getSetting('target_type');
 
-      if (!empty($handlerSettings)) {
-        $targetBundles = $handlerSettings['target_bundles'];
-        return (in_array('document', $targetBundles));
+    if ($target_type != 'media') {
+      return FALSE;
+    }
+
+    $handler_settings = $field_definition->getSetting('handler_settings');
+
+    if (!empty($handler_settings)) {
+      $media_bundles = $handler_settings['target_bundles'];
+
+      if (!isset($media_bundles)) {
+        return FALSE;
+      }
+
+      /** @var \Drupal\media\Entity\MediaType[] $media_types */
+      $media_types = \Drupal::entityTypeManager()->getStorage('media_type')
+        ->loadMultiple($media_bundles);
+
+      foreach ($media_types as $media_type) {
+        $source = $media_type->getSource();
+        $allowed_field_types = $source->getPluginDefinition()['allowed_field_types'];
+        if (!empty(array_diff($allowed_field_types, ['file']))) {
+          // In here means something other than file or image is allowed.
+          return FALSE;
+        }
       }
     }
 
-    return FALSE;
+    return TRUE;
   }
 
   /**
@@ -131,44 +124,31 @@ class DownloadLink extends FormatterBase {
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
     $elements = [];
+    /** @var \Drupal\media\Entity\Media[] $entities */
+    $entities = $this->getEntitiesToView($items, $langcode);
 
-    foreach ($items as $delta => $item) {
 
-      if (!isset($item->getValue()['target_id'])) {
+    foreach ($entities as $media) {
+      /** @var \Drupal\file\Entity\File $file */
+      $file = $media->field_media_document->entity;
+
+      if (empty($file)) {
         continue;
       }
 
       /** @var \Drupal\commerce_product\Entity\Product $product */
-      $product = $item->getEntity();
+      $product = $media->_referringItem->getEntity();
+      $file_size = $file->getSize();
+      $url = $file->createFileUrl();
 
-      // Get the media item.
-      $media_id = $item->getValue()['target_id'];
-      /** @var \Drupal\media\Entity\Media $mediaItem */
-      $mediaItem = $this->entityTypeManager->getStorage('media')->load($media_id);
-
-      /** @var \Drupal\file\Entity\File $file */
-      $file = $mediaItem->get('field_media_document')->entity;
-
-      if (!$file) {
-        continue;
-      }
-
-      $path = $file->createFileUrl();
-
-      $fileSize = $file->getSize();
-      $fileType = isset($this->mimeTypeList[$file->getMimeType()]) ?
-        $this->mimeTypeList[$file->getMimeType()] : NULL;
-
-      $elements[$delta] = [
+      $elements[] = [
         '#theme' => 'cecc_download_link',
-        '#media' => $mediaItem,
-        '#file' => $file,
+        '#media' => $media,
         '#product' => $product,
         '#product_title' => $product->get('field_cecc_display_title')->value,
-        '#product_url' => $path,
-        '#link_alt' => $mediaItem->getName(),
-        '#file_type' => $fileType,
-        '#file_size' => format_size($fileSize),
+        '#product_url' => $url,
+        '#link_alt' => $media->getName(),
+        '#file_size' => format_size($file_size),
       ];
     }
 
