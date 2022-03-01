@@ -3,9 +3,6 @@
 namespace Drupal\cecc_restocked\Mail;
 
 use Drupal\commerce\MailHandlerInterface;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\OrderTotalSummaryInterface;
-use Drupal\commerce_product\Entity\Product;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -70,6 +67,7 @@ class RestockMail {
   public function send(ProductInterface $product, User $user) {
     $siteConfig = $this->configFactory->get('system.site');
     $ceccConfig = $this->configFactory->get('cecc.settings');
+    $ceccRestockedConfig = $this->configFactory->get('cecc_restocked.settings');
     $siteMail = empty($ceccConfig->get('email_from')) ? $siteConfig->get('mail') :
       $ceccConfig->get('email_from');
     $siteName = empty($ceccConfig->get('email_from_name')) ? $siteConfig->get('name') :
@@ -99,6 +97,15 @@ class RestockMail {
     }
     else {
       return FALSE;
+    }
+
+    $restockNotificationEnabled = !is_null($ceccRestockedConfig->get('enable_restock_notification'))
+    ? $ceccRestockedConfig->get('enable_restock_notification') :
+      FALSE;
+
+    if (!$restockNotificationEnabled) {
+      \Drupal::logger('cecc_restocked')->info('Restock Notification Disabled.');
+      return TRUE;
     }
 
     return $this->mailHandler->sendMail($to, $subject, $body, $params);

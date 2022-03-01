@@ -32,6 +32,14 @@ class RestockedConfig extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('cecc_restocked.settings');
 
+    $form['enable_restock_notification'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable Restock Notifications'),
+      '#description' => $this->t('Enables restock notifications for the site.'),
+      '#default_value' => !is_null($config->get('enable_restock_notification'))
+      ? $config->get('enable_restock_notification') : 0,
+    ];
+
     $form['restocked_message'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Restocked Message'),
@@ -59,6 +67,7 @@ class RestockedConfig extends ConfigFormBase {
     $config = $this->configFactory()->getEditable('cecc_restocked.settings');
     $restockedMessage = $form_state->getValue('restocked_message');
     $config
+      ->set('enable_restock_notification', $form_state->getValue('enable_restock_notification'))
       ->set('text', $restockedMessage)
       ->save();
 
