@@ -117,15 +117,31 @@ class InventoryApi implements ContainerInjectionInterface {
    */
   private function connectToService($endpoint, array $params) {
     try {
+      /** @var \GuzzleHttp\Command\ResultInterface $response */
       $response = $this->httpClient
         ->call($endpoint, $params);
 
       if ($response['code'] != 200) {
-        $message = $this->t('The service failed with the following error: %error', [
+        $message = $this->t('Error Code: %code - The service failed with the following error: %error', [
           '%error' => $response['message'],
         ]);
 
         $this->logger->error($message);
+        $this->logger->error(print_r($response, TRUE));
+      }
+
+      if (!isset($response['Catalog'])) {
+        $message = $this->t('No catalog data was found.');
+
+        $this->logger->error($message);
+        $this->logger->error(print_r($response, TRUE));
+      }
+
+      if (isset($response['Catalog']) && empty($response['Catalog'])) {
+        $message = $this->t('Catalog data returned empty.');
+
+        $this->logger->error($message);
+        $this->logger->error(print_r($response, TRUE));
       }
 
       return $response;
