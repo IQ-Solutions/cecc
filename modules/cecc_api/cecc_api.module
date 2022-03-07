@@ -24,6 +24,12 @@ function cecc_api_inventory_update() {
     $stockRefreshInterval = $ceccApiConfig->get('stock_refresh_interval') ?: 'daily';
 
     switch ($stockRefreshInterval) {
+      case 'every12':
+        $nextRefreshTime = strtotime('+12 hour');
+        break;
+      case 'every6':
+        $nextRefreshTime = strtotime('+6 hour');
+        break;
       case 'hourly':
         $nextRefreshTime = strtotime('+1 hour');
         break;

@@ -74,6 +74,8 @@ class CeccApiConfig extends ConfigFormBase {
       '#description' => $this->t('How often should the stock refresh happen if interval refresh is used.'),
       '#default_value' => $config->get('stock_refresh_interval') ?: 'daily',
       '#options' => [
+        'every12' => $this->t('Every 12 hours'),
+        'every6' => $this->t('Every 6 hours'),
         'hourly' => $this->t('Hourly'),
         'daily' => $this->t('Daily'),
       ],
