@@ -25,10 +25,10 @@ function cecc_api_inventory_update() {
 
     switch ($stockRefreshInterval) {
       case 'every12':
-        $nextRefreshTime = strtotime('+12 hour');
+        $nextRefreshTime = strtotime('+12 hours');
         break;
       case 'every6':
-        $nextRefreshTime = strtotime('+6 hour');
+        $nextRefreshTime = strtotime('+6 hours');
         break;
       case 'hourly':
         $nextRefreshTime = strtotime('+1 hour');
