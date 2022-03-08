@@ -159,11 +159,14 @@ class Stock implements ContainerInjectionInterface {
 
   /**
    * Gets all inventory.
+   *
+   * @return bool
+   *   Returns true if connected to the API false if it failed.
    */
   public function refreshAllInventory() {
 
     if (!$this->isInventoryApiAvailable()) {
-      return;
+      return FALSE;
     }
 
     $response = $this->inventoryApi->getAllInventory();
@@ -185,6 +188,8 @@ class Stock implements ContainerInjectionInterface {
     }
 
     $this->logger->info('All publications have been queued for a stock update');
+
+    return TRUE;
   }
 
   /**
