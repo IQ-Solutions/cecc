@@ -34,7 +34,7 @@ function cecc_api_inventory_update() {
         $nextRefreshTime = strtotime('+1 hour');
         break;
       default:
-        $nextRefreshTime = strtotime('tomorrow 01:00');
+        $nextRefreshTime = strtotime('+1 day');
     }
 
     $stockRefresh = $state->get($stateId);
@@ -47,8 +47,9 @@ function cecc_api_inventory_update() {
 
     /** @var \Drupal\cecc_api\Service\Stock $stockApi */
     $stockApi = \Drupal::service('cecc_api.stock');
-    $stockApi->refreshAllInventory();
-    $state->set($stateId, $nextRefreshTime);
+    if ($stockApi->refreshAllInventory()) {
+      $state->set($stateId, $nextRefreshTime);
+    }
   }
 }
 
