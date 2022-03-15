@@ -131,4 +131,3 @@ function cecc_install($is_syncing) {
     $customerProfileDefaultViewDisplay->save();
   }
 }
-

@@ -51,3 +51,13 @@ function cecc_api_install($is_syncing) {
     $storeOnlineDefaultFormDisplay->save();
   }
 }
+
+/**
+ * Sets new API config settings.
+ */
+function cecc_api_update_9001() {
+  $configFactory = \Drupal::configFactory();
+  $config = $configFactory->getEditable('cecc_api.settings');
+  $config->set('stock_refresh_interval', 'daily');
+  $config->set('stock_refresh_type', 'interval');
+}
