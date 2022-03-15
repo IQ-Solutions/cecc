@@ -10,3 +10,12 @@ services:
     class: \Drupal\cecc_publication\Routing\PublicationRouteSubscriber
     tags:
       - { name: event_subscriber }
+
+  cecc_publication.product_event_subscriber:
+    class: \Drupal\cecc_publication\EventSubscriber\Product
+    arguments:
+      - '@logger.factory'
+      - '@config.factory'
+      - '@database'
+    tags:
+      - { name: event_subscriber }

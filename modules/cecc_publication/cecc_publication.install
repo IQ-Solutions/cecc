@@ -1,76 +1,164 @@
 <?php
 
-use Drupal\Core\Config\FileStorage;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\commerce_product\Entity\Product;
+use Drupal\Core\Database\SchemaObjectExistsException;
+use Drupal\views\Entity\View;
+use Symfony\Component\Yaml\Yaml;
 
 /**
- * Adds fields add through the UI as config if the module is already installed.
- *
- * @param array $entity_fields
- *   A 4 dimensional array. The first level is the entity types, the second is
- *   bundles, the third is the field you want to add, the fourth are any
- *   settings for that field. E.g.
- *   [
- *     'commerce_product_variation' => [
- *       'cecc_publication' => [
- *         'field_cecc_different_physical_ve' => [
- *           'type' => 'boolean_checkbox',
- *           'settings' => [
- *             'display_label' => 'true',
- *           ],
- *         ],
- *       ],
- *     ],
- *   ]
+ * Implements hook_schema().
  */
-function _processAddFields(array $entity_fields) {
-  $modulePath = \Drupal::moduleHandler()->getModule('cecc_publication')->getPath();
-  $configDirectory = new FileStorage($modulePath . '/config/install');
+function cecc_publication_schema() {
+  $schema['cecc_publication_taxonomy_index'] = [
+    'description' => 'Maintains denormalized information about commerce_product/term relationships.',
+    'fields' => [
+      'product_id' => [
+        'description' => 'The {commerce_product}.product_id this record tracks.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'tid' => [
+        'description' => 'The term ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'status' => [
+        'description' => 'Boolean indicating whether the commerce_product is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ],
+      'created' => [
+        'description' => 'The Unix timestamp when the commerce_product was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['product_id', 'tid'],
+    'indexes' => [
+      'term_commerce_product' => ['tid', 'status', 'created'],
+    ],
+    'foreign keys' => [
+      'tracked_commerce_product' => [
+        'table' => 'commerce_product',
+        'columns' => ['product_id' => 'product_id'],
+      ],
+      'term' => [
+        'table' => 'taxonomy_term_data',
+        'columns' => ['tid' => 'tid'],
+      ],
+    ],
+  ];
+  return $schema;
+}
 
-  foreach ($entity_fields as $entityType => $bundles) {
-    foreach ($bundles as $bundle => $fields) {
-      foreach ($fields as $field => $settings) {
-        $fieldStorageName = 'field.storage.' . $entityType . '.' . $field;
-        $configRecord = $configDirectory->read($fieldStorageName);
-        $fieldStorage = FieldStorageConfig::loadByName(
-          $configRecord['entity_type'],
-          $configRecord['field_name']);
+/**
+ * Implements hook_install().
+ */
+function cecc_publication_install() {
+  $query = \Drupal::entityTypeManager()->getStorage('commerce_product')->getQuery()
+    ->condition('status', 1);
+  $product_ids = $query->execute();
 
-        if (!$fieldStorage) {
-          $fieldStorage = FieldStorageConfig::create($configRecord);
-          $fieldStorage->save();
-        }
-
-        $fieldConfigName = 'field.field.' . $entityType . '.' . $bundle . '.' . $field;
-        $configRecord = $configDirectory->read($fieldConfigName);
-        $fieldConfig = FieldConfig::loadByName(
-          $configRecord['entity_type'],
-          $configRecord['bundle'],
-          $configRecord['field_name']);
-
-        if (!$fieldConfig) {
-          $fieldConfig = FieldConfig::create($configRecord)->save();
-          $fieldStorage->save();
-        }
-
-        /** @var \Drupal\Core\Entity\EntityDisplayRepository $entityDisplay */
-        $entityDisplay = \Drupal::service('entity_display.repository');
-        $formDisplay = $entityDisplay->getFormDisplay($entityType, $bundle);
-        $viewDisplay = $entityDisplay->getViewDisplay($entityType, $bundle);
-
-        if (!$formDisplay->getComponent($fieldConfig->getName())) {
-          $formDisplay->setComponent($fieldConfig->getName(), $settings);
-          $formDisplay->save();
-        }
-
-        if (!$viewDisplay->getComponent($fieldConfig->getName())) {
-          $viewDisplay->setComponent($fieldConfig->getName(), $settings);
-          $viewDisplay->save();
-        }
-
-      }
-    }
+  foreach ($product_ids as $product_id) {
+    $commerce_product = Product::load($product_id);
+    $commerce_product->save();
   }
 
+}
+
+/**
+ * Sets new API config settings.
+ */
+function cecc_publication_update_9001() {
+  $configFactory = \Drupal::configFactory();
+  $config = $configFactory->getEditable('cecc_api.settings');
+  $config->set('stock_refresh_interval', 'daily');
+  $config->set('stock_refresh_type', 'interval');
+
+  return 'API settings saved';
+}
+
+/**
+ * Creates the new default redirect view.
+ */
+function cecc_publication_update_9002() {
+  $message = NULL;
+  $moduleHandler = \Drupal::moduleHandler();
+
+  // Only create if the redirect view doesn't exist and views is enabled.
+  if (!View::load('cecc_publications') && $moduleHandler->moduleExists('views')) {
+    $config_path = $moduleHandler->getModule('cecc_publication')->getPath() . '/config/install/views.view.cecc_publications.yml';
+    $data = Yaml::parseFile($config_path);
+    \Drupal::configFactory()->getEditable('views.view.cecc_publications')->setData($data)->save(TRUE);
+    $message = 'The publications view has been created.';
+  }
+  else {
+    $message = 'Not creating a publications view since it already exists.';
+  }
+
+  return $message;
+}
+
+/**
+ * Creates publication taxonomy index.
+ */
+function cecc_publication_update_9003() {
+  $spec = [
+    'description' => 'Maintains denormalized information about commerce_product/term relationships.',
+    'fields' => [
+      'product_id' => [
+        'description' => 'The {commerce_product}.product_id this record tracks.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'tid' => [
+        'description' => 'The term ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'status' => [
+        'description' => 'Boolean indicating whether the commerce_product is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ],
+      'created' => [
+        'description' => 'The Unix timestamp when the commerce_product was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['product_id', 'tid'],
+    'indexes' => [
+      'term_commerce_product' => ['tid', 'status', 'created'],
+    ],
+    'foreign keys' => [
+      'tracked_commerce_product' => [
+        'table' => 'commerce_product',
+        'columns' => ['product_id' => 'product_id'],
+      ],
+      'term' => [
+        'table' => 'taxonomy_term_data',
+        'columns' => ['tid' => 'tid'],
+      ],
+    ],
+  ];
+
+  try {
+    \Drupal::database()->schema()->createTable('cecc_publication_taxonomy_index', $spec);
+  }
+  catch(SchemaObjectExistsException $e) {
+    \Drupal::logger('cecc_publication')->error($e->getMessage());
+  }
 }
