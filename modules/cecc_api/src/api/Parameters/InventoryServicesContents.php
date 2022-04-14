@@ -13,4 +13,6 @@ final class InventoryServicesContents {
 
   const CODE = 'code';
 
+  const WAREHOUSE_ITEM_ID = 'warehouse_item_id';
+
 }

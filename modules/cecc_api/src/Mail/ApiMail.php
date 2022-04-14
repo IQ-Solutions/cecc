@@ -61,16 +61,14 @@ class ApiMail {
       $ceccConfig->get('email_from_name');
     $to = $ceccApiConfig->get('api_notifications');
 
-    $subject = $this->t('CECC API Notification [@site_name]: @subject', [
-      '@subject' => $params['subject'],
+    $subject = $this->t('CECC API Error Notification - @site_name', [
       '@site_name' => $siteName,
     ]);
 
     $body = [];
 
     $body['message'] = [
-      '#type' => 'container',
-      '#title' => $this->t('CECC API Notification'),
+      '#markup' => 'The follow error occured while connecting to the API:<br>' . $params['message'],
     ];
 
     $params = [

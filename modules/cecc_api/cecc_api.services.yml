@@ -22,11 +22,11 @@ services:
     parent: http_client_manager.client_base
     arguments: ['cecc_api.contents']
 
-  cecc_api.api_wrapper.inventory_services_contents:
+  cecc_api.api_wrapper.cecc_api_contents:
     class: Drupal\cecc_api\Plugin\HttpServiceApiWrapper\CeccApiInventoryServicesContents
-    parent: http_client_manager.client_base
+    parent: http_client_manager.api_wrapper.base
     tags:
-      - { name: 'http_service_api_wrapper', api: 'inventory_services_contents_wrapper' }
+      - { name: 'http_service_api_wrapper', api: 'cecc_api_contents_wrapper' }
 
   cecc_api.stock:
     class: Drupal\cecc_api\Service\Stock
@@ -43,7 +43,7 @@ services:
   cecc_api.inventory_api:
     class: Drupal\cecc_api\Service\InventoryApi
     arguments:
-      - '@cecc_api.api_wrapper.inventory_services_contents'
+      - '@cecc_api.api_wrapper.cecc_api_contents'
       - '@logger.factory'
       - '@config.factory'
       - '@cecc_api.api_notification'

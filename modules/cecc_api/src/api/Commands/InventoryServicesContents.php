@@ -11,4 +11,6 @@ final class InventoryServicesContents {
 
   const GET_PUBLICATION_INVENTORIES = 'GetPublicationInventories';
 
+  const GET_PUBLICATION_INVENTORY = 'GetPublicationInventory';
+
 }

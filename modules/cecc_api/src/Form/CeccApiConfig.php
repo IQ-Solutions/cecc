@@ -39,6 +39,13 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('enable_api') ?: 1,
     ];
 
+    $form['api_notifications'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('API Error Notifications'),
+      '#description' => $this->t('Enter emails you would like error notifications to go to separated by commas.'),
+      '#default_value' => $config->get('api_notifications') ?: 'krice@iqsolutions.com',
+    ];
+
     $form['stock_refresh'] = [
       '#type' => 'details',
       '#title' => $this->t('Stock Refresh Configuration'),
@@ -131,6 +138,7 @@ class CeccApiConfig extends ConfigFormBase {
       ->set('base_api_url', $form_state->getValue('base_api_url'))
       ->set('stock_refresh_type', $form_state->getValue('stock_refresh_type'))
       ->set('stock_refresh_interval', $form_state->getValue('stock_refresh_interval'))
+      ->set('api_notifications', $form_state->getValue('api_notifications'))
       ->save();
 
     parent::submitForm($form, $form_state);

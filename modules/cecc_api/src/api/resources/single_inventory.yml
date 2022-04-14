@@ -1,5 +1,5 @@
 operations:
-  GetSingleInventory:
+  GetPublicationInventory:
     httpMethod: "GET"
     uri: "api/inventory/{agency}"
     summary: "Gets all inventory"

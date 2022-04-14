@@ -2,12 +2,14 @@
 
 namespace Drupal\cecc_api\Service;
 
+use Drupal\cecc_api\api\Request\GetPublicationInventories;
+use Drupal\cecc_api\api\Request\GetPublicationInventory;
 use Drupal\cecc_api\Mail\ApiMail;
+use Drupal\cecc_api\Plugin\HttpServiceApiWrapper\CeccApiInventoryServicesContentsInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\http_client_manager\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -75,7 +77,7 @@ class InventoryApi implements ContainerInjectionInterface {
   /**
    * Inventory API service contructor.
    *
-   * @param \Drupal\http_client_manager\HttpClientInterface $http_client
+   * @param \Drupal\cecc_api\Plugin\HttpServiceApiWrapper\CeccApiInventoryServicesContentsInterface $http_client
    *   The HTTP client manager.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger factory object.
@@ -83,7 +85,7 @@ class InventoryApi implements ContainerInjectionInterface {
    *   The config factory object.
    */
   public function __construct(
-    HttpClientInterface $http_client,
+    CeccApiInventoryServicesContentsInterface $http_client,
     LoggerChannelFactoryInterface $logger_factory,
     ConfigFactoryInterface $config_factory,
     ApiMail $api_mail
@@ -108,7 +110,7 @@ class InventoryApi implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('cecc_api.api_wrapper.inventory_services_contents'),
+      $container->get('cecc_api.api_wrapper.cecc_api_contents'),
       $container->get('logger.factory'),
       $container->get('config.factory'),
       $container->get('cecc_api.api_notification')
@@ -174,14 +176,13 @@ class InventoryApi implements ContainerInjectionInterface {
       return [];
     }
 
-    $params = [
-      'agency' => $this->agency,
-      'code' => $this->apiKey,
-    ];
+    $request = new GetPublicationInventories();
+    $request->setAgency($this->agency);
+    $request->setCode($this->apiKey);
 
-    $response = $this->connectToService('GetAllInventory', $params);
+    $response = $this->httpClient->getPublicationInventories($request);
 
-    return $response['Catalog'];
+    return empty($response) ? [] : $response['Catalog'];
   }
 
   /**
@@ -198,15 +199,14 @@ class InventoryApi implements ContainerInjectionInterface {
       return [];
     }
 
-    $params = [
-      'agency' => $this->agency,
-      'warehouse_item_id' => $warehouse_item_id,
-      'code' => $this->apiKey,
-    ];
+    $request = new GetPublicationInventory();
+    $request->setAgency($this->agency);
+    $request->setCode($this->apiKey);
+    $request->setWarehouseItemId($warehouse_item_id);
 
-    $response = $this->connectToService('GetSingleInventory', $params);
+    $response = $this->httpClient->getPublicationInventory($request);
 
-    return $response['inventory'];
+    return empty($response) ? [] : $response['inventory'];
   }
 
 }
