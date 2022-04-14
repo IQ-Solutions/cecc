@@ -77,7 +77,7 @@ class CeccApiConfig extends ConfigFormBase {
         '+12 hours' => $this->t('Every 12 hours'),
         '+8 hours' => $this->t('Every 8 hours'),
         '+6 hours' => $this->t('Every 6 hours'),
-        '+1 hours' => $this->t('Hourly'),
+        '+1 hour' => $this->t('Hourly'),
         '+1 day' => $this->t('Daily'),
       ],
       '#states' => [
