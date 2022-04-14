@@ -21,27 +21,16 @@ function cecc_api_inventory_update() {
   $stockRefreshType = $ceccApiConfig->get('stock_refresh_type') ?: 'interval';
 
   if ($stockRefreshType == 'interval') {
-    $stockRefreshInterval = $ceccApiConfig->get('stock_refresh_interval') ?: 'daily';
+    $relative_string = $ceccApiConfig->get('stock_refresh_interval') ?: '+1 day';
 
-    switch ($stockRefreshInterval) {
-      case 'every12':
-        $nextRefreshTime = strtotime('+12 hours');
-        break;
-      case 'every6':
-        $nextRefreshTime = strtotime('+6 hours');
-        break;
-      case 'hourly':
-        $nextRefreshTime = strtotime('+1 hour');
-        break;
-      default:
-        $nextRefreshTime = strtotime('+1 day');
-    }
+    $nextRefreshTime = strtotime($relative_string);
 
     $stockRefresh = $state->get($stateId);
 
     if ($stockRefresh === NULL) {
       $state->set($stateId, $nextRefreshTime);
-    } elseif ($currentTime < $stockRefresh) {
+    }
+    elseif ($currentTime < $stockRefresh) {
       return;
     }
 

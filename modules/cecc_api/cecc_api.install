@@ -61,3 +61,27 @@ function cecc_api_update_9001() {
   $config->set('stock_refresh_interval', 'daily');
   $config->set('stock_refresh_type', 'interval');
 }
+
+/**
+ * Sets new API config settings.
+ */
+function cecc_api_update_9002() {
+  $configFactory = \Drupal::configFactory();
+  $config = $configFactory->getEditable('cecc_api.settings');
+
+  switch ($config->get('stock_refresh_interval')) {
+    case 'every12':
+      $interval = '+12 hours';
+      break;
+    case 'every6':
+      $interval = '+6 hours';
+    case 'hourly':
+      $interval = '+1 hour';
+      break;
+    default:
+      $interval = '+1 day';
+  }
+
+  $config->set('stock_refresh_interval', $interval);
+  $config->set('stock_refresh_type', 'interval');
+}
