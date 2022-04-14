@@ -51,3 +51,9 @@ services:
       - '@telephone_formatter.formatter'
       - '@commerce_price.currency_formatter'
       - '@module_handler'
+
+  cecc_api.api_notification:
+    class: Drupal\cecc_api\Mail\ApiMail
+    arguments:
+      - '@commerce.mail_handler'
+      - '@config.factory'
