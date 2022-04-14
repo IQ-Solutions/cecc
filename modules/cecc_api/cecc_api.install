@@ -83,5 +83,5 @@ function cecc_api_update_9002() {
   }
 
   $config->set('stock_refresh_interval', $interval);
-  $config->set('stock_refresh_type', 'interval');
+  $config->save();
 }
