@@ -40,6 +40,7 @@ services:
       - '@cecc_api.http_client.contents'
       - '@logger.factory'
       - '@config.factory'
+      - '@cecc_api.api_notification'
 
   cecc_api.order:
     class: Drupal\cecc_api\Service\Order

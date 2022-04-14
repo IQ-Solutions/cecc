@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Service;
 
+use Drupal\cecc_api\Mail\ApiMail;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -65,6 +66,13 @@ class InventoryApi implements ContainerInjectionInterface {
   public $connectionError;
 
   /**
+   * The API Notification service.
+   *
+   * @var \Drupal\cecc_api\Mail\ApiMail
+   */
+  public $apiNotification;
+
+  /**
    * Inventory API service contructor.
    *
    * @param \Drupal\http_client_manager\HttpClientInterface $http_client
@@ -77,13 +85,15 @@ class InventoryApi implements ContainerInjectionInterface {
   public function __construct(
     HttpClientInterface $http_client,
     LoggerChannelFactoryInterface $logger_factory,
-    ConfigFactoryInterface $config_factory
+    ConfigFactoryInterface $config_factory,
+    ApiMail $api_mail
   ) {
     $this->httpClient = $http_client;
     $this->logger = $logger_factory->get('cecc_api');
     $this->config = $config_factory->get('cecc_api.settings');
     $this->agency = $this->config->get('agency');
     $this->apiKey = $this->config->get('api_key');
+    $this->apiNotification = $api_mail;
 
     if (empty($this->apiKey) || empty($this->agency)) {
       $message = 'An API Key and service ID must be entered. The API is currently disabled.';
