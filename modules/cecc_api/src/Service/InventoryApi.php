@@ -108,7 +108,7 @@ class InventoryApi implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('cecc_api.http_client.contents'),
+      $container->get('cecc_api.api_wrapper.inventory_services_contents'),
       $container->get('logger.factory'),
       $container->get('config.factory'),
       $container->get('cecc_api.api_notification')
