@@ -208,26 +208,49 @@ class Order implements ContainerInjectionInterface {
    */
   private function getOrderItems() {
     $orderItems = [];
+    $orderItemsOverlimit = [];
 
     foreach ($this->order->getItems() as $orderItem) {
       $purchasedEntity = $orderItem->getPurchasedEntity();
-      $quantity = $orderItem->getQuantity();
-      $overLimitValue = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $quantity = (int) $orderItem->getQuantity();
+      $isOverLimit = $this->checkOverLimit($quantity, $purchasedEntity);
+      $sku = $purchasedEntity->get('sku')->value;
 
       $orderArray = [
-        'sku' => $purchasedEntity->get('sku')->value,
+        'sku' => $sku,
         'warehouse_item_id' => $purchasedEntity->get('field_cecc_warehouse_item_id')->value,
-        'quantity' => (int) $orderItem->getQuantity(),
+        'quantity' => $quantity,
       ];
 
       $orderItems[] = $orderArray;
 
-      if (!$this->isOverLimit) {
-        $this->isOverLimit = $quantity > $overLimitValue;
+      if ($isOverLimit) {
+        $orderItemsOverlimit[] = $sku;
       }
     }
 
+    $this->isOverLimit = !empty($orderItemsOverlimit);
+
     return $orderItems;
+  }
+
+  /**
+   * Checks if an order item is over limit.
+   *
+   * @param int $quantity
+   *   The order item quantity.
+   * @param \Drupal\commerce\PurchasableEntityInterface|null $purchasedEntity
+   *   The purchaseable entity.
+   *
+   * @return bool
+   *   Returns true if over limit, false if not.
+   */
+  private function checkOverLimit($quantity, $purchasedEntity) {
+    $overLimitValue = !$purchasedEntity->get('field_cecc_order_limit')->isEmpty() ?
+    (int) $purchasedEntity->get('field_cecc_order_limit')->value : 0;
+    $isOverLimit = $overLimitValue > 0 ? $quantity > $overLimitValue : FALSE;
+
+    return $isOverLimit;
   }
 
   /**
