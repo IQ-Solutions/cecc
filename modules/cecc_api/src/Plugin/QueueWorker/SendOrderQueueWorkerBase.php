@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
+use Drupal\cecc_api\Mail\CeccApiMailTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -17,6 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFactoryPluginInterface {
   use StringTranslationTrait;
+  use CeccApiMailTrait;
 
   /**
    * Drupal logger service.
@@ -103,6 +105,15 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
         return FALSE;
 
       case $this->orderApi::API_CONNECTION_ERROR:
+        $params = [
+          'message' => $this->t('Order @ordernumber failed to send due to invalid data', [
+            '@ordernumber' => $this->orderApi->orderNumber,
+          ]),
+        ];
+
+        $this->sendMail($params);
+        return FALSE;
+
       case $this->orderApi::INTERNAL_CONNECTION_ERROR:
       case $this->orderApi::API_NOT_CONFIGURED:
         throw new SuspendQueueException('The service failed to connect. Please check the error log for more information. Item requeued.');

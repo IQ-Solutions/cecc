@@ -101,6 +101,13 @@ class Order implements ContainerInjectionInterface {
   ];
 
   /**
+   * The order number.
+   *
+   * @var string
+   */
+  public $orderNumber;
+
+  /**
    * The currency formatter service.
    *
    * @var \Drupal\commerce_price\CurrencyFormatter
@@ -172,6 +179,37 @@ class Order implements ContainerInjectionInterface {
       $container->get('commerce_price.currency_formatter'),
       $container->get('module_handler')
     );
+  }
+
+  /**
+   * Resets order data array.
+   */
+  private function resetOrderData() {
+    $this->orderData = [
+      'source_order_id' => '',
+      'warehouse_organization_id' => '',
+      'project_id' => '',
+      'order_date' => '',
+      'order_type' => 'web',
+      'email' => '',
+      'complete' => FALSE,
+      'is_overlimit' => 'false',
+      'event_location' => NULL,
+      'event_name' => NULL,
+      'overlimit_comments' => NULL,
+      'shipping_method' => 'Free Shipping',
+      'estimated_shipping_cost' => 0,
+      'stripe_confirmation_code' => '',
+      'use_shipping_account' => 'false',
+      'shipping_account_no' => '',
+      'cart' => NULL,
+      'shipping_address' => NULL,
+      'billing_address' => NULL,
+      'customer_questions' => [
+        'profession' => '',
+        'setting' => '',
+      ],
+    ];
   }
 
   /**
@@ -265,6 +303,7 @@ class Order implements ContainerInjectionInterface {
    * Set the order number.
    */
   private function setOrderData() {
+    $this->orderNumber = $this->order->getOrderNumber();
     $this->orderData['source_order_id'] = $this->order->getOrderNumber();
     $this->orderData['order_date'] = date('c', $this->order->getPlacedTime());
     $this->orderData['email'] = $this->order->getEmail();
@@ -345,6 +384,12 @@ class Order implements ContainerInjectionInterface {
     }
   }
 
+  /**
+   * Populates order array.
+   *
+   * @param int $id
+   *   The order ID.
+   */
   private function collectOrderData($id) {
 
     $this->setOrder($id);
@@ -403,22 +448,25 @@ class Order implements ContainerInjectionInterface {
       return self::API_NOT_CONFIGURED;
     }
 
+    $this->resetOrderData();
     $this->collectOrderData($id);
+    $orderDataJson = json_encode($this->orderData);
 
     if ($this->config->get('debug') == 0) {
+
       try {
         $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
           'headers' => [
             'IQ_Client_Key' => $apiKey,
             'Content-Type' => 'application/json',
           ],
-          'body' => json_encode($this->orderData),
+          'body' => $orderDataJson,
         ]);
 
         if ($response->getStatusCode() != 200) {
           $message = $this->t('The service failed with the following error: %error', [
             '%error' => $response['message'],
-            '%response' => json_encode($this->orderData),
+            '%response' => $orderDataJson,
           ]);
 
           $this->logger->error($message);
@@ -428,14 +476,14 @@ class Order implements ContainerInjectionInterface {
       catch (GuzzleException $error) {
         $this->logger->error('@error | @response', [
           '@error' => $error->getMessage(),
-          '@response' => json_encode($this->orderData),
+          '@response' => $orderDataJson,
         ]);
 
         return self::INTERNAL_CONNECTION_ERROR;
       }
     }
     else {
-      $file = file_save_data(json_encode($this->orderData), 'public://testorder.json');
+      $file = file_save_data($orderDataJson, 'public://testorder.json');
       $url = file_create_url($file->getFileUri());
 
       $this->logger->info('<a href="@file">File available at @file</a>', [
@@ -477,7 +525,7 @@ class Order implements ContainerInjectionInterface {
       $this->orderData[$type . '_address']['state']
         = $addressArray['administrative_area'];
       $this->orderData[$type . '_address']['zip']
-        = $addressArray['postal_code'];
+        = !empty($addressArray['postal_code']) ? $addressArray['postal_code'] : '00000';
       $this->orderData[$type . '_address']['country']
         = $addressArray['country_code'];
       $this->orderData[$type . '_address']['phone'] = !empty($phone)
