@@ -8,3 +8,4 @@ dependencies:
   - drupal:pathauto
   - drupal:commerce_product
   - drupal:flag
+  - drupal:commerce_shipping
