@@ -18,6 +18,7 @@
     "source": "https://github.com/IQ-Solutions/cecc"
   },
   "require": {
-    "npm-asset/jquery-mask-plugin": "^1.14"
+    "npm-asset/jquery-mask-plugin": "^1.14",
+    "drupal/flag": "^4.0@beta"
   }
 }

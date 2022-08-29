@@ -6,9 +6,9 @@ dependencies:
       - cecc_publication
 id: cecc_publication
 label: Publication
+traits: {  }
+locked: false
 description: 'The publication display entity.'
 variationType: cecc_publication
 multipleVariations: false
 injectVariationFields: true
-traits: {  }
-locked: false

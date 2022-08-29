@@ -1,0 +1,7 @@
+langcode: en
+status: true
+dependencies: {  }
+id: browse-publications
+label: 'Browse Publications'
+description: 'Publications Menu'
+locked: false
