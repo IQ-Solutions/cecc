@@ -139,5 +139,7 @@ function cecc_install($is_syncing) {
     $ceccSettings->set('email_from', $publicationSettings->get('email_from'));
     $ceccSettings->set('email_from_name', $publicationSettings->get('email_from_name'));
     $ceccSettings->set('email_subject', $publicationSettings->get('email_subject'));
+
+    $ceccSettings->save();
   }
 }
