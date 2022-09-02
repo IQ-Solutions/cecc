@@ -10,6 +10,8 @@ function cecc_install($is_syncing) {
   ->getStorage('entity_view_display');
   $entityFormDisplayStorage = \Drupal::entityTypeManager()
   ->getStorage('entity_form_display');
+  /** @var \Drupal\Core\Config\ConfigFactoryInterface $configFactory */
+  $configFactory = \Drupal::service('config.factory');
 
   /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $customerProfileDefaultFormDisplay */
   $customerProfileDefaultFormDisplay = $entityFormDisplayStorage
@@ -129,5 +131,13 @@ function cecc_install($is_syncing) {
       ],
     ]);
     $customerProfileDefaultViewDisplay->save();
+
+    $publicationSettings = $configFactory->get('publication_ordering.settings');
+    $ceccSettings = $configFactory->getEditable('cecc.settings');
+
+    $ceccSettings->set('quantity_update_type', $publicationSettings->get('quantity_update_type'));
+    $ceccSettings->set('email_from', $publicationSettings->get('email_from'));
+    $ceccSettings->set('email_from_name', $publicationSettings->get('email_from_name'));
+    $ceccSettings->set('email_subject', $publicationSettings->get('email_subject'));
   }
 }
