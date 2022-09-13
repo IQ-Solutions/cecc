@@ -1,0 +1,3 @@
+langcode: en
+commerce_order_type: "cecc_publication"
+commerce_order_item_type: "cecc_publication"

@@ -1,5 +1,5 @@
 cecc.publication_config:
-  title: 'CEC Publication Config'
+  title: 'Publication Config'
   parent: cecc.config
   description: 'Set CEC Publication Config'
   route_name: cecc_publication.settings
