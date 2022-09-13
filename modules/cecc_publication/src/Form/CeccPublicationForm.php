@@ -8,7 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 /**
  * Manages base Publication Ordering API config.
  */
-class CeccConfigForm extends ConfigFormBase {
+class CeccPublicationForm extends ConfigFormBase {
 
   /**
    * {@inheritDoc}
