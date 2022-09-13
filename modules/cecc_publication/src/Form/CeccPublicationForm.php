@@ -45,7 +45,7 @@ class CeccPublicationForm extends ConfigFormBase {
       '#title' => $this->t('Select the product type'),
       '#description' => $this->t('Choose the product type the CECC module will modify'),
       '#options' => $type_options,
-      '#default_value' => !empty($config->get('quantity_update_type')) ?
+      '#default_value' => !empty($config->get('commerce_product_type')) ?
       $config->get('commerce_product_type') : 'cecc_publication',
     ];
 
@@ -59,6 +59,8 @@ class CeccPublicationForm extends ConfigFormBase {
     $this->config('cecc_publication.settings')
       ->set('commerce_product_type', $form_state->getValue('commerce_product_type'))
       ->save();
+
+    $this->messenger()->addStatus('Please clear Drupal cache for these update to appear.');
 
     parent::submitForm($form, $form_state);
   }
