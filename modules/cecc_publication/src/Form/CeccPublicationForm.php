@@ -37,7 +37,7 @@ class CeccPublicationForm extends ConfigFormBase {
     $type_options = [];
 
     foreach ($product_types as $key => $product_type) {
-      $type_options[$key] = $product_type->label();
+      $type_options[$key] = $product_type->label()." ($key)";
     }
 
     $form['commerce_product_type'] = [
