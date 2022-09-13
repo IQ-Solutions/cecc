@@ -1,7 +1,7 @@
 cecc_publication.settings:
   path: '/admin/commerce/cecc-publication'
   defaults:
-   _form: '\Drupal\cecc\Form\CeccPublicationForm'
+   _form: '\Drupal\cecc_publication\Form\CeccPublicationForm'
    _title: 'Customer Engagement Center Catalog Publication Config'
   requirements:
     _permission:
