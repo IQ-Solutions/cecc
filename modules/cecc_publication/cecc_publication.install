@@ -171,5 +171,6 @@ function cecc_publication_update_9004($is_syncing) {
   $config_factory = \Drupal::configFactory();
   $config = $config_factory->getEditable('cecc_publication.settings');
   $config->set('commerce_product_type', 'cecc_publication');
+  $config->set('commerce_product_variation_type', 'cecc_publication');
   $config->save();
 }
