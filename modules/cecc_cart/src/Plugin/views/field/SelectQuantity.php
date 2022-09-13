@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_cart\Plugin\views\field;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce_cart\CartManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -141,7 +142,7 @@ class SelectQuantity extends FieldPluginBase {
       /** @var \Drupal\commerce_order\Entity\OrderItemInterface $order_item */
       $order_item = $this->getEntity($row);
       $purchasedEntity = $order_item->getPurchasedEntity();
-      $maxValue = $purchasedEntity->get('field_maximum_order_amount')->value;
+      $maxValue = $purchasedEntity->get(StockHelper::getOrderLimitFieldName($purchasedEntity))->value;
 
       $options = [];
       $maxValue = 50;
