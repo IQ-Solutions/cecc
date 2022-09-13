@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_stock\Service;
 
+use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce\Response\NeedsRedirectException;
 use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -106,6 +107,64 @@ class StockHelper {
   }
 
   /**
+   * Get the order limit field name.
+   *
+   * @param \Drupal\commerce\PurchasableEntityInterface $productVariation
+   *   The product variation in the order.
+   */
+  public static function getOrderLimitFieldName(PurchasableEntityInterface $purchased_entity) {
+    $order_limit_field = 'field_cecc_order_limit';
+
+    if ($purchased_entity->hasField('field_maximum_order_amount')) {
+      $order_limit_field = 'field_maximum_order_amount';
+    }
+
+    return $order_limit_field;
+  }
+
+  /**
+   * Get the stock field name.
+   *
+   * @param \Drupal\commerce\PurchasableEntityInterface $productVariation
+   *   The product variation in the order.
+   */
+  public static function getStockFieldName(PurchasableEntityInterface $productVariation) {
+    if ($productVariation->hasField('field_po_stock')) {
+      return 'field_po_stock';
+    }
+
+    return 'field_cecc_stock';
+  }
+
+  /**
+   * Get the product variation field name.
+   *
+   * @param \Drupal\commerce\PurchasableEntityInterface $productVariation
+   *   The product variation in the order.
+   */
+  public static function getStockThresholdFieldName(PurchasableEntityInterface $productVariation) {
+    if ($productVariation->hasField('field_stock_threshold')) {
+      return 'field_stock_threshold';
+    }
+
+    return 'cecc_check_stock_threshold';
+  }
+
+  /**
+   * Get the product variation field name.
+   *
+   * @param \Drupal\commerce\PurchasableEntityInterface $productVariation
+   *   The product variation in the order.
+   */
+  public static function getStopCheckThresholdFieldName(PurchasableEntityInterface $productVariation) {
+    if ($productVariation->hasField('field_stop_check_threshold')) {
+      return 'field_stop_check_threshold';
+    }
+
+    return 'cecc_stock_stop_threshold';
+  }
+
+  /**
    * Alter catalog forms for the stock module.
    *
    * @param array $form
@@ -170,7 +229,8 @@ class StockHelper {
           continue;
         }
 
-        $quantityLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+        $order_limit_field = self::getOrderLimitFieldName($purchasedEntity);
+        $quantityLimit = $purchasedEntity->get($order_limit_field)->value;
         $quantity = $orderItem->getQuantity();
 
         if (!empty($quantityLimit)) {
@@ -179,7 +239,7 @@ class StockHelper {
           //$form['edit_quantity'][$index]['#max'] = $purchasedEntity->get('field_cecc_order_limit')->value;
 
           $form['edit_quantity'][$index]['#suffix'] = $this->t('<span>Quantity Limit: %limit</span>', [
-            '%limit' => $purchasedEntity->get('field_cecc_order_limit')->value,
+            '%limit' => $purchasedEntity->get($order_limit_field)->value,
           ]);
 
           if ($overLimit) {
@@ -223,7 +283,9 @@ class StockHelper {
       $selected_variation = $product->getDefaultVariation();
     }
 
-    $quantityLimit = $selected_variation->get('field_cecc_order_limit')->value;
+    $order_limit_field = self::getOrderLimitFieldName($selected_variation);
+
+    $quantityLimit = $selected_variation->get($order_limit_field)->value;
     $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity');
 
     if (!empty($quantityLimit)) {
@@ -304,11 +366,12 @@ class StockHelper {
     /** @var \Drupal\cecc_stock\Service\StockValidation $stockValidation */
     $stockValidation = \Drupal::service('cecc_stock.stock_validation');
     $stockConfig = \Drupal::config('cecc_stock.settings');
+    $order_limit_field = self::getOrderLimitFieldName($purchasedEntity);
 
     if ($stockValidation->isCartOverQuantityLimit($variation_id, $quantity)) {
       $form_state->setError($form, t($stockConfig->get('over_limit_text'), [
         '%label' => $purchasedEntity->getOrderItemTitle(),
-        '%limit' => $purchasedEntity->get('field_cecc_order_limit')->value,
+        '%limit' => $purchasedEntity->get($order_limit_field)->value,
       ]));
     }
   }
@@ -400,13 +463,19 @@ class StockHelper {
         $qty = 1;
       }
 
+      $stock_field = 'field_cecc_stock';
+
+      if ($purchased_entity->hasField('field_po_stock')) {
+        $stock_field = 'field_po_stock';
+      }
+
       if ($stockValidation->checkProductStock($purchased_entity, $qty)) {
         $form_state->setError(
           $form['edit_quantity'][$id],
           // t('Sorry we only have %qty in stock', array('%qty' => $stock_level))
           t("The maximum quantity for %name that can be ordered is %qty.", [
             '%name' => $name,
-            '%qty' => $purchased_entity->get('field_cecc_stock')->value,
+            '%qty' => $purchased_entity->get($stock_field)->value,
           ])
         );
       }
