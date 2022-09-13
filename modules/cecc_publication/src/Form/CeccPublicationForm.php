@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cecc\Form;
+namespace Drupal\cecc_publication\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
