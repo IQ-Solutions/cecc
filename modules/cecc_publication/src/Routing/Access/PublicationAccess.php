@@ -48,6 +48,10 @@ class PublicationAccess implements AccessInterface {
     $notAvailable = 0;
 
     if ($productVariation) {
+      if (!$productVariation->hasField('field_not_available')) {
+        return AccessResult::allowed();
+      }
+
       $notAvailable = $productVariation->get('field_not_available')->isEmpty()
         ? 0 : (int) $productVariation->get('field_not_available')->value;
     }
