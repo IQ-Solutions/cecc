@@ -15,7 +15,7 @@ class CeccPublicationForm extends ConfigFormBase {
    */
   protected function getEditableConfigNames() {
     return [
-      'cecc.settings',
+      'cecc_publication.settings',
     ];
   }
 
@@ -23,7 +23,7 @@ class CeccPublicationForm extends ConfigFormBase {
    * {@inheritDoc}
    */
   public function getFormId() {
-    return "cecc_settings";
+    return "cecc_publication_settings";
   }
 
   /**
@@ -56,7 +56,7 @@ class CeccPublicationForm extends ConfigFormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('cecc.settings')
+    $this->config('cecc_publication.settings')
       ->set('commerce_product_type', $form_state->getValue('commerce_product_type'))
       ->save();
 
