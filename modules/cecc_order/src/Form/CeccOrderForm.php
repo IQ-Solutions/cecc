@@ -40,11 +40,11 @@ class CeccOrderForm extends ConfigFormBase {
     $order_item_type_options = [];
 
     foreach ($order_types as $key => $product_type) {
-      $type_options[$key] = $product_type->label()." ($key)";
+      $order_type_options[$key] = $product_type->label()." ($key)";
     }
 
     foreach ($order_item_types as $key => $product_type) {
-      $type_options[$key] = $product_type->label()." ($key)";
+      $order_item_type_options[$key] = $product_type->label()." ($key)";
     }
 
     $form['commerce_order_type'] = [
