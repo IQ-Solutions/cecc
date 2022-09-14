@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_publication\Plugin\Field\FieldWidget;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -171,17 +172,23 @@ class QuantitySelectWidget extends WidgetBase {
     $options = [];
     $maxValue = 50;
 
-    if ($selected_variation->hasField('field_maximum_order_amount')) {
+    $order_limit_field = StockHelper::getOrderLimitFieldName($selected_variation);
+
+    if ($selected_variation->hasField($order_limit_field)) {
       $quantityLimitOutput = NULL;
 
-      if (!$selected_variation->get('field_maximum_order_amount')->isEmpty()) {
-        $maxValue = $selected_variation->get('field_maximum_order_amount')->value;
+      if (!$selected_variation->get($order_limit_field)->isEmpty()) {
+        $maxValue = $selected_variation->get($order_limit_field)->value;
       }
 
       $quantityLimitOutput = [
         '#theme' => 'cec_limit_display',
         '#quantity_limit' => $maxValue,
       ];
+
+      $element['#title'] = $this->t('Enter Quantity (Limit: @quantityLimit)', [
+        '@quantityLimit' => $maxValue,
+      ]);
 
       $element['#suffix'] = $this->renderer->render($quantityLimitOutput)->__toString();
     }
@@ -214,7 +221,9 @@ class QuantitySelectWidget extends WidgetBase {
       '#options' => $options,
     ];
 
-    if ($this->getSetting('showLabel') == 0) {
+    $showLabel = $this->getSetting('show_label');
+
+    if ($showLabel != 1) {
       unset($element['#title']);
     }
 

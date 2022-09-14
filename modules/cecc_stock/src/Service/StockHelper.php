@@ -190,6 +190,7 @@ class StockHelper {
         $this->alterCartPage($form);
         break;
 
+      case 'commerce_order_item_cecc_ajax_add_to_cart_form':
       case 'commerce_order_item_po_ajax_add_to_cart_form':
       case 'commerce_order_item_add_to_cart_form':
         $this->alterCartForm($form);
@@ -281,17 +282,6 @@ class StockHelper {
       /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
       $product = $this->formState->get('product');
       $selected_variation = $product->getDefaultVariation();
-    }
-
-    $order_limit_field = self::getOrderLimitFieldName($selected_variation);
-
-    $quantityLimit = $selected_variation->get($order_limit_field)->value;
-    $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity');
-
-    if (!empty($quantityLimit)) {
-      $form['quantity']['widget'][0]['value']['#title'] = $this->t('Enter Quantity (Limit: @quantityLimit)', [
-        '@quantityLimit' => $quantityLimit,
-      ]);
     }
 
     // Add a form validate needed for the add to cart action.
