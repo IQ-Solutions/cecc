@@ -3,7 +3,7 @@ import 'tippy.js/dist/tippy.css';
 import "tippy.js/dist/border.css";
 
 ((Drupal, drupalSettings, tippy) => {
-  Drupal.AjaxCommands.prototype.cecPopover = ((ajax, response, status) => {
+  Drupal.AjaxCommands.prototype.ceccPopover = ((ajax, response, status) => {
     const submitButton = document.querySelector(ajax.selector);
     tippy(submitButton, {
       allowHTML: true,

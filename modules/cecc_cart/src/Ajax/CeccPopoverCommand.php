@@ -7,7 +7,7 @@ use Drupal\Core\Ajax\CommandInterface;
 /**
  * Tippy Popover Ajax Command.
  */
-class PopoverCommand implements CommandInterface {
+class CeccPopoverCommand implements CommandInterface {
 
   /**
    * The triggering element id.
@@ -61,7 +61,7 @@ class PopoverCommand implements CommandInterface {
    */
   public function render() {
     return [
-      'command' => 'cecPopover',
+      'command' => 'ceccPopover',
       'options' => $this->options,
       'content' => $this->renderer->render($this->content),
       'type' => $this->type,

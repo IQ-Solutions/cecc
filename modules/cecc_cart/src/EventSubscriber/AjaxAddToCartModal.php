@@ -6,13 +6,10 @@ use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\CloseModalDialogCommand;
-use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
-use Drupal\cecc_cart\Ajax\PopoverCommand;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -57,10 +54,10 @@ class AjaxAddToCartModal implements EventSubscriberInterface {
   /**
    * Adds the modal confirmation message on page.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   The response event.
    */
-  public function onResponse(FilterResponseEvent $event) {
+  public function onResponse(ResponseEvent $event) {
     $response = $event->getResponse();
 
     if (!$this->purchasedEntity) {
@@ -122,7 +119,7 @@ class AjaxAddToCartModal implements EventSubscriberInterface {
     }
 
     $build = [
-      '#theme' => 'po_show_cart_modal',
+      '#theme' => 'cecc_cart_show_cart_modal',
       '#order_items' => $orderItemArray,
       '#purchased_entity' => $this->purchasedEntity->id(),
       '#cart_url' => Url::fromRoute('commerce_cart.page')->toString(),
@@ -139,7 +136,7 @@ class AjaxAddToCartModal implements EventSubscriberInterface {
     $productVariation = $viewBuilder->view($this->purchasedEntity, 'cart');
 
     $build = [
-      '#theme' => 'po_add_cart_modal',
+      '#theme' => 'cecc_cart_add_cart_modal',
       '#product_variation' => $productVariation,
       '#product_variation_entity' => $this->purchasedEntity,
       '#cart_url' => Url::fromRoute('commerce_cart.page')->toString(),

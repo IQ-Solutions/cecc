@@ -1,6 +1,6 @@
 addToCart:
   js:
-    js/popover/dist/index.js: {}
+    popover/dist/index.js: {}
   css:
     component:
-      js/popover/dist/index.css: {}
+      popover/dist/index.css: {}
