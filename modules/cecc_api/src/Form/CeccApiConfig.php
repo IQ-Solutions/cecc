@@ -46,6 +46,13 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('api_notifications') ?: 'krice@iqsolutions.com',
     ];
 
+    $form['warehouse_item_id_field_name'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Warehouse Item ID Field name'),
+      '#description' => $this->t('The machine name of the warehouse item id field.'),
+      '#default_value' => $config->get('warehouse_item_id_field_name') ?: 'field_cecc_warehouse_item_id',
+    ];
+
     $form['stock_refresh'] = [
       '#type' => 'details',
       '#title' => $this->t('Stock Refresh Configuration'),
@@ -139,6 +146,7 @@ class CeccApiConfig extends ConfigFormBase {
       ->set('stock_refresh_type', $form_state->getValue('stock_refresh_type'))
       ->set('stock_refresh_interval', $form_state->getValue('stock_refresh_interval'))
       ->set('api_notifications', $form_state->getValue('api_notifications'))
+      ->set('warehouse_item_id_field_name', $form_state->getValue('warehouse_item_id_field_name'))
       ->save();
 
     parent::submitForm($form, $form_state);

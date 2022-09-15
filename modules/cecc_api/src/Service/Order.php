@@ -266,10 +266,7 @@ class Order implements ContainerInjectionInterface {
       $purchasedEntity = $orderItem->getPurchasedEntity();
       $quantity = (int) $orderItem->getQuantity();
       $sku = $purchasedEntity->get('sku')->value;
-
-      $warehouse_item_id = $purchasedEntity->hasField('field_warehouse_entity_id') ?
-        'field_warehouse_entity_id':
-        'field_cecc_warehouse_item_id';
+      $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
 
       $orderArray = [
         'sku' => $sku,

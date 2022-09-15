@@ -116,10 +116,11 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    * {@inheritdoc}
    */
   public function processItem($item) {
+    $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
 
     $productVariationIds = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->getQuery()
-      ->condition('field_cecc_warehouse_item_id', $item['id'])
+      ->condition($warehouse_item_id, $item['id'])
       ->execute();
 
     if (empty($productVariationIds)) {

@@ -85,3 +85,12 @@ function cecc_api_update_9002() {
   $config->set('stock_refresh_interval', $interval);
   $config->save();
 }
+
+/**
+ * Sets new API config settings.
+ */
+function cecc_api_update_9003() {
+  $configFactory = \Drupal::configFactory();
+  $config = $configFactory->getEditable('cecc_api.settings');
+  $config->set('warehouse_item_id_field_name', 'field_cecc_warehouse_item_id');
+}

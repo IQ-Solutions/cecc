@@ -123,6 +123,22 @@ class StockHelper {
   }
 
   /**
+   * Get the order limit field name.
+   *
+   * @param \Drupal\commerce\PurchasableEntityInterface $productVariation
+   *   The product variation in the order.
+   */
+  public static function getWarehouseItemIdFieldName(PurchasableEntityInterface $purchased_entity) {
+    $order_limit_field = 'field_cecc_warehouse_item_id';
+
+    if ($purchased_entity->hasField('field_warehouse_item_id')) {
+      $order_limit_field = 'field_warehouse_item_id';
+    }
+
+    return $order_limit_field;
+  }
+
+  /**
    * Get the stock field name.
    *
    * @param \Drupal\commerce\PurchasableEntityInterface $productVariation

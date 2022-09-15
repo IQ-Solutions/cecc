@@ -212,8 +212,9 @@ class Stock implements ContainerInjectionInterface {
     if (!$this->isInventoryApiAvailable()) {
       return;
     }
+    $warehouse_item_id_field = $this->config->get('warehouse_item_id_field_name');
 
-    $warehouseItemId = trim($productVariation->field_cecc_warehouse_item_id->value);
+    $warehouseItemId = trim($productVariation->$$warehouse_item_id_field->value);
 
     $response = $this->inventoryApi->getSingleInventory($warehouseItemId);
 

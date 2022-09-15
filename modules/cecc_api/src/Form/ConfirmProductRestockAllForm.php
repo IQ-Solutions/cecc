@@ -10,6 +10,7 @@ use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Drupal\cecc_api\Service\Stock;
 use Drupal\cecc_stock\Event\RestockEvent;
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\Core\Entity\EntityStorageException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -127,10 +128,12 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
     $messenger = \Drupal::messenger();
     /** @var \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher */
     $eventDispatcher = \Drupal::service('event_dispatcher');
+    $warehouse_item_id = \Drupal::configFactory()->get('cecc_api.settings')
+      ->get('warehouse_item_id_field_name');
 
     foreach ($batchData as $data) {
       $cpvId = $storage->getQuery()
-        ->condition('field_cecc_warehouse_item_id', $data['warehouse_item_id'])
+        ->condition($warehouse_item_id, $data['warehouse_item_id'])
         ->execute();
 
       $productVariation = ProductVariation::load(reset($cpvId));
@@ -141,13 +144,15 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
           $eventDispatcher->dispatch($restockEvent, RestockEvent::CECC_PRODUCT_VARIATION_RESTOCK);
         }
 
-        $productVariation->set('field_cecc_stock', $data['warehouse_stock_on_hand']);
+        $stock_field_name = StockHelper::getStockFieldName($productVariation);
+
+        $productVariation->set($stock_field_name, $data['warehouse_stock_on_hand']);
 
         try {
           $productVariation->save();
           $message = t('Stock for %label has been refreshed to %level', [
             '%label' => $productVariation->getTitle(),
-            '%level' => $productVariation->get('field_cecc_stock')->value,
+            '%level' => $productVariation->get($stock_field_name)->value,
           ]);
 
           $logger->info($message);

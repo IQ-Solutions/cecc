@@ -94,10 +94,12 @@ class Stock implements EventSubscriberInterface {
     if ($this->stockType == 'on_demand') {
       $productVariation = $event->productVariation;
 
+      $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
+
       $item = [
         'id' => $productVariation->id(),
         'sku' => $productVariation->get('sku')->value,
-        'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
+        'warehouse_item_id' => $productVariation->get($warehouse_item_id)->value,
       ];
 
       $queue = $this->queueFactory->get('cecc_update_stock');
@@ -119,11 +121,12 @@ class Stock implements EventSubscriberInterface {
   public function onLowStock(LowStockEvent $event) {
     if ($this->stockType == 'on_demand') {
       $productVariation = $event->productVariation;
+      $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
 
       $item = [
         'id' => $productVariation->id(),
         'sku' => $productVariation->get('sku')->value,
-        'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
+        'warehouse_item_id' => $productVariation->get($warehouse_item_id)->value,
       ];
 
       $queue = $this->queueFactory->get('cecc_update_stock');
