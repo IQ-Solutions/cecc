@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Service;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce_product\Entity\ProductVariationInterface;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Config\ConfigFactory;
@@ -87,6 +88,13 @@ class Stock implements ContainerInjectionInterface {
   protected $connection;
 
   /**
+   * The config factory object.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
    * Service config and DI.
    *
    * @param \Drupal\Core\Datetime\DateFormatter $dateFormatter
@@ -124,6 +132,7 @@ class Stock implements ContainerInjectionInterface {
     $this->config = $configFactory->get('cecc_api.settings');
     $this->queueFactory = $queueFactory;
     $this->connection = $connection;
+    $this->configFactory = $configFactory;
   }
 
   /**
@@ -223,13 +232,15 @@ class Stock implements ContainerInjectionInterface {
       return;
     }
 
-    $productVariation->set('field_cecc_stock', $response['warehouse_stock_on_hand']);
+    $stock_field_name = StockHelper::getStockFieldName($productVariation);
+
+    $productVariation->set($stock_field_name, $response['warehouse_stock_on_hand']);
 
     try {
       $productVariation->save();
       $message = $this->t('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
-        '%level' => $productVariation->get('field_cecc_stock')->value,
+        '%level' => $productVariation->get($stock_field_name)->value,
       ]);
 
       $this->logger->info($message);

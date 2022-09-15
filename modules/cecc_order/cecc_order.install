@@ -8,5 +8,6 @@ function cecc_order_update_9001($is_syncing) {
   $config = $config_factory->getEditable('cecc_order.settings');
   $config->set('commerce_order_type', 'cecc_publication');
   $config->set('commerce_order_item_type', 'cecc_publication');
+  $config->set('process_order_limit', 1);
   $config->save();
 }

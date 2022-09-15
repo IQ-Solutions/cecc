@@ -65,6 +65,13 @@ class CeccOrderForm extends ConfigFormBase {
       $config->get('commerce_order_item_type') : 'cecc_publication',
     ];
 
+    $form['process_over_limit'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Process Over Limit'),
+      '#description' => $this->t('Process order over limit data to be sent to ZOHO (on by default).'),
+      '#default_value' => $config->get('process_over_limit') ?: 1,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -77,6 +84,9 @@ class CeccOrderForm extends ConfigFormBase {
       ->save();
     $this->config('cecc_order.settings')
       ->set('commerce_order_item_type', $form_state->getValue('commerce_order_item_type'))
+      ->save();
+    $this->config('cecc_order.settings')
+      ->set('process_over_limit', $form_state->getValue('process_over_limit'))
       ->save();
 
     $this->messenger()->addStatus('Please clear Drupal cache for these update to take effect.');

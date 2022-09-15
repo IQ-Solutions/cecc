@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -129,7 +130,9 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
         throw new SuspendQueueException($message);
       }
 
-      $productVariation->set('field_cecc_stock', $item['warehouse_stock_on_hand']);
+      $stock_field_name = StockHelper::getStockFieldName($productVariation);
+
+      $productVariation->set($stock_field_name, $item['warehouse_stock_on_hand']);
 
       try {
         $productVariation->save();

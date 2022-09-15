@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Service;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce_price\CurrencyFormatter;
 use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\Core\Config\ConfigFactory;
@@ -68,6 +69,13 @@ class Order implements ContainerInjectionInterface {
    * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
+
+  /**
+   * The config factory object.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
   /**
    * The order data in array form.
@@ -155,6 +163,7 @@ class Order implements ContainerInjectionInterface {
     CurrencyFormatter $currency_formatter,
     ModuleHandlerInterface $module_handler
   ) {
+    $this->configFactory = $configFactory;
     $this->config = $configFactory->get('cecc_api.settings');
     $this->httpClient = $http_client_factory->fromOptions([
       'base_uri' => $this->config->get('base_api_url'),
@@ -236,6 +245,11 @@ class Order implements ContainerInjectionInterface {
       $this->orderData['customer_questions']['profession']
         = $this->order->get('field_order_occupation')->value;
     }
+
+    if ($this->order->hasField('field_profession')) {
+      $this->orderData['customer_questions']['profession']
+        = $this->order->get('field_profession')->value;
+    }
   }
 
   /**
@@ -251,7 +265,6 @@ class Order implements ContainerInjectionInterface {
     foreach ($this->order->getItems() as $orderItem) {
       $purchasedEntity = $orderItem->getPurchasedEntity();
       $quantity = (int) $orderItem->getQuantity();
-      $isOverLimit = $this->checkOverLimit($quantity, $purchasedEntity);
       $sku = $purchasedEntity->get('sku')->value;
 
       $orderArray = [
@@ -261,9 +274,14 @@ class Order implements ContainerInjectionInterface {
       ];
 
       $orderItems[] = $orderArray;
+      $order_config = $this->configFactory->get('cecc_order.settings');
 
-      if ($isOverLimit) {
-        $orderItemsOverlimit[] = $sku;
+      if ($order_config->get('process_over_limit')) {
+        $isOverLimit = $this->checkOverLimit($quantity, $purchasedEntity);
+
+        if ($isOverLimit) {
+          $orderItemsOverlimit[] = $sku;
+        }
       }
     }
 
@@ -284,8 +302,9 @@ class Order implements ContainerInjectionInterface {
    *   Returns true if over limit, false if not.
    */
   private function checkOverLimit($quantity, $purchasedEntity) {
-    $overLimitValue = !$purchasedEntity->get('field_cecc_order_limit')->isEmpty() ?
-    (int) $purchasedEntity->get('field_cecc_order_limit')->value : 0;
+    $over_limit_field_name = StockHelper::getOrderLimitFieldName($purchasedEntity);
+    $overLimitValue = !$purchasedEntity->get($over_limit_field_name)->isEmpty() ?
+    (int) $purchasedEntity->get($over_limit_field_name)->value : 0;
     $isOverLimit = $overLimitValue > 0 ? $quantity > $overLimitValue : FALSE;
 
     return $isOverLimit;
@@ -328,16 +347,20 @@ class Order implements ContainerInjectionInterface {
     $cart = $this->getOrderItems();
 
     $this->orderData['cart'] = $cart;
-    $this->orderData['is_overlimit'] = $this->isOverLimit ? 'true' : 'false';
-    $this->orderData['event_location'] =
-      $this->order->get('field_event_location')->isEmpty()
-      ? NULL : $this->order->get('field_event_location')->value;
-    $this->orderData['event_name'] =
-      $this->order->get('field_event_name')->isEmpty()
-      ? NULL : $this->order->get('field_event_name')->value;
-    $this->orderData['overlimit_comments'] =
-      $this->order->get('field_cecc_over_limit_desc')->isEmpty()
-      ? NULL : $this->order->get('field_cecc_over_limit_desc')->value;
+    $order_config = $this->configFactory->get('cecc_order.settings');
+
+    if ($order_config->get('process_over_limit')) {
+      $this->orderData['is_overlimit'] = $this->isOverLimit ? 'true' : 'false';
+      $this->orderData['event_location'] =
+        $this->order->get('field_event_location')->isEmpty()
+        ? NULL : $this->order->get('field_event_location')->value;
+      $this->orderData['event_name'] =
+        $this->order->get('field_event_name')->isEmpty()
+        ? NULL : $this->order->get('field_event_name')->value;
+      $this->orderData['overlimit_comments'] =
+        $this->order->get('field_cecc_over_limit_desc')->isEmpty()
+        ? NULL : $this->order->get('field_cecc_over_limit_desc')->value;
+    }
   }
 
   /**
