@@ -109,8 +109,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       ->load($item['id']);
 
     $warehouse_item_id = $productVariation->hasField('field_warehouse_entity_id') ?
-      $productVariation->get('field_warehouse_entity_id')->value:
-      $productVariation->get('field_cecc_warehouse_item_id')->value;
+      'field_warehouse_entity_id' : 'field_cecc_warehouse_item_id';
 
     if (is_null($productVariation)) {
       $this->logger->warning('Product does not exist: @id', ['@id', $item['id']]);
