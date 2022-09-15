@@ -108,6 +108,10 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
     $productVariation = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->load($item['id']);
 
+    $warehouse_item_id = $productVariation->hasField('field_warehouse_entity_id') ?
+      $productVariation->get('field_warehouse_entity_id')->value:
+      $productVariation->get('field_cecc_warehouse_item_id')->value;
+
     if (is_null($productVariation)) {
       $this->logger->warning('Product does not exist: @id', ['@id', $item['id']]);
       return FALSE;
@@ -117,7 +121,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       $response = $this->httpClient
         ->call('GetSingleInventory', [
           'agency' => $this->config->get('agency'),
-          'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
+          'warehouse_item_id' => $productVariation->get($warehouse_item_id)->value,
           'code' => $this->config->get('api_key'),
         ]);
 

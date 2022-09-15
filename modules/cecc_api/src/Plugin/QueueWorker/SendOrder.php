@@ -7,7 +7,7 @@ namespace Drupal\cecc_api\Plugin\QueueWorker;
  *
  * @QueueWorker(
  *   id = "cecc_send_order",
- *   title = @Translation("Queue worker for sending orders."),
+ *   title = @Translation("Queue worker for sending orders (CECC)."),
  *   cron = {"time" = 90}
  * )
  */
