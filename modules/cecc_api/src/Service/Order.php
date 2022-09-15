@@ -527,11 +527,10 @@ class Order implements ContainerInjectionInterface {
   private function setCustomerInformation(array $customerProfiles) {
     foreach ($customerProfiles as $type => $profile) {
       $addressArray = $profile->get('address')->getValue()[0];
-      $phone = $profile->get('field_phone_number')->value;
+      $phone = $profile->hasField('field_phone') ?
+        $profile->get('field_phone')->value : $profile->get('field_phone_number')->value;
       $phoneExt = $profile->get('field_extension')->value;
       $type = $type == 'cecc_shipping' ? 'shipping' : $type;
-      $type = $this->config->get('combine_billing_shipping') == 1 ?
-        'shipping' : $type;
       $this->orderData[$type . '_address']['first_name']
         = $profile->get('field_first_name')->isEmpty()?
           $addressArray['given_name'] : $profile->get('field_first_name')->value;
@@ -558,6 +557,12 @@ class Order implements ContainerInjectionInterface {
         ? $this->telephoneFormatter->format($phone, 2, 'US') : NULL;
       $this->orderData[$type . '_address']['phone_ext'] = $phoneExt;
     }
+
+    if ($this->config->get('combine_billing_shipping') == 1) {
+      $this->orderData['shipping_address'] = $this->orderData['billing_address'];
+      unset($this->orderData['billing_address']);
+    }
+
   }
 
 }
