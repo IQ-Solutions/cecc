@@ -476,46 +476,43 @@ class Order implements ContainerInjectionInterface {
     $this->collectOrderData($id);
     $orderDataJson = json_encode($this->orderData);
 
-    if ($this->config->get('debug') == 0) {
+    try {
+      $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
+        'headers' => [
+          'IQ_Client_Key' => $apiKey,
+          'Content-Type' => 'application/json',
+        ],
+        'body' => $orderDataJson,
+      ]);
 
-      try {
-        $response = $this->httpClient->request('POST', 'api/orders/' . $agency, [
-          'headers' => [
-            'IQ_Client_Key' => $apiKey,
-            'Content-Type' => 'application/json',
-          ],
-          'body' => $orderDataJson,
+      if ($response->getStatusCode() != 200) {
+        $message = $this->t('The service failed with the following error: %error', [
+          '%error' => $response['message'],
+          '%response' => $orderDataJson,
         ]);
 
-        if ($response->getStatusCode() != 200) {
-          $message = $this->t('The service failed with the following error: %error', [
-            '%error' => $response['message'],
-            '%response' => $orderDataJson,
-          ]);
-
-          $this->logger->error($message);
-          return self::API_CONNECTION_ERROR;
-        }
-      }
-      catch (GuzzleException $error) {
-        $this->logger->error('@error | @response', [
-          '@error' => $error->getMessage(),
-          '@response' => $orderDataJson,
-        ]);
-
-        return self::INTERNAL_CONNECTION_ERROR;
+        $this->logger->error($message);
+        return self::API_CONNECTION_ERROR;
       }
     }
-    else {
-      $file = file_save_data($orderDataJson, 'public://testorder.json');
-      $url = file_create_url($file->getFileUri());
+    catch (GuzzleException $error) {
+      $log_message =[
+        '@error' => $error->getMessage(),
+        '@response' => $orderDataJson,
+      ];
 
-      $this->logger->info('<a href="@file">File available at @file</a>', [
-        '@file' => $url,
-      ]);
-      $this->messenger()->addStatus($this->t('<a href="@file">File available at @file</a>', [
-        '@file' => $url,
-      ]));
+      $message = '@error | @response';
+
+      if ($this->config->get('debug') == 0) {
+        $file = file_save_data($orderDataJson, 'public://testorder.json');
+        $url = file_create_url($file->getFileUri());
+        $log_message['@file'] = $url;
+        $message = '@error | @response | File available at @file';
+      }
+
+      $this->logger->error($message, $log_message);
+
+      return self::INTERNAL_CONNECTION_ERROR;
     }
 
     return self::ORDER_SENT;
@@ -533,12 +530,17 @@ class Order implements ContainerInjectionInterface {
       $phone = $profile->get('field_phone_number')->value;
       $phoneExt = $profile->get('field_extension')->value;
       $type = $type == 'cecc_shipping' ? 'shipping' : $type;
+      $type = $this->config->get('combine_billing_shipping') == 1 ?
+        'shipping' : $type;
       $this->orderData[$type . '_address']['first_name']
-        = $profile->get('field_first_name')->value;
+        = $profile->get('field_first_name')->isEmpty()?
+          $addressArray['given_name'] : $profile->get('field_first_name')->value;
       $this->orderData[$type . '_address']['last_name']
-        = $profile->get('field_last_name')->value;
+        = $profile->get('field_last_name')->isEmpty()?
+          $addressArray['family_name'] : $profile->get('field_last_name')->value;
       $this->orderData[$type . '_address']['company_name']
-        = $profile->get('field_organization')->value;
+        = $profile->get('field_organization')->isEmpty()?
+          $addressArray['organization'] : $profile->get('field_organization')->value;
       $this->orderData[$type . '_address']['address']
         = $addressArray['address_line1'];
       $this->orderData[$type . '_address']['street2']

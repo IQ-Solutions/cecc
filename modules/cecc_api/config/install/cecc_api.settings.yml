@@ -6,3 +6,4 @@ base_api_url: "https://order-apis.azurewebsites.net"
 stock_refresh_interval: "daily"
 stock_refresh_type: "interval"
 warehouse_item_id_field_name: "field_cecc_warehouse_item_id"
+combine_billing_shipping: 0

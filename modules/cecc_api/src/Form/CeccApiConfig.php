@@ -53,6 +53,13 @@ class CeccApiConfig extends ConfigFormBase {
       '#default_value' => $config->get('warehouse_item_id_field_name') ?: 'field_cecc_warehouse_item_id',
     ];
 
+    $form['combine_billing_shipping'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Combine Billing and Shipping Profile as Shipping'),
+      '#description' => $this->t('Sends billing and shipping profile as shipping when checked.'),
+      '#default_value' => $config->get('combine_billing_shipping') ?: 0,
+    ];
+
     $form['stock_refresh'] = [
       '#type' => 'details',
       '#title' => $this->t('Stock Refresh Configuration'),
@@ -147,6 +154,7 @@ class CeccApiConfig extends ConfigFormBase {
       ->set('stock_refresh_interval', $form_state->getValue('stock_refresh_interval'))
       ->set('api_notifications', $form_state->getValue('api_notifications'))
       ->set('warehouse_item_id_field_name', $form_state->getValue('warehouse_item_id_field_name'))
+      ->set('combine_billing_shipping', $form_state->getValue('combine_billing_shipping'))
       ->save();
 
     parent::submitForm($form, $form_state);

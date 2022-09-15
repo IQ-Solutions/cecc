@@ -93,4 +93,5 @@ function cecc_api_update_9003() {
   $configFactory = \Drupal::configFactory();
   $config = $configFactory->getEditable('cecc_api.settings');
   $config->set('warehouse_item_id_field_name', 'field_cecc_warehouse_item_id');
+  $config->set('combine_billing_shipping', 0);
 }
