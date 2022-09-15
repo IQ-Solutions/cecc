@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_stock\Plugin\Validation\Constraint;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_store\SelectStoreTrait;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -39,11 +40,7 @@ class QuantityLimitConstraintValidator extends ConstraintValidator {
       return;
     }
 
-    $order_limit_field = 'field_cecc_order_limit';
-
-    if ($purchasedEntity->hasField('field_maximum_order_amount')) {
-      $order_limit_field = 'field_maximum_order_amount';
-    }
+    $order_limit_field = StockHelper::getOrderLimitFieldName($purchasedEntity);
 
     $orderLimit = $purchasedEntity->get($order_limit_field)->value;
 

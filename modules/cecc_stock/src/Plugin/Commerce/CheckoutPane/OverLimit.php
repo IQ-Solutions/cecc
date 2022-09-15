@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_stock\Plugin\Commerce\CheckoutPane;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowInterface;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -148,7 +149,8 @@ class OverLimit extends CheckoutPaneBase {
     foreach ($orderItems as $orderItem) {
       $quantity = $orderItem->getQuantity();
       $purchasedEntity = $orderItem->getPurchasedEntity();
-      $overLimitValue = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $order_limit_field = StockHelper::getOrderLimitFieldName($purchasedEntity);
+      $overLimitValue = $purchasedEntity->get($order_limit_field)->value;
 
       if (!empty($overLimitValue) && $quantity > $overLimitValue) {
         return TRUE;
