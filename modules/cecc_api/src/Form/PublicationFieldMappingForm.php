@@ -86,8 +86,10 @@ class PublicationFieldMappingForm extends ConfigFormBase {
    */
   private function getFieldDefinitions($entity_id) {
     $fields = [];
+    $config = $this->configFactory()->get('cecc_publication.settings');
+    $commerce_product_type = $config->get('commerce_product_type');
     $definitions = $this->entityFieldManager
-      ->getFieldDefinitions($entity_id, 'cecc_publication');
+      ->getFieldDefinitions($entity_id, $commerce_product_type);
 
     foreach ($definitions as $defintion) {
       $fields[$defintion->getName()] = $defintion->getLabel();
