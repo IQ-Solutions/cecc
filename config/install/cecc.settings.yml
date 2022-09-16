@@ -5,3 +5,5 @@ email_from: ''
 email_from_name: ''
 email_subject: ''
 add_to_cart_dest: "cart"
+show_review_order: 0
+show_back_to_cart: 0
