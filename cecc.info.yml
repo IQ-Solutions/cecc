@@ -5,6 +5,7 @@ package: 'Customer Engagement Center'
 core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:commerce
+  - drupal:commerce_shipping
   - drupal:telephone
   - drupal:telephone_formatter
-  - drupal:telephone_validaton
+  - drupal:telephone_validation
