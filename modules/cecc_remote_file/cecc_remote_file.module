@@ -24,7 +24,7 @@ function cecc_remote_file_theme($existing, $type, $theme, $path) {
  * Implements hook_media_source_info_alter().
  */
 function cecc_remote_file_media_source_info_alter(array &$sources) {
-  if (empty($sources['remote_file']['forms']['media_library_add'])) {
-    $sources['remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
+  if (empty($sources['cecc_remote_file']['forms']['media_library_add'])) {
+    $sources['cecc_remote_file']['forms']['media_library_add'] = RemoteFileForm::class;
   }
 }
