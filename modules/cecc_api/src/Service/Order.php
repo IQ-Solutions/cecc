@@ -227,14 +227,21 @@ class Order implements ContainerInjectionInterface {
    * Adds additional info data to data array.
    */
   private function loadAdditionalInformation() {
-    if ($this->order->hasField('field_setting')) {
-      $this->orderData['customer_questions']['setting']
-        = $this->order->get('field_setting')->value;
-    }
+    $fields = $this->order->getFields();
+    $field_name_conversion = [
+      'field_setting' => 'setting',
+      'field_order_occupation' => 'profession',
+      'field_how_did_you_hear_about_us' => 'source',
+    ];
 
-    if ($this->order->hasField('field_order_occupation')) {
-      $this->orderData['customer_questions']['profession']
-        = $this->order->get('field_order_occupation')->value;
+    foreach ($fields as $field_name => $field) {
+      $field_settings = $field->getSettings();
+
+      if (isset($field_settings['allowed_values'])) {
+        $export_name = $field_name_conversion[$field_name];
+        $this->orderData['customer_questions'][$export_name]
+          = $this->order->get($field_name)->value;
+      }
     }
   }
 
