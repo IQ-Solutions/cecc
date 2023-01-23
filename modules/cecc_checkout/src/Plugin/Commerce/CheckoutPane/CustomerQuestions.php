@@ -22,24 +22,23 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
    * {@inheritDoc}
    */
   public function buildPaneForm(array $pane_form, FormStateInterface $form_state, array &$complete_form) {
-    $pane_form['order_occupation'] = [
-      '#type' => 'select',
-      '#title' => $this->order->get('field_order_occupation')->getFieldDefinition()->getLabel(),
-      '#options' => $this->order->get('field_order_occupation')->getSetting('allowed_values'),
-      '#empty_option' => '- Select a value -',
-      '#default_value' => $this->order->get('field_order_occupation')->isEmpty() ?
-      NULL : $this->order->get('field_order_occupation')->value,
-      '#required' => TRUE,
-    ];
-    $pane_form['setting'] = [
-      '#type' => 'select',
-      '#title' => $this->order->get('field_setting')->getFieldDefinition()->getLabel(),
-      '#options' => $this->order->get('field_setting')->getSetting('allowed_values'),
-      '#empty_option' => '- Select a value -',
-      '#default_value' => $this->order->get('field_setting')->isEmpty() ?
-      NULL : $this->order->get('field_setting')->value,
-      '#required' => TRUE,
-    ];
+    $fields = $this->order->getFields();
+
+    foreach ($fields as $field_name => $field) {
+      $field_definition = $field->getFieldDefinition();
+      $field_settings = $field->getSettings();
+
+      if (isset($field_settings['allowed_values'])) {
+        $pane_form[$field_name] = [
+          '#type' => 'select',
+          '#title' => $field_definition->getLabel(),
+          '#options' => $field_settings['allowed_values'],
+          '#empty_option' => '- Select a value -',
+          '#default_value' => $field->isEmpty() ? NULL : $field->value,
+          '#required' => TRUE,
+        ];
+      }
+    }
 
     return $pane_form;
   }
@@ -49,14 +48,22 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
    */
   public function submitPaneForm(array &$pane_form, FormStateInterface $form_state, array &$complete_form) {
     $value = $form_state->getValue($pane_form['#parents']);
-    $this->order->set('field_order_occupation', $value['order_occupation']);
-    $this->order->set('field_setting', $value['setting']);
+    $fields = $this->order->getFields();
+
+    foreach ($fields as $field_name => $field) {
+      $field_settings = $field->getSettings();
+      if (isset($field_settings['allowed_values'])) {
+        $this->order->set($field_name, $value[$field_name]);
+      }
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildPaneSummary() {
+    $fields = $this->order->getFields();
+
     $build = [
       'summary_display' => [
         '#type' => 'container',
@@ -64,22 +71,17 @@ class CustomerQuestions extends CheckoutPaneBase implements CheckoutPaneInterfac
       ],
     ];
 
-    if (!$this->order->get('field_setting')->isEmpty()) {
-
-      $build['summary_display']['pub_setting'] = [
-        '#type' => 'item',
-        '#title' => $this->order->get('field_setting')->getFieldDefinition()->getLabel(),
-        '#markup' => '<p>' . $this->order->get('field_setting')->value . '</p>',
-      ];
-    }
-
-    if (!$this->order->get('field_order_occupation')->isEmpty()) {
-
-      $build['summary_display']['pub_occupation'] = [
-        '#type' => 'item',
-        '#title' => $this->order->get('field_order_occupation')->getFieldDefinition()->getLabel(),
-        '#markup' => '<p>' . $this->order->get('field_order_occupation')->value . '</p>',
-      ];
+    foreach ($fields as $field_name => $field) {
+      $field_settings = $field->getSettings();
+      if (!$field->isEmpty()) {
+        if (isset($field_settings['allowed_values'])) {
+          $build['summary_display'][$field_name] = [
+            '#type' => 'item',
+            '#title' => $field->getFieldDefinition()->getLabel(),
+            '#markup' => '<p>' . $field->value . '</p>',
+          ];
+        }
+      }
     }
 
     return $build;
