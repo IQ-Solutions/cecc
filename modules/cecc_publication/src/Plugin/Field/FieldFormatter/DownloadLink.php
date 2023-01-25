@@ -102,18 +102,7 @@ class DownloadLink extends EntityReferenceFormatterBase {
         return FALSE;
       }
 
-      /** @var \Drupal\media\Entity\MediaType[] $media_types */
-      $media_types = \Drupal::entityTypeManager()->getStorage('media_type')
-        ->loadMultiple($media_bundles);
-
-      foreach ($media_types as $media_type) {
-        $source = $media_type->getSource();
-        $allowed_field_types = $source->getPluginDefinition()['allowed_field_types'];
-        if (!empty(array_diff($allowed_field_types, ['file']))) {
-          // In here means something other than file or image is allowed.
-          return FALSE;
-        }
-      }
+      return (in_array('remote_file', $media_bundles) || in_array('document', $media_bundles));
     }
 
     return TRUE;
@@ -129,30 +118,90 @@ class DownloadLink extends EntityReferenceFormatterBase {
 
 
     foreach ($entities as $media) {
-      /** @var \Drupal\file\Entity\File $file */
-      $file = $media->field_media_document->entity;
-
-      if (empty($file)) {
-        continue;
-      }
-
+      $bundle = $media->bundle();
       /** @var \Drupal\commerce_product\Entity\Product $product */
       $product = $media->_referringItem->getEntity();
-      $file_size = $file->getSize();
-      $url = $file->createFileUrl();
 
-      $elements[] = [
-        '#theme' => 'cecc_download_link',
-        '#media' => $media,
-        '#product' => $product,
-        '#product_title' => $product->get('field_cecc_display_title')->value,
-        '#product_url' => $url,
-        '#link_alt' => $media->getName(),
-        '#file_size' => format_size($file_size),
-      ];
+      if ($bundle == 'document') {
+        /** @var \Drupal\file\Entity\File $file */
+        $file = $media->field_media_document->entity;
+
+        if (empty($file)) {
+          continue;
+        }
+
+        $elements[] = $this->getDocumentElement($media, $file, $product);
+      }
+      elseif ($bundle == 'remote_file') {
+        $elements[] = $this->getRemoteFileElement($media, $product);
+      }
     }
 
     return $elements;
+  }
+
+  /**
+   * Gets document media file.
+   *
+   * @param \Drupal\media\Entity\Media $media
+   *   The media item.
+   * @param \Drupal\commerce_product\Entity\Product $product
+   *   The parent product.
+   *
+   * @return array
+   *   The render array.
+   */
+  private function getRemoteFileElement($media, $product) {
+
+    $remoteFile = $media->get('field_media_cecc_remote_file');
+
+    $path = $remoteFile->value;
+
+    $fileSize = $media->getSource()->getMetadata($media, 'filesize');
+
+    $element = [
+      '#theme' => 'cecc_download_link',
+      '#media' => $media,
+      '#product' => $product,
+      '#product_title' => $product->get('field_cecc_display_title')->value,
+      '#product_url' => $path,
+      '#link_alt' => $media->getName(),
+      '#file_size' => format_size($fileSize),
+    ];
+
+    return $element;
+  }
+
+  /**
+   * Gets document media file.
+   *
+   * @param \Drupal\media\Entity\Media $media
+   *   The media item.
+   * @param \Drupal\file\Entity\File $file
+   *   The file item.
+   * @param \Drupal\commerce_product\Entity\Product $product
+   *   The parent product.
+   *
+   * @return array
+   *   The render array.
+   */
+  private function getDocumentElement($media, $file, $product) {
+    /** @var \Drupal\commerce_product\Entity\Product $product */
+    $product = $media->_referringItem->getEntity();
+    $file_size = $file->getSize();
+    $url = $file->createFileUrl();
+
+    $element = [
+      '#theme' => 'cecc_download_link',
+      '#media' => $media,
+      '#product' => $product,
+      '#product_title' => $product->get('field_cecc_display_title')->value,
+      '#product_url' => $url,
+      '#link_alt' => $media->getName(),
+      '#file_size' => format_size($file_size),
+    ];
+
+    return $element;
   }
 
 }
