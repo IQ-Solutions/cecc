@@ -3,23 +3,23 @@
 namespace Drupal\cecc_remote_file\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceFormatterBase;
 use Drupal\media\Entity\Media;
 
 /**
  * Plugin implementation of the download_link formatter.
  *
  * @FieldFormatter(
- *   id = "cecc_download_link",
+ *   id = "cecc_remote_download_link",
  *   module = "cecc_remote_file",
- *   label = @Translation("Download Link"),
+ *   label = @Translation("Remote Download Link"),
  *   field_types = {
  *     "entity_reference"
  *   }
  * )
  */
-class DownloadLink extends FormatterBase {
+class DownloadLink extends EntityReferenceFormatterBase {
 
   /**
    * {@inheritdoc}
@@ -52,37 +52,26 @@ class DownloadLink extends FormatterBase {
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
     $elements = [];
+    /** @var \Drupal\media\Entity\Media[] $entities */
+    $entities = $this->getEntitiesToView($items, $langcode);
 
-    foreach ($items as $delta => $item) {
+    foreach ($entities as $media) {
+      /** @var \Drupal\commerce_product\Entity\Product $product */
+      $product = $media->_referringItem->getEntity();
 
-      // Get the media item.
-      $media_id = $item->getValue()['target_id'];
-      $media_item = Media::load($media_id);
+      $remoteFile = $media->get('field_media_cecc_remote_file');
 
-      try {
-        $remoteFile = $media_item->get('field_media_remote_file');
+      $path = $remoteFile->value;
 
-        if ($remoteFile->isEmpty()) {
-          return [];
-        }
+      $fileSize = $media->getSource()->getMetadata($media, 'filesize');
 
-        $path = $remoteFile->value;
-
-        $fileSize = $media_item->get('field_remote_file_size')->isEmpty() ?
-        $media_item->getSource()->getMetadata($media_item, 'filesize')
-        : $media_item->get('field_remote_file_size')->value;
-
-        $elements[$delta] = [
-          '#theme' => 'cecc_download_link',
-          '#link_url' => $path,
-          '#link_alt' => $media_item->getName(),
-          '#file_size' => format_size($fileSize),
-        ];
-
-      }
-      catch (\InvalidArgumentException $e) {
-        \Drupal::logger('cecc_remote_file')->error($e->getMessage());
-      }
+      $elements[] = [
+        '#theme' => 'cecc_remote_download_link',
+        '#product_title' => $product->get('field_cecc_display_title')->value,
+        '#product_url' => $path,
+        '#link_alt' => $media->getName(),
+        '#file_size' => format_size($fileSize),
+      ];
     }
 
     return $elements;

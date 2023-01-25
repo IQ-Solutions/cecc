@@ -9,9 +9,10 @@ use Drupal\cecc_remote_file\Form\RemoteFileForm;
 function cecc_remote_file_theme($existing, $type, $theme, $path) {
   $themeArray = [];
 
-  $themeArray['cecc_download_link'] = [
+  $themeArray['cecc_remote_download_link'] = [
     'variables' => [
-      'link_url' => NULL,
+      'product_title' => NULL,
+      'product_url' => NULL,
       'link_alt' => NULL,
       'file_size' => NULL,
     ],
