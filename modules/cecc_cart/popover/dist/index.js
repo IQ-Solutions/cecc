@@ -119,6 +119,6 @@ parcelRequire=function(e,r,t,n){var i,o="function"==typeof parcelRequire&&parcel
 },{"@popperjs/core":"S1OH"}],"T0Ik":[function(require,module,exports) {
 
 },{}],"Focm":[function(require,module,exports) {
-"use strict";var e=t(require("tippy.js"));function t(e){return e&&e.__esModule?e:{default:e}}require("tippy.js/dist/tippy.css"),require("tippy.js/dist/border.css"),function(e,t,i){e.AjaxCommands.prototype.cecPopover=function(e,t,r){var n=document.querySelector(e.selector);i(n,{allowHTML:!0,content:t.content,interactive:!0,maxWidth:300,placement:"top-end",trigger:"manual",theme:t.type}),n._tippy.show(),setTimeout(function(){n._tippy.hide()},1e4)}}(Drupal,drupalSettings,e.default);
+"use strict";var e=t(require("tippy.js"));function t(e){return e&&e.__esModule?e:{default:e}}require("tippy.js/dist/tippy.css"),require("tippy.js/dist/border.css"),function(e,t,i){e.AjaxCommands.prototype.ceccPopover=function(e,t,r){var n=document.querySelector(e.selector);i(n,{allowHTML:!0,content:t.content,interactive:!0,maxWidth:300,placement:"top-end",trigger:"manual",theme:t.type}),n._tippy.show(),setTimeout(function(){n._tippy.hide()},1e4)}}(Drupal,drupalSettings,e.default);
 },{"tippy.js":"ndpH","tippy.js/dist/tippy.css":"T0Ik","tippy.js/dist/border.css":"T0Ik"}]},{},["Focm"], null)
 //# sourceMappingURL=/index.js.map

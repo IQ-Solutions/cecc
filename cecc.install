@@ -10,6 +10,8 @@ function cecc_install($is_syncing) {
   ->getStorage('entity_view_display');
   $entityFormDisplayStorage = \Drupal::entityTypeManager()
   ->getStorage('entity_form_display');
+  /** @var \Drupal\Core\Config\ConfigFactoryInterface $configFactory */
+  $configFactory = \Drupal::service('config.factory');
 
   /** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $customerProfileDefaultFormDisplay */
   $customerProfileDefaultFormDisplay = $entityFormDisplayStorage
@@ -130,4 +132,14 @@ function cecc_install($is_syncing) {
     ]);
     $customerProfileDefaultViewDisplay->save();
   }
+}
+
+/**
+ * Updates config fields.
+ */
+function cecc_update_9001() {
+  \Drupal::configFactory()->getEditable('cecc.settings')
+    ->set('show_review_order', 1)
+    ->set('show_back_to_cart', 1)
+    ->save();
 }

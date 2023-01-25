@@ -78,7 +78,7 @@ class CeccOrderReceipt extends ControllerBase {
   /**
    * View order receipt.
    *
-   * @param Drupal\commerce_order\Entity\OrderInterface $order
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
    *   The order.
    */
   public function viewReceipt(OrderInterface $order) {

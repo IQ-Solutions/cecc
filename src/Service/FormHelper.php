@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -243,6 +244,11 @@ class FormHelper implements FormHelperInterface {
    */
   public function alterCheckout(array &$form) {
     $stepId = $form['#step_id'];
+    $cecc_settings = $this->configFactory->get('cecc.settings');
+
+    if ($stepId == 'order_information' && $cecc_settings->get('show_review_order') == 1) {
+      $form['actions']['next']['#value'] = $this->t('Review Your Order');
+    }
 
     if ($stepId == 'review') {
 
@@ -255,6 +261,19 @@ class FormHelper implements FormHelperInterface {
           '#prefix' => $this->t('<span class="text-bold font-ui-lg">CAPTCHA</span><br>This question is for testing whether or not you are a human visitor and to prevent automated spam submissions.'),
         ];
       }
+    }
+
+    if ($cecc_settings->get('show_back_to_cart') == 1) {
+      $form['actions']['next']['#suffix'] = Link::createFromRoute(
+        'Back to Cart',
+        'commerce_cart.page',
+        [],
+        [
+          'attributes' => [
+            'class' => ['link--previous'],
+          ],
+        ]
+      )->toString();
     }
   }
 

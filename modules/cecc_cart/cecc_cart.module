@@ -19,7 +19,7 @@ function cecc_cart_preprocess_page_title(&$variables) {
  */
 function cecc_cart_entity_type_build(array &$entity_types) {
   if (isset($entity_types['commerce_order_item'])) {
-    $cartConfig = \Drupal::config('cecc_cart');
+    $cartConfig = \Drupal::configFactory()->get('cecc_cart.settings');
 
     if ($cartConfig->get('use_ajax')) {
       $entity_types['commerce_order_item']->setFormClass('cecc_cart_ajax_add_to_cart', '\Drupal\cecc_cart\Form\AjaxAddToCartForm');

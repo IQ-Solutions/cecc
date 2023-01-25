@@ -44,6 +44,22 @@ class CeccConfigForm extends ConfigFormBase {
       $config->get('quantity_update_type') : 'normal',
     ];
 
+    $form['show_review_order'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show <em>"Review Order"</em>'),
+      '#description' => $this->t('Show review order link on cart.'),
+      '#default_value' => !empty($config->get('show_review_order')) ?
+      $config->get('show_review_order') : 0,
+    ];
+
+    $form['show_back_to_cart'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show <em>"Back to Cart"</em>'),
+      '#description' => $this->t('Show back to cart button on cart.'),
+      '#default_value' => !empty($config->get('show_back_to_cart')) ?
+      $config->get('show_back_to_cart') : 0,
+    ];
+
     $form['add_to_cart_dest'] = [
       '#type' => 'radios',
       '#title' => $this->t('Add to Cart Destination'),
@@ -98,6 +114,8 @@ class CeccConfigForm extends ConfigFormBase {
       ->set('email_from_name', $form_state->getValue('email_from_name'))
       ->set('email_subject', $form_state->getValue('email_subject'))
       ->set('add_to_cart_dest', $form_state->getValue('add_to_cart_dest'))
+      ->set('show_review_order', $form_state->getValue('show_review_order'))
+      ->set('show_back_to_cart', $form_state->getValue('show_back_to_cart'))
       ->save();
 
     parent::submitForm($form, $form_state);

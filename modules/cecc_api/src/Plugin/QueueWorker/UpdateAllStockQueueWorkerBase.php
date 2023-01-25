@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -106,6 +107,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
      */
     $productVariation = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->load($item['id']);
+    $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
 
     if (is_null($productVariation)) {
       $this->logger->warning('Product does not exist: @id', ['@id', $item['id']]);
@@ -116,7 +118,7 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
       $response = $this->httpClient
         ->call('GetSingleInventory', [
           'agency' => $this->config->get('agency'),
-          'warehouse_item_id' => $productVariation->get('field_cecc_warehouse_item_id')->value,
+          'warehouse_item_id' => $productVariation->get($warehouse_item_id)->value,
           'code' => $this->config->get('api_key'),
         ]);
 
@@ -129,7 +131,9 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
         throw new SuspendQueueException($message);
       }
 
-      $productVariation->set('field_cecc_stock', $item['warehouse_stock_on_hand']);
+      $stock_field_name = StockHelper::getStockFieldName($productVariation);
+
+      $productVariation->set($stock_field_name, $item['warehouse_stock_on_hand']);
 
       try {
         $productVariation->save();

@@ -76,8 +76,9 @@ class StockValidation {
    *   Checks that the stock isn't below threshold and the product is in stock.
    */
   public function checkProductStock(ProductVariationInterface $productVariation, $quantity = 0) {
+    $stock_field_name = StockHelper::getStockFieldName($productVariation);
     return !$this->belowStopCheckThreshold($productVariation) &&
-      $productVariation->get('field_cecc_stock')->value > $quantity;
+      $productVariation->get($stock_field_name)->value > $quantity;
   }
 
   /**
@@ -91,12 +92,14 @@ class StockValidation {
    *   threshold. Defaults to false.
    */
   public function belowStopCheckThreshold(ProductVariationInterface $productVariation) {
-    if ($productVariation->get('cecc_stock_stop_threshold')->isEmpty()) {
+    $stock_field_name = StockHelper::getStockFieldName($productVariation);
+    $stock_check = StockHelper::getStopCheckThresholdFieldName($productVariation);
+    if ($productVariation->get($stock_check)->isEmpty()) {
       return FALSE;
     }
 
-    $stopCheckThreshold = (int) $productVariation->get('cecc_stock_stop_threshold')->value;
-    $currentStock = $productVariation->get('field_cecc_stock')->value;
+    $stopCheckThreshold = (int) $productVariation->get($stock_check)->value;
+    $currentStock = $productVariation->get($stock_field_name)->value;
 
     return $currentStock < $stopCheckThreshold;
   }
@@ -127,12 +130,13 @@ class StockValidation {
 
       $name = $purchasedEntity->getTitle();
       $qty = $orderItem->getQuantity();
+      $stock_field_name = StockHelper::getStockFieldName($purchasedEntity);
 
       if (!$this->checkProductStock($purchasedEntity, $qty)) {
         if ($sendMessage) {
           $stockMessage = $this->t('The maximum quantity for %name that can be ordered is %qty.', [
             '%name' => $name,
-            '%qty' => $purchasedEntity->get('field_cecc_stock')->value,
+            '%qty' => $purchasedEntity->get($stock_field_name)->value,
           ]);
 
           $this->messenger()->addError($stockMessage);
@@ -148,16 +152,18 @@ class StockValidation {
   /**
    * Checks stock level below threshold.
    *
-   * @param Drupal\commerce\PurchasableEntityInterface $entity
+   * @param \Drupal\commerce\PurchasableEntityInterface $entity
    *   The product variation.
    *
    * @return bool
    *   Returns TRUE if below threshold, FALSE if above.
    */
   public function isStockBelowThreshold(PurchasableEntityInterface $entity) {
-    if (!$entity->get('cecc_check_stock_threshold')->isEmpty()) {
-      $stockLevel = $entity->get('field_cecc_stock')->isEmpty() ? 0 : $entity->get('field_cecc_stock')->value;
-      $stockLevelThreshold = $entity->get('cecc_check_stock_threshold')->value;
+    $stock_field_name = StockHelper::getStockFieldName($entity);
+    $stock_check = StockHelper::getStockThresholdFieldName($entity);
+    if (!$entity->get($stock_check )->isEmpty()) {
+      $stockLevel = $entity->get($stock_field_name)->isEmpty() ? 0 : $entity->get($stock_field_name)->value;
+      $stockLevelThreshold = $entity->get($stock_check )->value;
 
       return $stockLevel <= $stockLevelThreshold;
     }
@@ -181,9 +187,10 @@ class StockValidation {
       /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
       $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
         ->load($variationId);
+      $order_limit_field = StockHelper::getOrderLimitFieldName($purchasedEntity);
 
       // Get the maximum orderable quantity.
-      $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $orderLimit = $purchasedEntity->get($order_limit_field)->value;
       $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
 
       return $orderLimit > 0 ? $cartQuantity >= $orderLimit : FALSE;
@@ -211,9 +218,10 @@ class StockValidation {
       $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
         ->load($variationId);
       $commerceConfig = $this->configFactory->get('cecc.settings');
+      $order_limit_field = StockHelper::getOrderLimitFieldName($purchasedEntity);
 
       // Get the maximum orderable quantity.
-      $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+      $orderLimit = $purchasedEntity->get($order_limit_field)->value;
       $cartQuantity = $this->getOrderedQuantity($purchasedEntity);
       $totalQuantity = $cartQuantity + $quantity;
 
@@ -242,9 +250,10 @@ class StockValidation {
     /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
     $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->load($variationId);
+    $order_limit_field = StockHelper::getOrderLimitFieldName($purchasedEntity);
 
     // Get the maximum orderable quantity.
-    $orderLimit = $purchasedEntity->get('field_cecc_order_limit')->value;
+    $orderLimit = $purchasedEntity->get($order_limit_field)->value;
 
     return $orderLimit > 0 ? $quantity > $orderLimit : FALSE;
   }
@@ -261,9 +270,10 @@ class StockValidation {
     /** @var \Drupal\commerce\PurchasableEntityInterface $purchasedEntity */
     $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->load($variationId);
+    $stock_field_name = StockHelper::getStockFieldName($purchasedEntity);
 
     // Get the available stock level.
-    $stockLevel = $purchasedEntity->get('field_cecc_stock')->value;
+    $stockLevel = $purchasedEntity->get($stock_field_name)->value;
 
     // Get the already ordered quantity.
     $alreadyOrdered = $this->getOrderedQuantity($purchasedEntity);

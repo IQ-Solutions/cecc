@@ -5,11 +5,12 @@ namespace Drupal\cecc_cart;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Security\TrustedCallbackInterface;
 
 /**
  * Provides #lazy_builder callbacks.
  */
-class ProductLazyBuilders {
+class ProductLazyBuilders implements TrustedCallbackInterface {
 
   /**
    * The entity type manager.
@@ -24,6 +25,10 @@ class ProductLazyBuilders {
    * @var \Drupal\Core\Form\FormBuilderInterface
    */
   protected $formBuilder;
+
+  public static function trustedCallbacks() {
+    return ['ajaxAddToCartForm'];
+  }
 
   /**
    * Constructs a new CartLazyBuilders object.
@@ -64,7 +69,7 @@ class ProductLazyBuilders {
 
     $order_item = $order_item_storage->createFromPurchasableEntity($default_variation);
     /** @var \Drupal\commerce_cart\Form\AddToCartFormInterface $form_object */
-    $form_object = $this->entityTypeManager->getFormObject('commerce_order_item', 'po_ajax_add_to_cart');
+    $form_object = $this->entityTypeManager->getFormObject('commerce_order_item', 'cecc_cart_ajax_add_to_cart');
     $form_object->setEntity($order_item);
     // The default form ID is based on the variation ID, but in this case the
     // product ID is more reliable (the default variation might change between

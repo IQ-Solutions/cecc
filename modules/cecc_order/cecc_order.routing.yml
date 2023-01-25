@@ -1,0 +1,8 @@
+cecc_order.settings:
+  path: '/admin/commerce/cecc/order'
+  defaults:
+   _form: '\Drupal\cecc_order\Form\CeccOrderForm'
+   _title: 'Order Config'
+  requirements:
+    _permission:
+      'access commerce administration pages'

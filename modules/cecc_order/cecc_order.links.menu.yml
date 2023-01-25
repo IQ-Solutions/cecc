@@ -1,0 +1,5 @@
+cecc.order_config:
+  title: 'Order Config'
+  parent: cecc.config
+  description: 'Set CEC Order Config'
+  route_name: cecc_order.settings

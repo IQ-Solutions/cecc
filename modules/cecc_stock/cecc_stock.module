@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -40,7 +41,7 @@ function cecc_stock_preprocess_commerce_product__publication(&$variables) {
     $productVariationId = $productVariation->id();
     $limitText = t($config->get('order_over_limit_text'), [
       '%label' => $product->getTitle(),
-      '%limit' => $productVariation->get('field_cecc_order_limit')->value,
+      '%limit' => $productVariation->get(StockHelper::getOrderLimitFieldName($productVariation))->value,
     ]);
 
     $variables['atQuantityLimit'] = $stockValidation->isCartAtQuantityLimit($productVariationId);

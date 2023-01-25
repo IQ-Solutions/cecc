@@ -6,7 +6,6 @@ use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Ajax\UpdateBuildIdCommand;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Block\BlockManagerInterface;
@@ -18,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\cecc_cart\Ajax\PopoverCommand;
+use Drupal\cecc_cart\Ajax\CeccPopoverCommand;
 use Drupal\Core\Entity\EntityForm;
 
 /**
@@ -143,7 +142,7 @@ class RefreshPageElements {
     $content = $this->generatePopoverContent();
     $type = $this->hasErrors ? 'danger' : 'success';
 
-    $this->response->addCommand(new PopoverCommand('', $type, $content, []));
+    $this->response->addCommand(new CeccPopoverCommand('', $type, $content, []));
 
     return $this;
   }
@@ -293,7 +292,7 @@ class RefreshPageElements {
 
     if (!empty($content)) {
       $build = [
-        '#theme' => 'cec_tippy',
+        '#theme' => 'cecc_cart_tippy',
         '#content' => $content,
         '#type' => $this->hasErrors ? 'danger' : 'success',
         '#cache' => [
@@ -343,7 +342,7 @@ class RefreshPageElements {
     }
 
     $build = [
-      '#theme' => 'po_show_cart_modal',
+      '#theme' => 'cecc_cart_show_cart_modal',
       '#order_items' => $orderItemArray,
       '#purchased_entity' => $this->purchasedEntity->id(),
       '#messageList' => $messageList,

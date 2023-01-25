@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_stock\EventSubscriber;
 
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\Event\OrderEvent;
@@ -75,10 +76,12 @@ class Order implements EventSubscriberInterface {
   private function modifyStockLevel(
     OrderItemInterface $orderItem,
     PurchasableEntityInterface $productVariation) {
+    $stock_field_name = StockHelper::getStockFieldName($productVariation);
 
     $quantity = -1 * $orderItem->getQuantity();
-    $stock = $productVariation->get('field_cecc_stock')->value + $quantity;
-    $productVariation->set('field_cecc_stock', $stock);
+    $stock = $productVariation->get($stock_field_name)
+      ->value + $quantity;
+    $productVariation->set($stock_field_name, $stock);
 
     try {
       $productVariation->save();
@@ -159,8 +162,9 @@ class Order implements EventSubscriberInterface {
       }
 
       $quantity = $item->getQuantity();
-      $stock = $entity->get('field_cecc_stock')->value + $quantity;
-      $entity->set('field_cecc_stock', $stock);
+      $stock_field_name = StockHelper::getStockFieldName($entity);
+      $stock = $entity->get($stock_field_name)->value + $quantity;
+      $entity->set($stock_field_name, $stock);
 
       try {
         $entity->save();
@@ -208,8 +212,10 @@ class Order implements EventSubscriberInterface {
           return;
         }
 
-        $stock = $entity->get('field_cecc_stock')->value + $diff;
-        $entity->set('field_cecc_stock', $stock);
+        $stock_field_name = StockHelper::getStockFieldName($entity);
+
+        $stock = $entity->get($stock_field_name)->value + $diff;
+        $entity->set($stock_field_name, $stock);
 
         try {
           $entity->save();
@@ -238,8 +244,10 @@ class Order implements EventSubscriberInterface {
         return;
       }
 
-      $stock = $entity->get('field_cecc_stock')->value + $item->getQuantity();
-      $entity->set('field_cecc_stock', $stock);
+      $stock_field_name = StockHelper::getStockFieldName($entity);
+
+      $stock = $entity->get($stock_field_name)->value + $item->getQuantity();
+      $entity->set($stock_field_name, $stock);
 
       try {
         $entity->save();

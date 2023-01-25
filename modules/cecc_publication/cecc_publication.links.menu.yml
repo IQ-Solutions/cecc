@@ -1,6 +1,12 @@
+cecc.publication_config:
+  title: 'Publication Config'
+  parent: cecc.config
+  description: 'Set CEC Publication Config'
+  route_name: cecc_publication.settings
+
 cecc.add_publication:
   title: 'Add Publication'
   parent: cecc.config
   description: 'Add a publication'
   route_name: entity.commerce_product.add_form
-  route_parameters: { commerce_product_type: cecc_publication }
+  class: Drupal\cecc_publication\Plugin\Menu\AddPublicationMenuLink

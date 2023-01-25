@@ -80,6 +80,7 @@ function cecc_publication_update_9001() {
   $config = $configFactory->getEditable('cecc_api.settings');
   $config->set('stock_refresh_interval', 'daily');
   $config->set('stock_refresh_type', 'interval');
+  $config->save();
 
   return 'API settings saved';
 }
@@ -161,4 +162,15 @@ function cecc_publication_update_9003() {
   catch(SchemaObjectExistsException $e) {
     \Drupal::logger('cecc_publication')->error($e->getMessage());
   }
+}
+
+/**
+ * Sets default value for CEC publication config.
+ */
+function cecc_publication_update_9004($is_syncing) {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('cecc_publication.settings');
+  $config->set('commerce_product_type', 'cecc_publication');
+  $config->set('commerce_product_variation_type', 'cecc_publication');
+  $config->save();
 }

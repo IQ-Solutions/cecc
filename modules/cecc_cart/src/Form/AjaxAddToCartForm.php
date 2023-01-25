@@ -20,6 +20,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\cecc_cart\Helper\RefreshPageElements;
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\cecc_stock\Service\StockValidation;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -275,12 +276,12 @@ class AjaxAddToCartForm extends AddToCartForm implements AddToCartFormInterface 
     $purchasedEntity = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->load($variation_id);
 
-    $stockConfig = \Drupal::config('po_stock.settings');
+    $stockConfig = \Drupal::config('cecc_stock.settings');
 
     if ($this->stockValidation->isCartOverQuantityLimit($variation_id, $quantity)) {
       $message = $this->t($stockConfig->get('order_over_limit_text'), [
         '%label' => $purchasedEntity->getOrderItemTitle(),
-        '%limit' => $purchasedEntity->get('field_maximum_order_amount')->value,
+        '%limit' => $purchasedEntity->get(StockHelper::getOrderLimitFieldName($purchasedEntity))->value,
       ]);
 
       $form_state->setError($form, $message);

@@ -4,6 +4,8 @@ description: 'Custom Drupal Commerce product'
 package: 'Customer Engagement Center'
 core_version_requirement: ^8.8 || ^9
 dependencies:
-  - cecc
+  - drupal:cecc
   - drupal:pathauto
   - drupal:commerce_product
+  - drupal:flag
+  - drupal:commerce_shipping

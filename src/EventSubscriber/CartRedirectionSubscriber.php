@@ -4,6 +4,7 @@ namespace Drupal\cecc\EventSubscriber;
 
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartEvents;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Routing\RouteProviderInterface;
 use Drupal\Core\Url;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -32,19 +33,30 @@ class CartRedirectionSubscriber implements EventSubscriberInterface {
   protected $routeProvider;
 
   /**
+   * The config factory service
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
    * CartEventSubscriber constructor.
    *
    * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
    *   The request stack.
    * @param \Drupal\Core\Routing\RouteProviderInterface $routeProvider
    *   The route provider.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The route provider.
    */
   public function __construct(
     RequestStack $requestStack,
-    RouteProviderInterface $routeProvider
+    RouteProviderInterface $routeProvider,
+    ConfigFactoryInterface $config_factory
   ) {
     $this->requestStack = $requestStack;
     $this->routeProvider = $routeProvider;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -69,10 +81,14 @@ class CartRedirectionSubscriber implements EventSubscriberInterface {
    *   The add to cart event.
    */
   public function doRedirect(CartEntityAddEvent $event) {
-    $redirection_url = Url::fromRoute('commerce_cart.page')->toString();
+    $ceccConfig = $this->configFactory->get('cecc.settings');
 
-    $this->requestStack->getCurrentRequest()->attributes
-      ->set('commerce_cart_redirection_url', $redirection_url);
+    if ($ceccConfig->get('add_to_cart_dest') == 'cart') {
+      $redirection_url = Url::fromRoute('commerce_cart.page')->toString();
+
+      $this->requestStack->getCurrentRequest()->attributes
+        ->set('commerce_cart_redirection_url', $redirection_url);
+    }
   }
 
   /**
@@ -86,8 +102,10 @@ class CartRedirectionSubscriber implements EventSubscriberInterface {
   public function checkRedirectIssued(ResponseEvent $event) {
     $request = $event->getRequest();
     $redirectUrl = $request->attributes->get('commerce_cart_redirection_url');
+    $cartConfig = $this->configFactory->get('cecc_cart.settings');
+    $usingAjax = $cartConfig->get('use_ajax') !== 0;
 
-    if (isset($redirectUrl)) {
+    if (isset($redirectUrl) && !$usingAjax) {
       $event->setResponse(new RedirectResponse($redirectUrl));
     }
   }

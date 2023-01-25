@@ -3,6 +3,7 @@
 namespace Drupal\cecc_api\Plugin\QueueWorker;
 
 use Drupal\cecc_stock\Event\RestockEvent;
+use Drupal\cecc_stock\Service\StockHelper;
 use Drupal\cecc_stock\Service\StockValidation;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityStorageException;
@@ -115,10 +116,11 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    * {@inheritdoc}
    */
   public function processItem($item) {
+    $warehouse_item_id = $this->config->get('warehouse_item_id_field_name');
 
     $productVariationIds = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->getQuery()
-      ->condition('field_cecc_warehouse_item_id', $item['id'])
+      ->condition($warehouse_item_id, $item['id'])
       ->execute();
 
     if (empty($productVariationIds)) {
@@ -135,9 +137,12 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
     }
 
     $previouslyInStock = $this->stockValidation->checkProductStock($productVariation);
+    $stock_field_name = StockHelper::getStockFieldName($productVariation);
 
-    $productVariation->set('field_cecc_stock', $item['new_stock_value']);
-    $productVariation->set('field_awaiting_stock_refresh', FALSE);
+    $productVariation->set($stock_field_name, $item['new_stock_value']);
+    if ($productVariation->hasField('field_awaiting_stock_refresh')) {
+      $productVariation->set('field_awaiting_stock_refresh', FALSE);
+    }
 
     try {
       $productVariation->save();
@@ -151,7 +156,7 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
 
       $this->logger->info('Stock for %label has been refreshed to %level', [
         '%label' => $productVariation->getTitle(),
-        '%level' => $productVariation->get('field_cecc_stock')->value,
+        '%level' => $productVariation->get($stock_field_name)->value,
       ]);
     }
     catch (EntityStorageException $error) {

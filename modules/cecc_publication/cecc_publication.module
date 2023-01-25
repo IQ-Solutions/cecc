@@ -31,8 +31,10 @@ function cecc_price_default_value(
   FieldDefinitionInterface $definition
 ) {
   $bundle = $entity->bundle();
+  $commerce_product_type = \Drupal::configFactory()->get('cecc_publication')
+    ->get('commerce_product_type');
 
-  if ($bundle == 'cecc_publication') {
+  if ($bundle == $commerce_product_type) {
     return [new Price('0', 'USD')];
   }
 }

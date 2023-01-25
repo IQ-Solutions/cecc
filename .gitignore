@@ -3,3 +3,4 @@
 
 # development files
 node_modules
+.cache

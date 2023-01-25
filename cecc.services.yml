@@ -11,5 +11,6 @@ services:
     arguments:
       - '@request_stack'
       - '@router.route_provider'
+      - '@config.factory'
     tags:
       - { name: event_subscriber }
