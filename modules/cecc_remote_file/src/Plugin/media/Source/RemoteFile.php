@@ -59,29 +59,36 @@ class RemoteFile extends MediaSourceBase {
   public function getMetadata(MediaInterface $media, $attribute_name) {
     $remote_field = $media->get($this->configuration['source_field']);
     $file = new \SplFileObject($remote_field->value);
+    $metadata = NULL;
 
     // If the source field is not required, it may be empty.
     if (!$remote_field) {
-      return parent::getMetadata($media, $attribute_name);
+      $metadata = parent::getMetadata($media, $attribute_name);
     }
 
     switch ($attribute_name) {
       case static::METADATA_ATTRIBUTE_NAME:
       case 'default_name':
-        return $file->getFilename();
+        $metadata = $file->getFilename();
+        break;
 
       case static::METADATA_ATTRIBUTE_MIME:
-        return mime_content_type($remote_field->value);
+        $metadata = mime_content_type($remote_field->value);
+        break;
 
       case static::METADATA_ATTRIBUTE_SIZE:
-        return $this->getRemoteFilesize($remote_field->value);
+        $metadata = $this->getRemoteFilesize($remote_field->value);
+        break;
 
       case 'thumbnail_uri':
-        return $this->getThumbnail($remote_field->value) ?: parent::getMetadata($media, $attribute_name);
+        $metadata = $this->getThumbnail($remote_field->value) ?: parent::getMetadata($media, $attribute_name);
+        break;
 
       default:
-        return parent::getMetadata($media, $attribute_name);
+        $metadata = parent::getMetadata($media, $attribute_name);
     }
+
+    return $metadata;
   }
 
   /**
@@ -152,8 +159,8 @@ class RemoteFile extends MediaSourceBase {
     $head = array_change_key_case(get_headers($url, 1));
     $clen = isset($head['content-length']) ? $head['content-length'] : 0;
 
-    if (!$clen) {
-      return -1;
+    if (!$clen || is_array($clen)) {
+      return NULL;
     }
 
     return $clen;
