@@ -8,6 +8,7 @@ use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
 use Drupal\commerce_cart\EventSubscriber\CartEventSubscriber;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -31,14 +32,17 @@ class CeccCartEventSubscriber extends CartEventSubscriber {
    *   The messenger.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
    *   The string translation.
+   * @param \Drupal\Core\Entity\EntityTypeManager $entity_type_manager
+   *   The entity type manager service.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack.
    */
   public function __construct(
     MessengerInterface $messenger,
     TranslationInterface $string_translation,
+    EntityTypeManager $entity_type_manager,
     RequestStack $request_stack) {
-    parent::__construct($messenger, $string_translation);
+    parent::__construct($messenger, $string_translation, $entity_type_manager);
 
     $this->currentRequest = $request_stack->getCurrentRequest();
   }
