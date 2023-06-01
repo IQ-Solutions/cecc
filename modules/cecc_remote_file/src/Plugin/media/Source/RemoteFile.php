@@ -2,6 +2,7 @@
 
 namespace Drupal\cecc_remote_file\Plugin\media\Source;
 
+use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
 use Drupal\media\MediaTypeInterface;
@@ -20,6 +21,8 @@ use Drupal\media\MediaTypeInterface;
  * )
  */
 class RemoteFile extends MediaSourceBase {
+
+  use LoggerChannelTrait;
 
   /**
    * Key for "Name" metadata attribute.
@@ -148,6 +151,7 @@ class RemoteFile extends MediaSourceBase {
    *   Return the file size in bytes
    */
   private function getRemoteFilesize($url, $formatSize = TRUE, $useHead = TRUE) {
+    $logger = $this->loggerFactory->get('cecc_publication');
     if (FALSE !== $useHead) {
       stream_context_set_default([
         'http' => [
@@ -160,6 +164,7 @@ class RemoteFile extends MediaSourceBase {
     $clen = isset($head['content-length']) ? $head['content-length'] : 0;
 
     if (!$clen || is_array($clen)) {
+      $logger->warning('%url return malformed data.');
       return NULL;
     }
 

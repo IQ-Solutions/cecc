@@ -166,7 +166,7 @@ class DownloadLink extends EntityReferenceFormatterBase {
       '#product_title' => $product->get('field_cecc_display_title')->value,
       '#product_url' => $path,
       '#link_alt' => $media->getName(),
-      '#file_size' => format_size($fileSize),
+      '#file_size' => empty($fileSize) ? NULL : format_size($fileSize),
     ];
 
     return $element;
