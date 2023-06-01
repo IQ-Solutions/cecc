@@ -151,7 +151,7 @@ class RemoteFile extends MediaSourceBase {
    *   Return the file size in bytes
    */
   private function getRemoteFilesize($url, $formatSize = TRUE, $useHead = TRUE) {
-    $logger = $this->loggerFactory->get('cecc_publication');
+    $logger = $this->getLogger('cecc_publication');
     if (FALSE !== $useHead) {
       stream_context_set_default([
         'http' => [
@@ -164,7 +164,9 @@ class RemoteFile extends MediaSourceBase {
     $clen = isset($head['content-length']) ? $head['content-length'] : 0;
 
     if (!$clen || is_array($clen)) {
-      $logger->warning('%url return malformed data.');
+      $logger->warning('%url return malformed data.', [
+        '%url' => $url,
+      ]);
       return NULL;
     }
 
