@@ -40,9 +40,8 @@ class CeccCartEventSubscriber extends CartEventSubscriber {
   public function __construct(
     MessengerInterface $messenger,
     TranslationInterface $string_translation,
-    EntityTypeManager $entity_type_manager,
     RequestStack $request_stack) {
-    parent::__construct($messenger, $string_translation, $entity_type_manager);
+    parent::__construct($messenger, $string_translation);
 
     $this->currentRequest = $request_stack->getCurrentRequest();
   }
