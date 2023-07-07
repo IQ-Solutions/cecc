@@ -32,6 +32,14 @@ cecc_api.send_order:
   requirements:
     _permission: 'administer site configuration'
 
+cecc_api.view_order_json:
+  path: '/admin/commerce/orders/{commerce_order}/view-order-json'
+  defaults:
+    _controller: \Drupal\cecc_api\Controller\CeccApiController:showOrderJson
+    _title: 'View Order Metadata'
+  requirements:
+    _permission: 'administer site configuration'
+
 cecc_api.refresh_all_stock:
   path: '/admin/commerce/products/refresh-all-stock'
   defaults:

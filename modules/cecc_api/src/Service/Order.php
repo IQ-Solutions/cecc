@@ -246,7 +246,8 @@ class Order implements ContainerInjectionInterface {
     foreach ($fields as $field_name => $field) {
       $field_settings = $field->getSettings();
 
-      if (isset($field_settings['allowed_values'])) {
+      if (isset($field_settings['allowed_values'])
+        && isset($field_name_conversion[$field_name])) {
         $export_name = $field_name_conversion[$field_name];
         $this->orderData['customer_questions'][$export_name]
           = $this->order->get($field_name)->value;
