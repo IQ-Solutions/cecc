@@ -61,6 +61,13 @@ function cecc_api_entity_operation(EntityInterface $entity) {
       ]),
       'weight' => 50,
     ];
+    $operations['view__order_json'] = [
+      'title' => t('View Order as JSON'),
+      'url' => Url::fromRoute('cecc_api.view_order_json', [
+        'commerce_order' => $entity->id(),
+      ]),
+      'weight' => 50,
+    ];
   }
 
   return $operations;

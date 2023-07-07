@@ -456,6 +456,7 @@ class Order implements ContainerInjectionInterface {
    *   The order ID.
    */
   public function viewOrderAsJson($id) {
+    $this->resetOrderData();
     $this->collectOrderData($id);
     $response = new CacheableJsonResponse($this->orderData);
 
