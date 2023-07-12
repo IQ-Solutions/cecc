@@ -4,7 +4,7 @@ description: 'Customer Engagement Center (CEC) Catalog Drupal module'
 package: 'Customer Engagement Center'
 core_version_requirement: ^9 || ^10
 dependencies:
-  - drupal:commerce
+  - drupal:commerce (>=2.3.6)
   - drupal:commerce_shipping
   - drupal:telephone
   - drupal:telephone_formatter
