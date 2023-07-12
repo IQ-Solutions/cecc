@@ -19,6 +19,7 @@
   },
   "require": {
     "npm-asset/jquery-mask-plugin": "^1.14",
-    "drupal/flag": "^4.0@beta"
+    "drupal/flag": "^4.0@beta",
+    "drupal/commerce": "~2.36"
   }
 }
