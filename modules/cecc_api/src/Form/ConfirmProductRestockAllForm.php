@@ -133,6 +133,7 @@ class ConfirmProductRestockAllForm extends ConfirmFormBase {
 
     foreach ($batchData as $data) {
       $cpvId = $storage->getQuery()
+        ->accessCheck(FALSE)
         ->condition($warehouse_item_id, $data['warehouse_item_id'])
         ->execute();
 

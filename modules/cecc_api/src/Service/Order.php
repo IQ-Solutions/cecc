@@ -513,10 +513,7 @@ class Order implements ContainerInjectionInterface {
       $message = '@error | @response';
 
       if ($this->config->get('debug') == 0) {
-        $file = file_save_data($orderDataJson, 'public://testorder.json');
-        $url = file_create_url($file->getFileUri());
-        $log_message['@file'] = $url;
-        $message = '@error | @response | File available at @file';
+        $message = '@error | @response';
       }
 
       $this->logger->error($message, $log_message);

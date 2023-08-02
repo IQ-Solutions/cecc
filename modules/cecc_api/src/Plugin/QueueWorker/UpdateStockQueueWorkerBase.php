@@ -120,6 +120,7 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
 
     $productVariationIds = $this->entityTypeManager->getStorage('commerce_product_variation')
       ->getQuery()
+      ->accessCheck(FALSE)
       ->condition($warehouse_item_id, $item['id'])
       ->execute();
 
