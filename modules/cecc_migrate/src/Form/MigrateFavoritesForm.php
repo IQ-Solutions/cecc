@@ -228,6 +228,7 @@ class MigrateFavoritesForm extends FormBase {
     $sku = \Drupal::config('cecc_api.settings')->get('agency') . '-' . trim($data[3]);
 
     $users = $entityTypeManager->getStorage('user')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('field_customer_id_legacy', $customerId)
       ->execute();
 

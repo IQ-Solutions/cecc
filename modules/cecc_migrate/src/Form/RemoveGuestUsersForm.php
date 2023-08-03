@@ -233,7 +233,8 @@ class RemoveGuestUsersForm extends FormBase {
       }
     }
 
-    $userQuery = $entityTypeManager->getStorage('user')->getQuery();
+    $userQuery = $entityTypeManager->getStorage('user')->getQuery()
+      ->accessCheck(FALSE);
     $userQuery->condition('field_customer_id_legacy', $customerId);
     $userIds = $userQuery->execute();
 

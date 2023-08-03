@@ -229,7 +229,8 @@ class TaxonomyIndexTid extends ManyToOne {
           // https://www.drupal.org/commerce_product/1821274.
           ->sort('weight')
           ->sort('name')
-          ->addTag('taxonomy_term_access');
+          ->addTag('taxonomy_term_access')
+          ->accessCheck(FALSE);
         if (!$this->currentUser->hasPermission('administer taxonomy')) {
           $query->condition('status', 1);
         }

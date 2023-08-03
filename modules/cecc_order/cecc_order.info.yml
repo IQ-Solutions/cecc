@@ -2,7 +2,7 @@ type: module
 name: 'CEC Catalog Order'
 description: 'Custom Drupal Commerce order'
 package: 'Customer Engagement Center'
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:cecc_publication
   - drupal:commerce_order

@@ -2,7 +2,7 @@ type: module
 name: 'CEC Catalog Publication'
 description: 'Custom Drupal Commerce product'
 package: 'Customer Engagement Center'
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:cecc
   - drupal:pathauto

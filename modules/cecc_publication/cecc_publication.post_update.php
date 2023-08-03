@@ -7,6 +7,7 @@ use Drupal\commerce_product\Entity\Product;
  */
 function cecc_publication_post_update_commerce_taxonomy() {
   $query = \Drupal::entityTypeManager()->getStorage('commerce_product')->getQuery()
+    ->accessCheck(FALSE)
     ->condition('status', 1);
   $product_ids = $query->execute();
 

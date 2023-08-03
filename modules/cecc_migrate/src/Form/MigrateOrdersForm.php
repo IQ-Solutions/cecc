@@ -426,7 +426,8 @@ class MigrateOrdersForm extends FormBase {
    */
   public static function getProfile(array $data, User $user) {
     $entityTypeManager = \Drupal::entityTypeManager();
-    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
+    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery()
+      ->accessCheck(FALSE);
     $profileQuery->condition('field_customer_id_legacy', $data[4]);
     $profileQuery->condition('uid', $user->id());
     $profileIds = $profileQuery->execute();

@@ -2,6 +2,6 @@ type: module
 name: 'CECC Shipping Account Payment Gateway'
 description: 'Customer Engagement Center (CEC) Catalog Shipping Account Payment Gateway'
 package: 'Customer Engagement Center'
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - cecc
