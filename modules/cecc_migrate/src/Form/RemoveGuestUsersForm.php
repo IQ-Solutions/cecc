@@ -211,7 +211,8 @@ class RemoveGuestUsersForm extends FormBase {
       return;
     }
 
-    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery();
+    $profileQuery = $entityTypeManager->getStorage('profile')->getQuery()
+      ->accessCheck(FALSE);
     $profileQuery->condition('field_customer_id_legacy', $customerId);
     $profileQuery->condition('uid', 0, '<>');
     $profileIds = $profileQuery->execute();
