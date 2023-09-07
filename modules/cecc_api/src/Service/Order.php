@@ -554,7 +554,7 @@ class Order implements ContainerInjectionInterface {
       $this->orderData[$type . '_address']['suite_no'] = '';
       $this->orderData[$type . '_address']['city'] = $addressArray['locality'];
       $this->orderData[$type . '_address']['state']
-        = !empty($addressArray['administrative_area']) ? $addressArray['administrative_area'] : '';
+        = !empty($addressArray['administrative_area']) ? $addressArray['administrative_area'] : 'NA';
       $this->orderData[$type . '_address']['zip']
         = !empty($addressArray['postal_code']) ? $addressArray['postal_code'] : '00000';
       $this->orderData[$type . '_address']['country']
