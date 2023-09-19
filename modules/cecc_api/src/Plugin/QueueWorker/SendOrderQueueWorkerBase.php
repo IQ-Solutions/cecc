@@ -11,6 +11,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\cecc_api\Service\Order;
+use Drupal\Core\Queue\RequeueException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -105,16 +106,28 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
         return FALSE;
 
       case $this->orderApi::API_CONNECTION_ERROR:
-        $params = [
-          'message' => $this->t('Order @ordernumber failed to send due to invalid data', [
+        $message = $this->t('Order @ordernumber failed to send due to invalid data', [
             '@ordernumber' => $this->orderApi->orderNumber,
-          ]),
+        ]);
+        $params = [
+          'message' => $message,
         ];
 
         $this->sendMail($params);
+        throw new RequeueException($message->__toString());
         return FALSE;
 
       case $this->orderApi::INTERNAL_CONNECTION_ERROR:
+        $message = $this->t('Order @ordernumber failed to send due to a connection error', [
+            '@ordernumber' => $this->orderApi->orderNumber,
+        ]);
+        $params = [
+          'message' => $message,
+        ];
+
+        $this->sendMail($params);
+        throw new RequeueException($message->__toString());
+        return FALSE;
       case $this->orderApi::API_NOT_CONFIGURED:
         throw new SuspendQueueException('The service failed to connect. Please check the error log for more information. Item requeued.');
 
