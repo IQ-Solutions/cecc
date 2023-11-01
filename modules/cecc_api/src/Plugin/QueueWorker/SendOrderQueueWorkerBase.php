@@ -59,6 +59,12 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
   /**
    * Queueworker Construct.
    *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin ID for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
    * @param \Drupal\cecc_api\Service\Order $order_api
    *   Order API service.
    * @param \Drupal\Core\Config\ConfigFactory $configFactory
@@ -69,10 +75,14 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
    *   Drupal logger service.
    */
   public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
     Order $order_api,
     ConfigFactory $configFactory,
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->orderApi = $order_api;
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_api');
@@ -88,6 +98,9 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
     $plugin_id,
     $plugin_definition) {
     return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
       $container->get('cecc_api.order'),
       $container->get('config.factory'),
       $container->get('entity_type.manager'),

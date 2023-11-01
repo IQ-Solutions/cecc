@@ -80,12 +80,16 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
    *   Event dispatcher service.
    */
   public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
     HttpClientInterface $http_client,
     ConfigFactory $configFactory,
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory,
     EventDispatcherInterface $event_dispatcher,
     StockValidation $stockValidation) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_api');
     $this->config = $configFactory->get('cecc_api.settings');
@@ -103,6 +107,9 @@ class UpdateStockQueueWorkerBase extends QueueWorkerBase implements ContainerFac
     $plugin_id,
     $plugin_definition) {
     return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
       $container->get('cecc_api.http_client.contents'),
       $container->get('config.factory'),
       $container->get('entity_type.manager'),

@@ -52,6 +52,12 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
   /**
    * Queueworker Construct.
    *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin ID for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
    * @param \Drupal\http_client_manager\HttpClientInterface $http_client
    *   Http client manager client.
    * @param \Drupal\Core\Config\ConfigFactory $configFactory
@@ -62,10 +68,14 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
    *   Drupal logger service.
    */
   public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
     HttpClientInterface $http_client,
     ConfigFactory $configFactory,
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $loggerFactory) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $loggerFactory->get('cecc_api');
     $this->config = $configFactory->get('cecc_api.settings');
@@ -81,6 +91,9 @@ class UpdateAllStockQueueWorkerBase extends QueueWorkerBase implements Container
     $plugin_id,
     $plugin_definition) {
     return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
       $container->get('cecc_api.http_client.contents'),
       $container->get('config.factory'),
       $container->get('entity_type.manager'),
