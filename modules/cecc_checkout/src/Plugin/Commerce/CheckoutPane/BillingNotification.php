@@ -116,7 +116,8 @@ class BillingNotification extends CheckoutPaneBase implements CheckoutPaneInterf
    * {@inheritDoc}
    */
   public function isVisible() {
-    return $this->order->getTotalPrice()->isZero();
+    $total_price = $this->order->getTotalPrice();
+    return $total_price !== NULL && $total_price->isZero();
   }
 
   /**
