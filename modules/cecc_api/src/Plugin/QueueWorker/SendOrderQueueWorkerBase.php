@@ -113,6 +113,9 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
    */
   public function processItem($item) {
     $orderStatus = $this->orderApi->sendOrder($item['id']);
+    $state = \Drupal::state();
+    $key = 'OrderErrorEmail_' . $item['id'];
+    $orderEmailSent = $state->get($key);
 
     switch ($orderStatus) {
       case $this->orderApi::ORDER_DOES_NOT_EXIST:
@@ -126,7 +129,11 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
           'message' => $message,
         ];
 
-        $this->sendMail($params);
+        if (is_null($orderEmailSent)) {
+          $state->set($key, TRUE);
+          $this->sendMail($params);
+        }
+
         throw new RequeueException($message->__toString());
         return FALSE;
 
@@ -138,12 +145,17 @@ class SendOrderQueueWorkerBase extends QueueWorkerBase implements ContainerFacto
           'message' => $message,
         ];
 
-        $this->sendMail($params);
+        if (is_null($orderEmailSent)) {
+          $state->set($key, TRUE);
+          $this->sendMail($params);
+        }
+
         throw new RequeueException($message->__toString());
         return FALSE;
       case $this->orderApi::API_NOT_CONFIGURED:
         throw new SuspendQueueException('The service failed to connect. Please check the error log for more information. Item requeued.');
-
+      default:
+        $state->delete($key);
     }
   }
 
